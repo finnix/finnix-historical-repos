@@ -1,0 +1,15 @@
+Source: neale-stuff
+Section: debian-installer
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+Vcs-Browser: https://code.launchpad.net/~fo0bar/finnix/neale-stuff-pkg-debian
+Vcs-Bzr: http://bazaar.launchpad.net/~fo0bar/finnix/neale-stuff-pkg-debian
+Homepage: http://www.finnix.org/
+
+Package: neale-stuff
+Architecture: i386 amd64 powerpc
+XC-Package-Type: udeb
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Finnix misc build files
