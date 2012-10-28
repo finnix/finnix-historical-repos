@@ -1,0 +1,2 @@
+# Irrelevant for a base metapackage
+finnix-standard binary: depends-exclusively-on-makedev depends

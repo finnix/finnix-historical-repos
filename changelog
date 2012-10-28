@@ -1,0 +1,32 @@
+finnix-standard (107~1) unstable; urgency=low
+
+  * Remove root directory, touch inuse file directly
+  * Bump standards to 3.9.3
+  * Override depends-exclusively-on-makedev
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 03:27:23 +0000
+
+finnix-standard (106) unstable; urgency=low
+
+  * Finnix 106
+  * Add gdisk-noicu (fallback to gdisk) (LP: #957953)
+  * Remove sysklogd (no longer in debian testing)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 25 Oct 2012 23:57:56 +0000
+
+finnix-standard (105.1) unstable; urgency=low
+
+  * Include fsarchiver
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 08 Jul 2012 19:05:23 -0700
+
+finnix-standard (105) unstable; urgency=low
+
+  * Initial release
+  * Remove procmail
+  * Change smbfs to cifs-utils
+  * Remove ddrescue (http://bugs.debian.org/677101)
+  * Remove deborphan
+  * Add "inuse" file to get around automatically deleting empty package
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 08 Jul 2012 18:51:12 -0700

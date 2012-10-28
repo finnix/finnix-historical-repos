@@ -1,0 +1,13 @@
+Source: finnix-standard
+Section: misc
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+
+Package: finnix-standard
+Architecture: all
+Depends: ${misc:Depends}, finnix-base, finnix-scripts, finnix-netboot, finnix-standard-arch, 2ping, apmd, apt-utils, arj, arpwatch, ash, at, attr, bc, bittornado, bonnie++, bootchart, bsd-mailx, btrfs-tools, buffer, bzip2, ca-certificates, cabextract, cdbackup, cdpr, chkrootkit, console-data, console-tools, cpio, cron, cryptsetup, curl, debootstrap, dnsutils, dosfstools, dselect, dump, dvd+rw-tools, ed, eject, elinks-lite, emad, etherwake, ethtool, fdutils, fetchmail, file, finger, fsarchiver, fuseext2, fxload, gawk, gddrescue, gdisk-noicu | gdisk, genromfs, gpm, grepcidr, hdparm, hexedit, hfsutils, htop, iftop, ifupdown, install-info, iotop, ipcalc, iptables, iptraf, iputils-ping, irssi, isc-dhcp-client, isomd5sum, jfsutils, joe, less, lftp, lm-sensors, lpr, lrzsz, lsof, ltrace, lvm2, makedev, man-db, manpages, mbr, mc, mdadm, memtester, mii-diag, minicom, mt-st, mtools, mtr-tiny, mutt, nano, netcat-openbsd, nmap, ntfs-3g, ntpdate, nvi, openssh-client, openssh-server, openvpn, oui, p7zip, parted, partimage, patch, pcmciautils, pidentd, pppconfig, pppoe, pppoeconf, pptp-linux, procinfo, pump, pv, rdate, rdiff-backup, reiser4progs, reiserfsprogs, rlwrap, robotfindskitten, rsync, screen, sendfile, setserial, sharutils, sl, smartmontools, smbclient, cifs-utils, snmp, squashfs-tools, strace, stress, stunnel4, sudo, tcpdump, telnet-ssl, tftp, time, tmux, tofrodos, traceroute, twuewand, units, unp, unzip, usbutils, uuid-runtime, vanityhash, vlan, wget, whois, wipe, wireless-tools, wodim, wpasupplicant, xfsdump, xfsprogs, zile, zip
+Description: Standard Finnix dependencies
+ This meta-package depends all needed packages for a standard Finnix
+ distribution.
