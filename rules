@@ -1,0 +1,29 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -m 0755 -d $(CURDIR)/debian/neale-initrd
+	install -m 0755 -d $(CURDIR)/debian/neale-initrd/bin
+	install -m 0755 -d $(CURDIR)/debian/neale-initrd/dev
+	install -m 0755 -d $(CURDIR)/debian/neale-initrd/etc
+	install -m 0755 -d $(CURDIR)/debian/neale-initrd/lib
+	install -m 0755 -d $(CURDIR)/debian/neale-initrd/lib/modules
+	install -m 0755 -d $(CURDIR)/debian/neale-initrd/proc
+	install -m 0755 -d $(CURDIR)/debian/neale-initrd/ramdisk
+	install -m 0755 -d $(CURDIR)/debian/neale-initrd/sys
+
+	install -m 0755 init $(CURDIR)/debian/neale-initrd/init
+	install -m 0755 MAKEDEV $(CURDIR)/debian/neale-initrd/dev/MAKEDEV
+	install -m 0644 resolv.conf $(CURDIR)/debian/neale-initrd/etc/resolv.conf
+	install -m 0755 finnix-colors.sh $(CURDIR)/debian/neale-initrd/bin/finnix-colors.sh
+	install -m 0755 udhcpc.script $(CURDIR)/debian/neale-initrd/bin/udhcpc.script
+	install -m 0755 busybox/busybox-$(DEB_HOST_ARCH) $(CURDIR)/debian/neale-initrd/bin/busybox
+
+	(cd $(CURDIR)/debian/neale-initrd/bin && for i in `./busybox --list`; do ln -s busybox $$i; done)
+	(cd $(CURDIR)/debian/neale-initrd/dev && ./MAKEDEV std fd pty console)
