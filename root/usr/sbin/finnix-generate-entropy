@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# finnix-generate-entropy
+# Copyright (C) 2011 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+. /etc/lsb-release
+
+### Utility Function(s)
+do_whiptail() {
+  DTMP=`mktemp`
+  whiptail --output-fd 3 --backtitle "${DISTRIB_ID}" --title "${DISTRIB_ID} Entropy Generation" "$@" 3>${DTMP}
+  DOUT=$?
+  DVAL="$(cat ${DTMP})"
+  rm -f ${DTMP}
+  return ${DOUT}
+}
+
+POOLSIZE="$(cat /proc/sys/kernel/random/poolsize)"
+[ -z "$POOLSIZE" ] && POOLSIZE=4096
+while true; do
+  do_whiptail --inputbox "This program generates cryptographic entropy normally missing due to the LiveCD environment.  It is recommended that you generate $POOLSIZE bytes of entropy (the size of an entropy pool on this system), though the process is slow; approximately 1 second per 32 bytes.\n\nHow many bytes of entropy would you like to generate?" 0 0 "$POOLSIZE"
+  [ $? -eq 0 ] || exit
+  POOLSIZE="$DVAL"
+  [ -n "$POOLSIZE" ] && break
+done
+
+echo; echo; echo
+twuewand "$POOLSIZE" >/dev/urandom
+echo; echo
+sleep 3
+exit 0

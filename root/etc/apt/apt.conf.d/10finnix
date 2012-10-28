@@ -1,0 +1,7 @@
+// Apt dies a messy death when PDiffs are on and release scripts have been run:
+// for i in /var/lib/apt/lists/*_{Release,Packages}; do >$i; touch -t 198103190000.00 $i; done; apt-get check
+Acquire::PDiffs "false";
+
+// Keep recommends as optional
+APT::Install-Recommends "false";
+

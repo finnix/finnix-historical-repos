@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# finnix-rc-local
+# Copyright (C) 2011 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+. /lib/finnix/finnix-rc-helper.sh
+
+case "$1" in
+  start)
+    MYCONFIGS=""
+    if [ -n "${FINNIX_DIR}" ]; then
+      if [ -d "/cdrom${FINNIX_DIR}/arch/indep/rc" ]; then
+        for i in /cdrom${FINNIX_DIR}/arch/indep/rc/*; do
+          if [ -f "$i" ]; then
+            [ -n "$MYCONFIGS" ] && MYCONFIGS="$MYCONFIGS "
+            MYCONFIGS="$MYCONFIGS$i"
+          fi
+        done
+      fi
+    fi
+
+    if [ -n "${FINNIX_CDARCHDIR}" ]; then
+      if [ -d "/cdrom${FINNIX_CDARCHDIR}/rc" ]; then
+        for i in /cdrom${FINNIX_CDARCHDIR}/rc/*; do
+          if [ -f "$i" ]; then
+            [ -n "$MYCONFIGS" ] && MYCONFIGS="$MYCONFIGS "
+            MYCONFIGS="$MYCONFIGS$i"
+          fi
+        done
+      fi
+    fi
+
+    if [ -n "$MYCONFIGS" ]; then
+      echo "${BLUEITEM} Executing local startup scripts:"
+      for i in $MYCONFIGS; do
+        echo "  ${WHITE}$i${NORMAL}"
+        . "$i" || true
+      done
+    fi
+
+    if [ -x /etc/rc.local ]; then
+      /etc/rc.local || true
+    fi
+    ;;
+  *)
+    echo "Usage: $0 {start}" >&2
+    exit 1
+    ;;
+esac

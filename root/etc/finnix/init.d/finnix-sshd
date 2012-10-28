@@ -1,0 +1,42 @@
+#!/bin/sh
+
+. /lib/finnix/finnix-rc-helper.sh
+
+case "$1" in
+  start)
+    if checkbootparam "sshd"; then
+      if [ "`egrep '^root:' /etc/shadow | awk -F: '{print $2}'`" = \* ]; then
+        ROOTPASS_USER="$(getbootparam sshd_password)"
+        if [ -n "${ROOTPASS_USER}" ]; then
+          ROOTPASS="${ROOTPASS_USER}"
+        else
+          ROOTPASS="$(pwgen)"
+        fi
+        chpasswd --md5 <<EOM
+root:$ROOTPASS
+finnix:$ROOTPASS
+EOM
+      fi
+      invoke-rc.d ssh start
+      #ln -sf ../init.d/ssh /etc/rc0.d/K20ssh
+      #ln -sf ../init.d/ssh /etc/rc6.d/K20ssh
+      if [ -n "${ROOTPASS}" ]; then
+        echo "${BLUEITEM}   New root/finnix password: ${WHITE}${ROOTPASS}${NORMAL}"
+      fi
+      echo -n "${BLUEITEM} Waiting... "; sleep 5; echo -n "done${CRE}"
+      echo "${BLUEITEM}   Current system IP addresses:"
+      ifconfig -a | grep "inet addr" | grep -v "inet addr:127"
+    fi
+    ;;
+  stop)
+    if invoke-rc.d ssh status 2>/dev/null >/dev/null; then
+      /etc/init.d/ssh stop
+    fi
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

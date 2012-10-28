@@ -1,0 +1,31 @@
+=head1 NAME
+
+finnix-hwsubmit - Gather information about the running system and 
+submit to Finnix
+
+=head1 SYNOPSIS
+
+B<finnix-hwsubmit>
+
+=head1 DESCRIPTION
+
+B<finnix-hwsubmit> gathers detailed information about a running system, 
+launches an editor to review the information and add notes (devices not 
+recognized, etc), and gives the option of submitting the report to 
+Finnix servers.  This information can be used by Finnix developers to 
+futher improve Finnix.
+
+=head1 OPTIONS
+
+None.  B<finnix-hwsubmit> is an interactive program.
+
+=head1 BUGS
+
+None known.
+
+=head1 AUTHOR
+
+B<finnix-hwsubmit> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

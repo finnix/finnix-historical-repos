@@ -1,0 +1,255 @@
+#!/bin/bash
+
+# finnix-hwsubmit
+# Copyright (C) 2011 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+if [ ! -f /proc/cpuinfo ]; then
+  echo "/proc is not mounted.  Exiting."
+  exit 1
+fi
+
+. /etc/lsb-release
+do_whiptail() {
+  DTMP=`mktemp`
+  whiptail --output-fd 3 --backtitle "${DISTRIB_ID}" --title "${DISTRIB_ID} Hardware Submission Program" "$@" 3>${DTMP}
+  DOUT=$?
+  DVAL="$(cat ${DTMP})"
+  rm -f ${DTMP}
+  return ${DOUT}
+}
+
+do_whiptail --msgbox "Thank you for participating in the ${DISTRIB_ID} Hardware Submission Program. 
+This program will submit several pieces of information about your 
+running system.  Before your information is submitted, an editor will be 
+launched that will allow you to enter notes about the system.  Please 
+specify what type of computer you are running (IE \"Apple iMac G4\", 
+\"Dell PowerEdge 350\", etc), and if there were any problems with booting 
+${DISTRIB_ID} (undetected hardware, kernel errors, etc).
+
+After you exit the editor, you will have a final chance to cancel, 
+modify your information, or send the report.
+
+No personal information is sent, nor is anything not in the report 
+(which, again, you will have the opportunity to review).  However, any 
+information submitted to ${DISTRIB_ID} may be displayed publicly.  Please 
+review all information before submitting, and don't submit anything you 
+don't want the world to see." 0 0
+
+
+
+TEMPFILE="$(mktemp)"
+cat >${TEMPFILE} <<EOT
+########################################################################
+# Notes
+#
+# Please specify what type of computer you are running (IE "Apple iMac
+# G4", "Dell PowerEdge 350", etc), and if there were any problems with
+# booting ${DISTRIB_ID} (undetected hardware, kernel errors, etc).  Feel free
+# to specify as much information as you would like.
+########################################################################
+
+
+
+########################################################################
+# ${DISTRIB_ID} version
+########################################################################
+${DISTRIB_DESCRIPTION}
+
+
+EOT
+
+ARCH="$(uname -m)"
+if [ "${ARCH}" = "ppc" -o "${ARCH}" = "ppc64" -o "${ARCH}" = "powerpc" ]; then
+  do_whiptail --checklist "The following information may be included in the report.
+
+Please make any desired changes, then select \"OK\"." 0 0 0 \
+    UNAME "uname" on \
+    CPUINFO "cpuinfo" on \
+    MEMINFO "meminfo" on \
+    CMDLINE "cmdline" on \
+    LSPCI "lspci" on \
+    LSUSB "lsusb" on \
+    LSBLK "lsblk" on \
+    MODULES "modules" on \
+    DMESG "dmesg" on
+  [ $? -eq 0 ] || exit
+else
+  do_whiptail --checklist "The following information may be included in the report. \"dmidecode\" 
+may include information about the system you consider sensitive, such 
+as serial numbers.  Please review the information, and unselect it if 
+you do not wish to submit that information.  For most users dmidecode 
+is safe to share with others, so please consider submitting it.
+
+Please make any desired changes, then select \"OK\"." 0 0 0 \
+    UNAME "uname" on \
+    CPUINFO "cpuinfo" on \
+    MEMINFO "meminfo" on \
+    CMDLINE "cmdline" on \
+    LSPCI "lspci" on \
+    LSUSB "lsusb" on \
+    LSBLK "lsblk" on \
+    MODULES "modules" on \
+    DMESG "dmesg" on \
+    DMIDECODE "dmidecode" on
+  [ $? -eq 0 ] || exit
+fi
+
+for opt in ${DVAL}; do
+case $opt in
+  \"UNAME\")
+    UNAME="$(uname -a)"
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# uname
+########################################################################
+${UNAME}
+
+
+EOT
+    ;;
+  \"CPUINFO\")
+    CPUINFO="$(cat /proc/cpuinfo)"
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# cpuinfo
+########################################################################
+${CPUINFO}
+
+
+EOT
+    ;;
+  \"MEMINFO\")
+    MEMINFO="$(cat /proc/meminfo)"
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# meminfo
+########################################################################
+${MEMINFO}
+
+
+EOT
+    ;;
+  \"CMDLINE\")
+    CMDLINE="$(cat /proc/cmdline)"
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# cmdline
+########################################################################
+${CMDLINE}
+
+
+EOT
+    ;;
+  \"LSPCI\")
+    [ -d /sys/bus/pci/devices -o -d /proc/bus/pci ] && LSPCI="$(lspci -vvnnk)"
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# lspci
+########################################################################
+${LSPCI}
+
+
+EOT
+    ;;
+  \"LSUSB\")
+    [ -d /proc/bus/usb ] && LSUSB="$(lsusb -v)"
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# lsusb
+########################################################################
+${LSUSB}
+
+
+EOT
+    ;;
+  \"LSBLK\")
+    [ -n "$(which lsblk)" ] && LSBLK="$(lsblk -a)"
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# lsblk
+########################################################################
+${LSBLK}
+
+
+EOT
+    ;;
+  \"MODULES\")
+    [ -f /proc/modules ] && MODULES="$(cat /proc/modules)"
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# modules
+########################################################################
+${MODULES}
+
+
+EOT
+    ;;
+  \"DMESG\")
+    if [ -s /var/log/dmesg ]; then
+      DMESG="$(cat /var/log/dmesg)"
+    else
+      DMESG="$(dmesg)"
+    fi
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# dmesg
+########################################################################
+${DMESG}
+
+
+EOT
+    ;;
+  \"DMIDECODE\")
+    DMIDECODE="$(dmidecode)"
+    cat >>${TEMPFILE} <<EOT
+########################################################################
+# dmidecode
+########################################################################
+${DMIDECODE}
+
+
+EOT
+    ;;
+esac
+done
+
+COLUMNS=80 nano +9 -r 72 "${TEMPFILE}"
+
+while true; do
+  do_whiptail --menu "Ready to send report to ${DISTRIB_ID}." 0 0 0 \
+    EDIT "Edit report" \
+    SEND "Send report" \
+    SAVE "Save report locally, do not send" \
+    || break
+  if [ "${DVAL}" = "EDIT" ]; then
+    COLUMNS=80 nano +9 -r 72 "${TEMPFILE}"
+  elif [ "${DVAL}" = "SAVE" ]; then
+    HWFILE="/tmp/finnix-hwsubmit-$(date +%Y%m%d-%H%M%S)"
+    cp "${TEMPFILE}" "${HWFILE}"
+    do_whiptail --msgbox "The report has been saved locally as ${HWFILE}" 0 0
+    break
+  elif [ "${DVAL}" = "SEND" ]; then
+    do_whiptail --infobox "Please wait, your submission is being uploaded...\n\n\n" 0 0
+    gzip -9 "${TEMPFILE}" && TEMPFILE="${TEMPFILE}.gz"
+    RESP="$(curl -s -S -F reportdata=@"${TEMPFILE}" http://www.finnix.org/hwsubmit.php 2>&1)"
+    do_whiptail --msgbox "The server replied: ${RESP}\n\n\n" 0 0
+    break
+  fi
+done
+
+rm -f "${TEMPFILE}"
+exit 0

@@ -1,0 +1,13 @@
+Source: finnix-scripts
+Section: misc
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~), perl
+Standards-Version: 3.9.3
+
+Package: finnix-scripts
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, whiptail, perl, pciutils, udev, pwgen, finnix-release, runit, openssh-server, utmptty
+Description: Scripts needed to run Finnix
+ This package contains the bulk of the scripts needed to build and run 
+ the Finnix distribution.

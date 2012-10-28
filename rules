@@ -1,0 +1,42 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	# Copy the root directory into place
+	install -m 0755 -d $(CURDIR)/debian/finnix-scripts
+	cp -a debian/root/* $(CURDIR)/debian/finnix-scripts
+
+	# Install broken (by design) symlinks
+	ln -sf /var/run/runit-control-reboot $(CURDIR)/debian/finnix-scripts/etc/runit/reboot
+	ln -sf /var/run/runit-control-stopit $(CURDIR)/debian/finnix-scripts/etc/runit/stopit
+	#ln -sf /var/run/sv.getty-tty1 $(CURDIR)/debian/finnix-scripts/lib/finnix/service.d/getty-tty1/supervise
+	#ln -sf /var/run/sv.getty-tty2 $(CURDIR)/debian/finnix-scripts/lib/finnix/service.d/getty-tty2/supervise
+	#ln -sf /var/run/sv.getty-tty3 $(CURDIR)/debian/finnix-scripts/lib/finnix/service.d/getty-tty3/supervise
+	#ln -sf /var/run/sv.getty-tty4 $(CURDIR)/debian/finnix-scripts/lib/finnix/service.d/getty-tty4/supervise
+	ln -sf runit-init $(CURDIR)/debian/finnix-scripts/sbin/init.finnix
+	ln -sf runit-init $(CURDIR)/debian/finnix-scripts/sbin/telinit.finnix
+
+	# Documentation
+	install -m 0755 -d $(CURDIR)/debian/finnix-scripts/usr/share/man/man1
+	pod2man -c '' -r '' -s 1 debian/man/bashlogin.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/bashlogin.1
+	pod2man -c '' -r '' -s 1 debian/man/fstype.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/fstype.1
+	pod2man -c '' -r '' -s 1 debian/man/rebuildfstab.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/rebuildfstab.1
+	pod2man -c '' -r '' -s 1 debian/man/notfound.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/notfound.1
+	pod2man -c '' -r '' -s 1 debian/man/finnix-chroot-dev.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-chroot-dev.1
+	pod2man -c '' -r '' -s 1 debian/man/finnix-strace-reorder.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-strace-reorder.1
+	pod2man -c '' -r '' -s 1 debian/man/finnix-strace-reorder.classic.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-strace-reorder.classic.1
+	pod2man -c '' -r '' -s 1 debian/man/finnix-strace-reorder.experimental.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-strace-reorder.experimental.1
+	pod2man -c '' -r '' -s 1 debian/man/finnix-hwsubmit.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-hwsubmit.1
+	pod2man -c '' -r '' -s 1 debian/man/finnix-build-stage1.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-build-stage1.1
+	pod2man -c '' -r '' -s 1 debian/man/finnix-build-stage2.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-build-stage2.1
+	pod2man -c '' -r '' -s 1 debian/man/finnix-generate-entropy.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-generate-entropy.1
+	pod2man -c '' -r '' -s 1 debian/man/zram_stat.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/zram_stat.1
+
+override_dh_md5sums:
+	dh_md5sums -x

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+. /lib/finnix/finnix-rc-helper.sh
+
+case "$1" in
+  start)
+    if checkbootparam bootchart && [ -x /sbin/bootchartd ]; then
+      /sbin/bootchartd stop
+    fi
+    ;;
+  *)
+    echo "Usage: $0 {start}" >&2
+    exit 1
+    ;;
+esac
+

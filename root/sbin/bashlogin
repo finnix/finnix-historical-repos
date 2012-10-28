@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# bashlogin
+# Copyright (C) 2011 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 tty"
+  exit 1
+fi
+if [ ! -c "/dev/$1" ]; then
+  echo "Error: /dev/$1 does not exist or is not a character device."
+  exit 1
+fi
+
+[ -f /etc/default/bashlogin ] && . /etc/default/bashlogin
+if [ "$GETTYLOGIN" = "yes" ]; then
+  if [ -z "$GETTYARGS" ]; then
+    GETTYARGS="/sbin/getty 38400"
+  fi
+  exec $GETTYARGS $1
+fi
+
+exec -c >/dev/$1 2>&1 </dev/$1
+
+set -a
+[ -f /etc/environment ] && . /etc/environment
+[ -f /etc/default/locale ] && . /etc/default/locale
+
+export USER=root
+export HOME=/root
+export SHELL=/bin/bash
+export LOGNAME=${USER}
+export MAIL=/var/mail/${USER}
+export PATH=/bin:/usr/bin:/sbin:/usr/sbin
+export SHLVL=0
+export TERM=linux
+
+cd ${HOME}
+exec -a -bash /bin/bash

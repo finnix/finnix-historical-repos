@@ -1,0 +1,44 @@
+=head1 NAME
+
+finnix-strace-reorder - A program to produce genisoimage/mksquashfs 
+order files
+
+=head1 SYNOPSIS
+
+B<finnix-strace-reorder> <I<strace output> >I<order file>
+
+=head1 DESCRIPTION
+
+B<finnix-strace-reorder> takes input in the form of strace data 
+(collected during Finnix boot by the "finnix strace" boot option, and 
+stored in /tmp/thestrace), determines which files are being opened or 
+executed, and returns them, along with a weight.  The weight is 
+determined by when the file is loaded.
+
+This output can then be fed to genisoimage's or mksquashfs's "-sort 
+sortfile" argument to place files used during boot at the back of the 
+image, with the last files to be used during boot at the very end of 
+the image.
+
+=head1 OPTIONS
+
+None.
+
+=head1 BUGS
+
+No advanced weighting is done in this version, relying on the hope that 
+VFS caching will keep loaded files in memory for subsequent accesses.  
+For alternate methods that take re-reads into consideration, see 
+B<finnix-strace-reorder.classic> and 
+B<finnix-strace-reorder.experimental>.
+
+No exclusions are made, so files like kernel modules are included.  
+Some modules are constant to all boots, but many depend on the 
+hardware, so they are of little use being at the front of the image.
+
+=head1 AUTHOR
+
+B<finnix-strace-reorder> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

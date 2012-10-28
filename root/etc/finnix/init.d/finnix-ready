@@ -1,0 +1,31 @@
+#!/bin/sh
+
+. /etc/lsb-release
+. /lib/finnix/finnix-rc-helper.sh
+
+case "$1" in
+  start)
+    DISTRIB_RELEASE_PRINT="$DISTRIB_RELEASE"
+    if [ "$DISTRIB_RELEASE" = "dev" ] && [ -n "${DISTRIB_CODENAME}" ]; then
+      DISTRIB_RELEASE_PRINT="${DISTRIB_RELEASE} (${DISTRIB_CODENAME})"
+    fi
+    STATINFO="$(stat -t -f /FINNIX 2>/dev/null)"
+    if [ -n "$STATINFO" ]; then
+      while read SUNDEF1 SUNDEF2 SUNDEF3 SUNDEF4 SBLOCKSIZE SUNDEF5 SBLOCKS SUNDEF6; do
+        CDSIZE="$(($SBLOCKSIZE * $SBLOCKS / 1048576))M"
+      done <<EOM
+$STATINFO
+EOM
+      if [ -n "$CDSIZE" ]; then
+        ONA=", ${WHITE}$CDSIZE${NORMAL} compressed"
+      fi
+    fi
+    PACKAGESINSTALLED="`dpkg -l | egrep '^[hi]i' | wc -l`"
+    echo "${BLUEITEM} ${BLUE}${DISTRIB_ID}${NORMAL} ${WHITE}${DISTRIB_RELEASE_PRINT}${NORMAL} ready; ${WHITE}$PACKAGESINSTALLED${NORMAL} packages${ONA}"
+    echo
+    ;;
+  *)
+    echo "Usage: $0 {start}" >&2
+    exit 1
+    ;;
+esac

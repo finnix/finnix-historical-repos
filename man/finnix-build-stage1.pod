@@ -1,0 +1,34 @@
+=head1 NAME
+
+finnix-build-stage1 - Build a Finnix CD (Stage 1)
+
+=head1 SYNOPSIS
+
+B<finnix-build-stage1>
+
+=head1 DESCRIPTION
+
+B<finnix-build-stage1> is a script used to build Finnix.  Stage 1 
+generally involves cleaning up the chroot environment, and making the 
+compressed root filesystem.
+
+See also: B<finnix-build-stage2>
+
+=head1 OPTIONS
+
+Not documented (see BUGS).
+
+=head1 BUGS
+
+This script is changed often according to Finnix releases, and this man 
+page is not complete.  It merely gives a high-level overview.  For more 
+information about using these scripts, please see:
+
+    http://www.finnix.org/Remastering
+
+=head1 AUTHOR
+
+B<finnix-build-stage1> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

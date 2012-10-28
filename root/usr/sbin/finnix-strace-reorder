@@ -1,0 +1,66 @@
+#!/usr/bin/perl -w
+
+# finnix-strace-reorder
+# Copyright (C) 2011 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+use strict;
+use File::Basename;
+use Cwd qw/abs_path/;
+
+my $i = 0;
+my %found = ();
+while(my $linein = <STDIN>) {
+  if($linein =~ /^\d+\s+(open|stat64|execve)\(\"(.*?)\".*?\) = ([-\d]+)/) {
+    my $type = $1;
+    my $file = $2;
+    my $fd = $3;
+    next if $fd eq "-1";
+    $file =~ s/\\\\/\\/g;
+    next unless (-e $file);
+    $file = abs_path($file);
+    next unless (-e $file);
+    $file =~ s/^\/(UNIONFS|FINNIX)\//\//;
+    $file =~ s/^\///;
+    next unless(-e "/FINNIX/$file");
+    next if(-d "/FINNIX/$file");
+    next if($found{$file});
+    $i++;
+    printf "%s\t%s\n", $file, (-10000 - $i);
+    $found{$file}++; 
+
+    if($file =~ /^lib\/modules\/(.*?-\d+)-(.*?)-finnix\/(.*?)$/) {
+      my $kverp = $1;
+      my $karchp = $2;
+      my $krestp = $3;
+      my $knewarchp;
+      if(($karchp eq "ppc") || ($karchp eq "ppc64")) {
+        $knewarchp = (($karchp eq "ppc") ? "ppc64" : "ppc");
+      } elsif(($karchp eq "x86") || ($karchp eq "amd64")) {
+        $knewarchp = (($karchp eq "x86") ? "amd64" : "x86");
+      }
+      if($knewarchp) {
+        my $newfile = "lib/modules/$kverp-$knewarchp-finnix/$krestp";
+        next unless (-e "/FINNIX/$newfile");
+        next if (-d "/FINNIX/$newfile");
+        next if($found{$newfile});
+        $i++;
+        printf "%s\t%s\n", $newfile, (-10000 - $i);
+        $found{$newfile}++;
+      }
+    }
+  }
+}

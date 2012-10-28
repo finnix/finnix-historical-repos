@@ -1,0 +1,8 @@
+#! /bin/sh
+#
+# rcS
+#
+# Call all S??* scripts in /etc/finnix/rcS.d/ in numerical/alphabetical order
+#
+
+exec /etc/finnix/init.d/rc S

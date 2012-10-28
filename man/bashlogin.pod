@@ -1,0 +1,52 @@
+=head1 NAME
+
+bashlogin - A simple getty/login replacement
+
+=head1 SYNOPSIS
+
+B<bashlogin> I<ttyN>
+
+=head1 DESCRIPTION
+
+B<bashlogin> is a simple getty/login replacement program, designed to 
+be run from /etc/inittab on LiveCDs.  It prepares the TTY, sets 
+environment variables expected of a login program, and executes bash.  
+The program is designed only for the root user.
+
+=head1 OPTIONS
+
+A single argument is specified, the name of the TTY to be used.
+
+B<bashlogin> will check for and source /etc/default/bashlogin if it 
+exists, and will use the following variables if set:
+
+=over
+
+=item B<GETTYLOGIN>
+
+Instead of setting up an environment and starting bash, execute a getty 
+program instead (for optionally providing a real login for the LiveCD).  
+Values other than "yes" are ignored.
+
+=item B<GETTYARGS>
+
+The program and arguments to be executed for the getty.  The TTY is 
+appended as the last argument.  If B<GETTYLOGIN> is set and 
+B<GETTYARGS> is not, B<GETTYARGS> defaults to "/sbin/getty 38400".
+
+=back
+
+Additionally, /etc/environment and /etc/default/locale are sourced 
+(unless B<GETTYLOGIN> is set in /etc/default/bashlogin), if they exist.
+
+=head1 BUGS
+
+This program could be expanded to support non-root users, or execute a 
+shell other than bash.
+
+=head1 AUTHOR
+
+B<bashlogin> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

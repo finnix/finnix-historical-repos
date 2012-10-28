@@ -1,0 +1,6 @@
+#!/bin/sh
+
+PATH=/bin:/sbin
+
+touch /etc/runit/reboot /etc/runit/stopit
+chmod 0100 /etc/runit/reboot /etc/runit/stopit

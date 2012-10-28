@@ -1,0 +1,248 @@
+finnix-scripts (107~2) unstable; urgency=low
+
+  * Move man and root to debian/ for VC
+  * Bump standards to 3.9.3
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 02:41:20 +0000
+
+finnix-scripts (107~1) unstable; urgency=low
+
+  * Add utmp support for boot TTYs (LP: #1071873)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 27 Oct 2012 07:04:32 +0000
+
+finnix-scripts (106) unstable; urgency=low
+
+  * Finnix 106
+  * Add native amd64 userland support
+  * Remove /run/motd.dynamic in stage1, built it at boot time
+    (LP: #1069678)
+  * Move standard runit TTY generation to finnix-autoconfig (LP: #1070693)
+  * Fix cleaning of /etc/ssl/certs/ca-certificates.crt
+  * Do not remove SSL source certs (LP: #1068414)
+  * Fix /etc/runit/ctrlaltdel (LP: #1056034)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 25 Oct 2012 23:56:40 +0000
+
+finnix-scripts (105.1) unstable; urgency=low
+
+  * Add xenfs to initrd modules; needed for 3.4 xen booting
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 08 Jul 2012 23:04:59 -0700
+
+finnix-scripts (105) unstable; urgency=low
+
+  * Finnix 105
+  * Updated stage1/2 scripts
+    * Remove ide/ copy
+    * Standardize importable variables
+  * Migrate system from sysvinit to runit (LP: 981386)
+  * Replace dialog with whiptail
+  * Fix titles in finnix-generate-entropy
+  * Remove "finnix" utility
+  * Add zram_stat
+  * Add protection for if user specifies "console=tty{1,2,3,4}"
+  * ssh.finnix: Generate ECDSA key
+  * Ignore lintian warnings/errors
+  * Force LANG=C on finnixdev
+  * Add finnix user via postinst in this package
+  * Add /etc/bash.bashrc.finnix addition to /etc/bash.bashrc
+  * Remove depend sysvinit (unneeded because it's essential)
+  * mkdir /var/run/udev before starting udev
+  * Add depends openssh-server, sysvinit (for diversions)
+  * Add ssh.finnix (formerly directly on FS)
+  * Add postinst/prerm diversions
+  * Add 3ware modules to initrd, clean old modules
+  * Rearrange stage2 version ordering
+  * Add shipped syslinux.cfg
+  * Add broken (by design) symlinks via debian/rules
+  * Remove obsolete initscripts
+  * exec-stop: Fix CDROM detection bug (LP: 981428)
+  * exec-stop: Attempt last-ditch ejection of the CD
+  * finnix-build-stage{1,2}: Stop relying on remove "depmod -m"
+    (LP: #980556)
+  * finnix-build-stage2: Change to different CD boot layout
+    (LP: #980574)
+  * finnix-build-stage2: Include zram module on initrd (LP: #943470)
+  * finnix-build-stage2: Pre-generate netboot boot configs (LP: #980574)
+  * finnix-build-stage2: Refresh {sys,iso,pxe}linux boot files 
+    automatically (LP: #980561)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 08 Jul 2012 18:45:21 -0700
+
+finnix-scripts (104) unstable; urgency=low
+
+  * Finnix 104
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 05 Feb 2012 13:13:39 -0800
+
+finnix-scripts (103) unstable; urgency=low
+
+  * Finnix 103
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 12 Oct 2011 09:50:27 -0700
+
+finnix-scripts (102) unstable; urgency=low
+
+  * Finnix 102
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 21 Jul 2011 22:11:56 -0700
+
+finnix-scripts (101) unstable; urgency=low
+
+  * Many manual updates (yeah, that doesn't help)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 21 Dec 2010 00:10:41 -0800
+
+finnix-scripts (100) unstable; urgency=low
+
+  * bash.bashrc.finnix: Add common aliases
+  * finnix-autconfig: Simpler CPU display
+  * finnix-autoconfig: New dhclient is broken-ish, go back to running dhclient on each interface
+  * finnix-autoconfig: Do not bring up interface manually, screws with Finnix dhclient hook for netboot
+  * finnix-autoconfig: Use pwgen instead of builtin for ssh password
+  * finnix-halt: Add shutdown/reboot skip (Enter at countdown)
+  * rebuildfstab: Use /media instead of /mnt
+  * finnix-strace-reorder.classic: new duplication for module arches
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 26 Oct 2010 00:28:40 -0700
+
+finnix-scripts (1.14) unstable; urgency=low
+
+  * finnix-autoconfig: use one dhclient process, let it handle all interfaces
+  * finnix-rc-clean: converted to bash (bashism)
+  * ssh.finnix: fixed bashism
+  * notfound: Added "ftp"
+  * finnix-autoconfig, rebuildfstab: Fixed /sys/block detection (re: symlinks)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 06 Aug 2009 10:24:36 -0700
+
+finnix-scripts (1.13) unstable; urgency=low
+
+  * Removed /etc/bash.bashrc (will be updated manually to point to bash.bashrc.finnix)
+  * Added /etc/bash.bashrc.finnix
+  * Added /etc/bash.bashrc.finnixdev
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 23 Nov 2008 15:30:10 -0800
+
+finnix-scripts (1.12) unstable; urgency=low
+
+  * APT::Install-Recommends
+  * Added "notfound", which checks for common programs not found
+    in Finnix.
+  * Added support for multiple console= boot command options.
+  * finnix-autoconfig: Added sshd_password boot option
+  * finnix-autoconfig: "Populating /dev and setting up devices..."
+  * Finnix 92.0
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 14 Jun 2008 17:21:49 -0700
+
+finnix-scripts (1.11) unstable; urgency=low
+
+  * finnix-autoconfig: Fix raid autoconfig
+  * finnix-chroot-dev: Mount /dev/pts, apt now complains without this
+  * Finnix 91.1
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun,  2 Mar 2008 20:10:43 -0800
+
+finnix-scripts (1.10) unstable; urgency=low
+
+  * finnix-autoconfig: Removed hd booting and non-initrd booting
+  * finnix-autoconfig: LUKS fix
+  * finnix-autoconfig: LVM fix
+  * finnix-autoconfig: circular LUKS/RAID/LVM detection
+  * rebuildfstab: fix for subdirectory /dev entries (/dev/cciss, etc)
+  * finnix-chroot-dev: Added /dev/pts
+  * Finnix 91.0
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 27 Jan 2008 23:24:58 -0800
+
+finnix-scripts (1.9) unstable; urgency=low
+
+  * finnix-autoconfig: remove pcimodules scanning, done by udev
+  * lsb-base-logging.sh: Finnixify initscripts (colors, etc)
+  * moved ssh-agent starting to /etc/profile
+  * bash.bashrc: shredscan alias added
+  * finnix-autoconfig: No APM/ACPI info, unless there's an error
+  * Added finnix-remove-initlevel and finnix-last-line to rc2
+  * finnix-autoconfig: echo -n needed for ACPI/APM changes
+  * finnix-autoconfig: Add tty0 to nohwsetup (UML)
+  * /etc/inittab no longer owned by this package
+  * finnix-autoconfig: moved sshd start from /etc/init.d/ssh to invoke-rc.d
+  * finnix-hwsubmit: no dmidecode for powerpc
+  * finnix-hwsubmit: fix ppc typo
+  * Finnix 90.0
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 20 Oct 2007 20:56:36 -0700
+
+finnix-scripts (1.8) unstable; urgency=low
+
+  * bash.bashrc.finnixdev: locale overrides
+  * Added conffiles
+  * Revert manual conffiles
+  * Release
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 26 Jul 2007 15:10:37 -0700
+
+finnix-scripts (1.7) unstable; urgency=low
+
+  * finnix-autoconfig: Added ssh-agent starting
+  * finnix-autoconfig: Add ssh-agent check for non-root user
+  * bashlogin: Added proper exports, and /etc/environment
+  * finnix-autoconfig: Removed misc environment vars
+  * finnix-autoconfig: Changed ssh-agent style
+  * Marked stable.
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun,  8 Apr 2007 20:23:32 -0700
+
+finnix-scripts (1.6) unstable; urgency=low
+
+  * Removed all hotplug support
+  * Added udev support
+  * Made strace boot option less intrusive
+  * Removed inittab.uml, UML inittab changes are now handled within finnix-autoconfig
+  * Added XenU inittab changes to finnix-autoconfig
+  * Commented out network interface down block in finnix-halt (breaks NFS booting in its current state, not really needed anyway)
+  * Rewrote rebuildfstab for udev
+  * Move rebuildfstab and fstype to /sbin
+  * Removed rebuildfstab reference to find
+  * Moved rebuildfstab and fstype back to /usr/sbin, too much depends on /usr
+  * Added finnix-netboot-server to finnix menu
+  * finnix-halt: suppress errors when unmounting /UNIONFS
+  * finnix-autoconfig: removed trymount function
+  * finnix-autoconfig: rearranged blocks
+  * finnix-autoconfig: basic crypt/luks support
+  * finnix-autoconfig: basic raid support
+  * inittab: replaced rcS with direct finnix-autoconfig
+  * rebuildfstab: Added concurrency rescanning
+  * finnix-autoconfig: Kill possible error messages on HD mount/swapon -a
+  * finnix-autoconfig: Re-enable initial rebuildfstab, then activate udev finnix.rules
+  * finnix-autoconfig: Shuffle code blocks, udev is now executed first again
+  * finnix-autoconfig: Reordered scanning to raid, lvm, crypt
+  * finnix-halt: Test for udev/unionfs
+  * finnix-autoconfig: /dev/pts and /dev/shm
+  * Marked stable.
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 14 Jan 2007 21:43:21 -0800
+
+finnix-scripts (1.5) unstable; urgency=low
+
+  * New dev version scheme
+  * Added finnix-strace-reorder
+  * Replaced finnix-strace-reorder with a new version, based on simulated annealing and file sizes.
+  * Marked stable.
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 15 Jul 2006 22:27:33 -0700
+
+finnix-scripts (1.4.0.0.0.dev.21) unstable; urgency=low
+
+  * Added check to automatically stop bootchartd if "bootchart" kernel command line option is present.
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon,  3 Jul 2006 00:09:21 -0700
+
+finnix-scripts (1.4.0.0.0.dev.20) unstable; urgency=low
+
+  * Migrated to full debuild environment
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 28 Jun 2006 19:19:33 -0700
+

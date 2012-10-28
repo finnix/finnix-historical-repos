@@ -1,0 +1,42 @@
+=head1 NAME
+
+finnix-chroot-dev - A wrapper for use in a development chroot
+
+=head1 SYNOPSIS
+
+B<finnix-chroot-dev> I<command> S<[ arguments ]>
+
+=head1 DESCRIPTION
+
+B<finnix-chroot-dev> is program used during Finnix development as a 
+wrapper around several commands.  Before running the specified command 
+and arguments, it diverts B<start-stop-daemon> and B<invoke-rc.d>, 
+replacing them with programs that do nothing.  Once the command is 
+finished executing, the diverted files are moved back.  
+B<finnix-chroot-dev> also mounts and unmounts /proc, /sys and /dev/pts.
+
+It should be used as so:
+
+    alias apt-get='finnix-chroot-dev apt-get'
+
+    alias aptitude='finnix-chroot-dev aptitude'
+
+    alias dpkg='finnix-chroot-dev dpkg'
+
+=head1 OPTIONS
+
+The first argument is treated as the command to run, and all arguments 
+past that are specified as the command's arguments.
+
+=head1 BUGS
+
+None known at this time.  B<finnix-chroot-dev> includes several 
+safeguards to making sure the diverted files are always move back, and 
+has yet to fail.
+
+=head1 AUTHOR
+
+B<finnix-chroot-dev> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

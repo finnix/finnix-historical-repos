@@ -1,0 +1,28 @@
+=head1 NAME
+
+finnix-generate-entropy - User-friendly entropy gathering frontend
+
+=head1 SYNOPSIS
+
+B<finnix-generate-entropy>
+
+=head1 DESCRIPTION
+
+B<finnix-generate-entropy> is a frontend wrapper around B<twuewand>, 
+and will generate entropy and feed it to /dev/urandom.  For more 
+information about how twuewand works, see its manpage.
+
+=head1 OPTIONS
+
+None.  B<finnix-generate-entropy> is an interactive program.
+
+=head1 BUGS
+
+None known.
+
+=head1 AUTHOR
+
+B<finnix-generate-entropy> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

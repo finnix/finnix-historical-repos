@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ "$1" = remove ]; then
+  for fn in /etc/init.d/ssh /sbin/init /sbin/telinit /sbin/runlevel; do
+    if [ -e "$fn.distrib" ]; then
+      rm -f "$fn"
+      dpkg-divert --rename --package finnix-scripts --divert "$fn.distrib" --remove "$fn"
+    fi
+  done
+
+  if getent passwd finnix >/dev/null 2>/dev/null; then
+    userdel finnix
+  fi
+fi

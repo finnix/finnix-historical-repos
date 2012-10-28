@@ -1,0 +1,38 @@
+#!/bin/sh
+
+. /lib/finnix/finnix-rc-helper.sh
+
+[ -z "$USER" ] && USER=root
+
+case "$1" in
+  start)
+    # Load shared ssh-agent
+    # This code is copied verbatim from /etc/profile.  See there for comments.
+    if [ -z "$SSH_AUTH_SOCK" ]; then
+      if [ -O /tmp/.ssh-agent-$USER ]; then
+        . /tmp/.ssh-agent-$USER
+      else
+        if [ -x /usr/bin/ssh-agent ]; then
+          eval `ssh-agent` >/dev/null
+          echo '# Shared ssh-agent definition' >/tmp/.ssh-agent-$USER
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK; export SSH_AUTH_SOCK;" >>/tmp/.ssh-agent-$USER
+          echo "SSH_AGENT_PID=$SSH_AGENT_PID; export SSH_AGENT_PID;" >>/tmp/.ssh-agent-$USER
+        fi
+      fi
+    fi
+    ;;
+  stop)
+    if [ -O /tmp/.ssh-agent-$USER ]; then
+      . /tmp/.ssh-agent-$USER
+      if [ -n "$SSH_AGENT_PID" ]; then
+        kill "$SSH_AGENT_PID" 2>/dev/null >/dev/null
+        rm -f /tmp/.ssh-agent-$USER
+      fi
+    fi
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}" >&2
+    exit 1
+    ;;
+esac
+

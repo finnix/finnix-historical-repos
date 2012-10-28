@@ -1,0 +1,14 @@
+# /busybin/ash is provided by initramfs
+finnix-scripts binary: wrong-path-for-interpreter etc/runit/state-shutdown-real (#!/busybin/ash != /bin/ash)
+finnix-scripts binary: missing-dep-for-interpreter ash => ash (etc/runit/state-shutdown-real)
+
+# Symlinks to runit
+finnix-scripts binary: binary-without-manpage sbin/init.finnix
+finnix-scripts binary: binary-without-manpage sbin/runlevel.finnix
+finnix-scripts binary: binary-without-manpage sbin/telinit.finnix
+
+# ssh.finnix is a wrapper around ssh.distrib
+finnix-scripts binary: script-in-etc-init.d-not-registered-via-update-rc.d etc/init.d/ssh.finnix
+finnix-scripts binary: init.d-script-does-not-implement-required-option etc/init.d/ssh.finnix stop
+finnix-scripts binary: init.d-script-does-not-implement-required-option etc/init.d/ssh.finnix restart
+finnix-scripts binary: init.d-script-does-not-implement-required-option etc/init.d/ssh.finnix force-reload

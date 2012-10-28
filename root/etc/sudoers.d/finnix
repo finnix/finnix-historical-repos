@@ -1,0 +1,2 @@
+root	ALL = NOPASSWD: ALL
+finnix	ALL = NOPASSWD: ALL

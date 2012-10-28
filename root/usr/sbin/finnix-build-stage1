@@ -1,0 +1,444 @@
+#!/bin/bash -e
+
+# finnix-build-stage1
+# Copyright (C) 2011 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+# Layout:
+#   /finnix/build/master (copy of CD layout)
+#   /finnix/build/source/FINNIX (squashroot extract)
+#   /finnix/build/initrd (initrd extract, optional)
+#   /finnix/build/stuff (optional stuff)
+#
+# For more information, see http://www.finnix.org/Remastering
+
+###
+# STAGE 1: Clean up, prepare, and make compressed filesystem
+###
+
+# Get arch
+if [ -z "$FINNIX_DISTARCH" ]; then
+  ARCH="$(uname -m)"
+  case "$ARCH" in
+    ppc|ppc64) FINNIX_DISTARCH="ppc" ;;
+    x86_64|i?86) FINNIX_DISTARCH="x86" ;;
+    *)
+      echo "Unknown architecture $ARCH"
+      exit 1
+      ;;
+  esac
+fi
+
+### variables
+[ -z "$FINNIX_BASE" ] && FINNIX_BASE=/finnix/build
+[ -z "$FINNIX_MASTER" ] && FINNIX_MASTER=${FINNIX_BASE}/master
+[ -z "$FINNIX_SOURCE" ] && FINNIX_SOURCE=${FINNIX_BASE}/source/FINNIX
+[ -z "$FINNIX_STUFF" ] && FINNIX_STUFF=${FINNIX_BASE}/stuff
+[ "$FINNIX_CROSS_COMPILE" = "yes" ] || FINNIX_CROSS_COMPILE="no"
+[ -z "$FINNIX_TMPDIR" ] && FINNIX_TMPDIR=/tmp
+
+### sanity check
+for i in "${FINNIX_BASE}" "${FINNIX_MASTER}" "${FINNIX_SOURCE}"; do
+  if ! [ -d "$i" ]; then
+    echo "Directory $i does not exist."
+    exit 1
+  fi
+done
+
+# Functions
+decompgz() {
+  perl - "$@" <<"BASHEOM"
+use strict;
+use warnings;
+use File::Find;
+use IO::Uncompress::Gunzip;
+use IO::Compress::Gzip;
+use Digest::MD5;
+use File::Copy;
+
+my($basedir, $cachefile);
+$basedir = $ARGV[0];
+$cachefile = $ARGV[1];
+unless(-d $basedir) {
+  print "Usage: decompgz basedir [cachefile]";
+  exit 1;
+}
+
+# The cache file is "file\tpostrecompressionsize" to prevent files from
+# being recompressed on subsequent runs
+my %cachesizes = ();
+if(-e $cachefile) {
+  open(FILE, $cachefile);
+  while(my $l = <FILE>) {
+    chomp $l;
+    my($file, $size) = split(/\t/, $l, 2);
+    $cachesizes{$file} = $size;
+  }
+  close(FILE);
+}
+
+# /var/lib/dpkg/info/*.md5sums
+opendir(my $dh, "$basedir/var/lib/dpkg/info") || die "can't opendir: $!";
+my @md5sumfiles = grep { /\.md5sums$/ && -f "$basedir/var/lib/dpkg/info/$_" } readdir($dh);
+closedir $dh;
+
+# List of files (*.gz or *.md5sums) that have been modified and will be
+# moved into place at the very end
+my @modfiles = ();
+# 1/0, whether a *.md5sums file's contents have/will be modified
+my %md5summod = ();
+# fsfile -> *.md5sums file
+my %filetomd5sumfile = ();
+# fsfile -> md5(fsfile)
+my %filemd5sum = ();
+
+# Read *.md5sums
+foreach my $md5sumfile (sort @md5sumfiles) {
+  my($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
+    $atime,$mtime,$ctime,$blksize,$blocks)
+    = stat("$basedir/var/lib/dpkg/info/$md5sumfile");
+  $md5summod{$md5sumfile} = 0;
+  open(FILE, "$basedir/var/lib/dpkg/info/$md5sumfile");
+  while(my $l = <FILE>) {
+    chomp $l;
+    my($md5, $mfile) = split(/\s+/, $l, 2);
+    $filetomd5sumfile{$mfile} = $md5sumfile;
+    $filemd5sum{$mfile} = $md5;
+  }
+  close(FILE);
+};
+
+# Populate @gzfiles with *.gz matching conditions
+my @gzfiles = ();
+File::Find::find({wanted => \&wanted}, $basedir);
+
+# Loop through *.gz files
+foreach my $gzfile (sort @gzfiles) {
+  # Old file stats
+  my($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
+    $atime,$mtime,$ctime,$blksize,$blocks)
+    = stat("$basedir/$gzfile");
+  # Decompress to <$infh>
+  my $infh = new IO::Uncompress::Gunzip "$basedir/$gzfile";
+  next unless($infh);
+  # Compress to "$gzfile.decompgz~"
+  my $outfh = new IO::Compress::Gzip "$basedir/$gzfile.decompgz~",
+    -Level => IO::Compress::Gzip::Z_NO_COMPRESSION;
+  while(my $l = <$infh>) {
+    $outfh->print($l);
+  }
+  close($infh);
+  close($outfh);
+  push(@modfiles, "$gzfile");
+  # Replicate modes and times
+  chmod($mode, "$basedir/$gzfile.decompgz~");
+  chown($uid, $gid, "$basedir/$gzfile.decompgz~");
+  utime($atime, $mtime, "$basedir/$gzfile.decompgz~");
+  # Get new size for cache
+  my @newstat = stat("$basedir/$gzfile.decompgz~");
+  my $newsize = $newstat[7];
+  $cachesizes{$gzfile} = $newsize;
+  # *.md5sums will not always have a file.  If it does, recompute the
+  # md5, put it in %filemd5sum, and signify the *.md5sums file has
+  # changed.
+  if($filetomd5sumfile{$gzfile}) {
+    my $md5sumfile = $filetomd5sumfile{$gzfile};
+    my $ctx = Digest::MD5->new;
+    open(FILE, "$basedir/$gzfile.decompgz~");
+    $ctx->addfile(*FILE);
+    close(FILE);
+    $filemd5sum{$gzfile} = lc($ctx->hexdigest);
+    $md5summod{$md5sumfile} = 1;
+  }
+}
+
+# For only *.md5sums files whose contents have changed, rebuild the
+# file, placing it in "$md5sumfile.decompgz~".  BTW, we don't care
+# about replicating the mtime here.
+foreach my $md5sumfile (sort grep { $md5summod{$_} } keys %md5summod) {
+  open(FILE, ">$basedir/var/lib/dpkg/info/$md5sumfile.decompgz~");
+  foreach my $mfile (sort grep { $filetomd5sumfile{$_} eq $md5sumfile } keys %filetomd5sumfile) {
+    print FILE $filemd5sum{$mfile} . "  $mfile\n";
+  }
+  close(FILE);
+  push(@modfiles, "var/lib/dpkg/info/$md5sumfile");
+}
+
+# Now that all modified files have been created as temps, move them
+# into place all at once.
+foreach my $mfile (sort @modfiles) {
+  rename("$basedir/$mfile.decompgz~", "$basedir/$mfile");
+}
+
+# Write the current cache file
+if($cachefile) {
+  open(FILE, "> $cachefile");
+  foreach my $file (sort keys %cachesizes) {
+    print FILE "$file\t" . $cachesizes{$file} . "\n";
+  }
+  close(FILE);
+}
+
+# Woot
+exit;
+
+sub wanted {
+  my($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
+    $atime,$mtime,$ctime,$blksize,$blocks);
+  # Real file, size > 16 bytes, ends in .gz
+  return unless(
+    (($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
+      $atime,$mtime,$ctime,$blksize,$blocks) = lstat($_)) &&
+    -f _ &&
+    (int(-s _) > 16) &&
+    /\.gz$/s
+  );
+  my $name = $File::Find::name;
+  $name =~ s,^$basedir/,,;
+  # If the file size matches the cache, it's already been recompressed
+  return if($cachesizes{$name} && ($size == $cachesizes{$name}));
+  push(@gzfiles, $name);
+}
+BASHEOM
+}
+# End functions
+
+### make sure required binaries are present
+BAD_BINARIES=""
+which mksquashfs 2>&1 >/dev/null || BAD_BINARIES="yes"
+which md5sum 2>&1 >/dev/null || BAD_BINARIES="yes"
+which awk 2>&1 >/dev/null || BAD_BINARIES="yes"
+if [ -n "${BAD_BINARIES}" ]; then
+  echo "One or more required binaries are missing."
+  exit 1
+fi
+
+### check for mounted proc
+if [ -f ${FINNIX_SOURCE}/proc/uptime ]; then
+  echo "Your /proc is showing..."
+  exit 1
+fi
+
+### check for mounted sys
+if [ -d ${FINNIX_SOURCE}/sys/devices ]; then
+  echo "Your /sys is showing..."
+  exit 1
+fi
+
+### check for dpkg-new files
+if [ `find ${FINNIX_SOURCE}/etc -name '*.dpkg-new' | wc -l` -gt 0 ]; then
+  echo "I see dpkg-new files in /etc.  Please look into them."
+  exit 1
+fi
+
+### clean up environment
+echo -n "Cleaning certificates... "
+#rm -rf ${FINNIX_SOURCE}/usr/share/ca-certificates/*
+rm -f ${FINNIX_SOURCE}/etc/ssl/private/ssl-cert-snakeoil.key
+rm -f ${FINNIX_SOURCE}/etc/ssl/certs/ssl-cert-snakeoil.pem
+find ${FINNIX_SOURCE}/etc/ssl/certs -type l -delete
+#echo '!' > ${FINNIX_SOURCE}/etc/ca-certificates.conf
+#chroot ${FINNIX_SOURCE} /bin/bash -c "update-ca-certificates"
+echo -n >${FINNIX_SOURCE}/etc/ssl/certs/ca-certificates.crt
+echo "done."
+
+if [ "$FINNIX_CROSS_COMPILE" = "no" ]; then
+  echo -n "Running apt-get clean... "
+  chroot ${FINNIX_SOURCE} /bin/bash -c "apt-get clean"
+  echo "done."
+  echo -n "Stripping modules... "
+  for i in ${FINNIX_SOURCE}/lib/modules/*; do
+    find $i -name '*.ko' -print0 | xargs -0 strip -x -R .note -R .comment
+    MODKERNEL="$(basename $i)"
+    echo -n "$MODKERNEL "
+    rm -f $i/modules.*
+    chroot ${FINNIX_SOURCE} depmod ${MODKERNEL}
+  done
+  echo "done."
+fi
+
+echo -n "Cleaning locales... "
+(
+  set -e
+
+  # Make sure to exclude running under any locale other than C:
+  export LANG=C
+
+  # Getting rid of superfluous locale files in $LOCALEDIR:
+  LOCALEDIR=${FINNIX_SOURCE}/usr/share/locale
+  if [ -d $LOCALEDIR ]; then
+        for LOCALE in $(cd $LOCALEDIR; echo *)
+         do
+            if [ -d $LOCALEDIR/$LOCALE/LC_MESSAGES ]; then
+                for file in "$LOCALEDIR/$LOCALE"/*/*
+                 do
+                  if [ -f "$file" ] || [ -h "$file" ]; then
+                      /bin/rm "$file"
+                  fi
+                 done
+            fi
+         done
+  fi
+
+  # Getting rid of localized man pages in $MANPAGEDIR
+  MANPAGEDIR=${FINNIX_SOURCE}/usr/share/man
+  if [ -d $MANPAGEDIR ]; then
+        for LOCALE in $(ls --ignore="man[1-9]*" $MANPAGEDIR)
+         do
+              if [ -d $MANPAGEDIR/$LOCALE ]; then
+                for file in "$MANPAGEDIR/$LOCALE"/man[1-9]/*
+                 do
+                    if [ -f "$file" ] || [ -h "$file" ]; then
+                        /bin/rm "$file"
+                    fi
+                 done
+              fi
+         done
+  fi
+)
+echo "done."
+
+echo -n "Removing files not to be on CD... "
+rm -rf ${FINNIX_SOURCE}/tmp/*
+rm -rf ${FINNIX_SOURCE}/var/tmp/*
+rm -rf ${FINNIX_SOURCE}/var/lib/dpkg/*-old
+rm -rf ${FINNIX_SOURCE}/usr/share/doc/*
+rm -rf ${FINNIX_SOURCE}/usr/share/doc-base/*
+rm -rf ${FINNIX_SOURCE}/usr/share/info/*
+rm -rf ${FINNIX_SOURCE}/root/*
+rm -rf ${FINNIX_SOURCE}/root/.{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,-,_}*
+rm -rf ${FINNIX_SOURCE}/home/finnix/*
+rm -rf ${FINNIX_SOURCE}/home/finnix/.{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,-,_}*
+rm -rf ${FINNIX_SOURCE}/.{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,-,_}*
+rm -rf ${FINNIX_SOURCE}/etc/ssh/ssh_host_*key*
+rm -rf ${FINNIX_SOURCE}/etc/hotplug/net.*
+rm -f ${FINNIX_SOURCE}/lib/modules/*/{build,source}
+rm -f ${FINNIX_SOURCE}/boot/*.bmp
+rm -rf ${FINNIX_SOURCE}/var/backups/*
+rm -f ${FINNIX_SOURCE}/var/run/*.pid
+rm -rf ${FINNIX_SOURCE}/var/run/runit-*
+rm -rf ${FINNIX_SOURCE}/var/run/sv.*
+rm -f ${FINNIX_SOURCE}/etc/*-
+rm -f ${FINNIX_SOURCE}/etc/udev/rules.d/z25_persistent*
+rm -f ${FINNIX_SOURCE}/etc/udev/rules.d/70-persistent*
+rm -rf ${FINNIX_SOURCE}/usr/lib/linux-image-2.6.*
+#rm -rf ${FINNIX_SOURCE}/lib/firmware/*
+rm -f ${FINNIX_SOURCE}/etc/ssh/blacklist.*
+rm -f ${FINNIX_SOURCE}/usr/share/ssh/blacklist.*
+rm -f ${FINNIX_SOURCE}/usr/share/openssl-blacklist/blacklist.*
+rm -f ${FINNIX_SOURCE}/var/lib/insserv/*.log
+rm -f ${FINNIX_SOURCE}/usr/share/menu/*
+rm -f ${FINNIX_SOURCE}/usr/share/applications/*.desktop
+rm -f ${FINNIX_SOURCE}/usr/share/lintian/overrides/*
+(cd ${FINNIX_SOURCE}; find etc -name '*.dpkg-*' -print0 | xargs -r -0 rm)
+(cd ${FINNIX_SOURCE}; find etc -name '*~' -print0 | xargs -r -0 rm)
+(cd ${FINNIX_SOURCE}/var/cache; find . -type f -print0 | xargs -r -0 rm)
+(cd ${FINNIX_SOURCE}/var/log; for i in `find . -type f`; do echo -n >$i; done)
+rm -f ${FINNIX_SOURCE}/var/lib/aptitude/pkgstates.old
+(cd ${FINNIX_SOURCE}/usr/share/man; find . -type f -not -wholename './man*/*.gz' -print0 | xargs -r -0 rm)
+(cd ${FINNIX_SOURCE}/usr/share/locale; find . -type f -print0 | xargs -r -0 rm)
+(cd ${FINNIX_SOURCE}; find . -type f -name '*.pyc' -print0 | xargs -r -0 rm)
+rm -f ${FINNIX_SOURCE}/var/lib/urandom/random-seed
+rm -f ${FINNIX_SOURCE}/var/run/motd.dynamic
+echo "done."
+
+
+echo -n "Purging removed files from dpkg lists... "
+REMLIST=0
+REMCONFFILES=0
+REMMD5SUMS=0
+for i in ${FINNIX_SOURCE}/var/lib/dpkg/info/*.list; do
+  echo -n >"$FINNIX_TMPDIR/ftmpprune.list"
+  notfound=""
+  while read j; do
+    if [ -e "${FINNIX_SOURCE}$j" ]; then
+      echo "$j" >>"$FINNIX_TMPDIR/ftmpprune.list"
+    else
+      notfound=yes
+    fi
+  done <"$i"
+  if [ -n "$notfound" ]; then
+    REMLIST=$((REMLIST + 1))
+    cat "$FINNIX_TMPDIR/ftmpprune.list" >"$i"
+  fi
+done
+rm -f "$FINNIX_TMPDIR/ftmpprune.list"
+
+for i in ${FINNIX_SOURCE}/var/lib/dpkg/info/*.conffiles; do
+  echo -n >"$FINNIX_TMPDIR/ftmpprune.conffiles"
+  notfound=""
+  while read j; do
+    if [ -e "${FINNIX_SOURCE}$j" ]; then
+      echo "$j" >>"$FINNIX_TMPDIR/ftmpprune.conffiles"
+    else
+      notfound=yes
+    fi
+  done <"$i"
+  if [ -n "$notfound" ]; then
+    REMCONFFILES=$((REMCONFFILES + 1))
+    cat "$FINNIX_TMPDIR/ftmpprune.conffiles" >"$i"
+  fi
+done
+rm -f "$FINNIX_TMPDIR/ftmpprune.conffiles"
+
+for i in ${FINNIX_SOURCE}/var/lib/dpkg/info/*.md5sums; do
+  echo -n >"$FINNIX_TMPDIR/ftmpprune.md5sums"
+  notfound=""
+  while read md5 j; do
+    if [ -e "${FINNIX_SOURCE}/$j" ]; then
+      echo "$md5  $j" >>"$FINNIX_TMPDIR/ftmpprune.md5sums"
+    else
+      notfound=yes
+    fi
+  done <"$i"
+  if [ -n "$notfound" ]; then
+    REMMD5SUMS=$((REMMD5SUMS + 1))
+    cat "$FINNIX_TMPDIR/ftmpprune.md5sums" >"$i"
+  fi
+done
+rm -f "$FINNIX_TMPDIR/ftmpprune.md5sums"
+
+echo "done.  $REMLIST list, $REMCONFFILES conffiles, $REMMD5SUMS md5sums lists affected."
+
+if [ -d "$FINNIX_STUFF" ]; then
+  echo -n "Decompressing .gz files... "
+  decompgz "$FINNIX_SOURCE" "$FINNIX_STUFF/decompgz.cache"
+  echo "done."
+fi
+
+SQUASHFS_OPTS=""
+# create the squashfs filesystem
+if [ "$QUICK" = "yes" ]; then
+  # no compression whatsoever
+  SQUASHFS_OPTS="-noI -noD -noF -noX"
+elif [ "$QUICK" = "sorta" ]; then
+  # gz compression
+  SQUASHFS_OPTS=""
+else
+  # xz compression
+  if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
+    SQUASHFS_OPTS="-comp xz -Xbcj powerpc"
+  else
+    SQUASHFS_OPTS="-comp xz -Xbcj x86"
+  fi
+fi
+if [ -f "${FINNIX_STUFF}/finnix.order" ]; then
+  SQUASHFS_OPTS="-sort ${FINNIX_STUFF}/finnix.order ${SQUASHFS_OPTS}"
+fi
+rm -f ${FINNIX_MASTER}/finnix/arch/$FINNIX_DISTARCH/root.img
+echo "Running: mksquashfs ${FINNIX_SOURCE} ${FINNIX_MASTER}/finnix/arch/$FINNIX_DISTARCH/root.img ${SQUASHFS_OPTS}"
+time mksquashfs ${FINNIX_SOURCE} ${FINNIX_MASTER}/finnix/arch/$FINNIX_DISTARCH/root.img ${SQUASHFS_OPTS}
+chmod 0644 ${FINNIX_MASTER}/finnix/arch/$FINNIX_DISTARCH/root.img

@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ "$1" = configure ] && [ -z "$2" ]; then
+  for fn in /etc/init.d/ssh /sbin/init /sbin/telinit /sbin/runlevel; do
+    if ! [ -e "$fn.distrib" ]; then
+      dpkg-divert --rename --package finnix-scripts --divert "$fn.distrib" --add "$fn"
+      ln -s "$(basename $fn).finnix" "$fn"
+    fi
+  done
+
+  if ! grep /etc/bash.bashrc.finnix /etc/bash.bashrc >/dev/null 2>/dev/null; then
+    echo '[ -r /etc/bash.bashrc.finnix ] && . /etc/bash.bashrc.finnix' >>/etc/bash.bashrc
+  fi
+
+  if ! getent passwd finnix >/dev/null 2>/dev/null; then
+    useradd --create-home finnix
+  fi
+fi

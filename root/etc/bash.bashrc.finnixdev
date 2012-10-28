@@ -1,0 +1,8 @@
+# Called from /etc/profile when FINNIXDEV=1
+
+export LANG=C
+
+alias apt-get='finnix-chroot-dev apt-get'
+alias aptitude='finnix-chroot-dev aptitude'
+alias dpkg='finnix-chroot-dev dpkg'
+alias shaboom='apt-get update && apt-get -u dist-upgrade && echo "Kaboom-shakalaka!"'

@@ -1,0 +1,34 @@
+=head1 NAME
+
+finnix-build-stage2 - Build a Finnix CD (Stage 2)
+
+=head1 SYNOPSIS
+
+B<finnix-build-stage2>
+
+=head1 DESCRIPTION
+
+B<finnix-build-stage2> is a script used to build Finnix.  Stage 2 
+generally involves building the initrd, setting version information, 
+building the ISO, and GPG signing.
+
+See also: B<finnix-build-stage1>
+
+=head1 OPTIONS
+
+Not documented (see BUGS).
+
+=head1 BUGS
+
+This script is changed often according to Finnix releases, and this man 
+page is not complete.  It merely gives a high-level overview.  For more 
+information about using these scripts, please see:
+
+    http://www.finnix.org/Remastering
+
+=head1 AUTHOR
+
+B<finnix-build-stage2> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

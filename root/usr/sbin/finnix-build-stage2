@@ -1,0 +1,376 @@
+#!/bin/bash -e
+
+# finnix-build-stage2
+# Copyright (C) 2011 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+# Layout:
+#   /finnix/build/master (copy of CD layout)
+#   /finnix/build/source/FINNIX (squashroot extract)
+#   /finnix/build/initrd (initrd extract, optional)
+#   /finnix/build/stuff (optional stuff)
+#
+# For more information, see http://www.finnix.org/Remastering
+
+###
+# STAGE 2: Create initrd, splash screens, md5sums, and the iso itself
+###
+
+# Get arch
+if [ -z "$FINNIX_DISTARCH" ]; then
+  ARCH="$(uname -m)"
+  case "$ARCH" in
+    ppc|ppc64) FINNIX_DISTARCH="ppc" ;;
+    x86_64|i?86) FINNIX_DISTARCH="x86" ;;
+    *)
+      echo "Unknown architecture $ARCH"
+      exit 1
+      ;;
+  esac
+fi
+
+### variables
+[ -z "$FINNIX_BASE" ] && FINNIX_BASE=/finnix/build
+[ -z "$FINNIX_MASTER" ] && FINNIX_MASTER=${FINNIX_BASE}/master
+[ -z "$FINNIX_SOURCE" ] && FINNIX_SOURCE=${FINNIX_BASE}/source/FINNIX
+if [ -z "$FINNIX_ISO" ]; then
+  if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
+    FINNIX_ISO=${FINNIX_BASE}/finnix-ppc.iso
+  elif [ "${FINNIX_DISTARCH}" = "amd64" ]; then
+    FINNIX_ISO=${FINNIX_BASE}/finnix-amd64.iso
+  else
+    FINNIX_ISO=${FINNIX_BASE}/finnix.iso
+  fi
+fi
+if [ -z "$FINNIX_BOOT" ]; then
+  if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
+    FINNIX_BOOT=${FINNIX_MASTER}/boot/ppc
+  elif [ "${FINNIX_DISTARCH}" = "amd64" ]; then
+    FINNIX_BOOT=${FINNIX_MASTER}/boot/amd64
+  else
+    FINNIX_BOOT=${FINNIX_MASTER}/boot/x86
+  fi
+fi
+[ -z "$FINNIX_INITRD" ] && FINNIX_INITRD=${FINNIX_BASE}/initrd
+[ -z "$FINNIX_STUFF" ] && FINNIX_STUFF=${FINNIX_BASE}/stuff
+if [ -f "${FINNIX_SOURCE}/etc/lsb-release" ]; then
+  . "${FINNIX_SOURCE}/etc/lsb-release"
+elif [ -f "${FINNIX_STUFF}/lsb-release" ]; then
+  . "${FINNIX_STUFF}/lsb-release"
+else
+  echo "Cannot find an appropriate lsb-release.  It appears you don't have an"
+  echo "extracted root in ${FINNIX_SOURCE}."
+  echo "That's fine, but you will need to provide a copy of"
+  echo "/etc/lsb-release from the Finnix system you are mastering."
+  echo "Please copy it into ${FINNIX_STUFF}/lsb-release"
+  echo "and re-run this script."
+  exit 1
+fi
+
+### sanity check
+for i in "${FINNIX_BASE}" "${FINNIX_MASTER}"; do
+  if ! [ -d "$i" ]; then
+    echo "Directory $i does not exist."
+    exit 1
+  fi
+done
+
+# Functions
+findmods() {
+  perl - "$@" <<"BASHEOM"
+use File::Basename;
+use strict;
+use warnings;
+
+my $kver = $ARGV[0];
+my $base = $ARGV[1];
+$base = "/" unless $base;
+
+my %moddep = ();
+my %modloc = ();
+open(FILE, "/$base/lib/modules/$kver/modules.dep");
+while(my $l = <FILE>) {
+  chomp $l;
+  if($l =~ /^(.*?):(.*)$/) {
+    my $file = $1;
+    my $deps = $2;
+    $deps =~ s/^\s+//;
+    $deps =~ s/\s+$//;
+    $file =~ s,^/lib/modules/$kver/,,;
+    $deps =~ s,^/lib/modules/$kver/,,g;
+    $moddep{$file} = $deps;
+    my $basename = basename($file);
+    $modloc{$basename} = $file;
+  }
+}
+close(FILE);
+
+my @toreturn = findmods_loop($kver, $base, @ARGV[2..$#ARGV]);
+foreach my $m (@toreturn) {
+  print "$m\n";
+}
+
+sub findmods_loop {
+  my $kver = shift;
+  my $base = shift;
+  $base = "/" unless $base;
+  my %toreturn_hash = ();
+  foreach my $modfile (@_) {
+    if(substr($modfile, 0, 1) eq "/") {
+      $modfile =~ s,^/lib/modules/$kver/,,;
+    }
+    unless(substr($modfile, -3, 3) eq ".ko") {
+      $modfile = $modloc{"$modfile.ko"};
+    }
+    next unless $modfile;
+    $toreturn_hash{$modfile}++;
+    if($moddep{$modfile}) {
+      foreach my $dep (split(/\s+/, $moddep{$modfile})) {
+        unless($toreturn_hash{$dep}) {
+          $toreturn_hash{$dep}++;
+          foreach my $subdep (findmods_loop($kver, $base, $dep)) {
+            $toreturn_hash{$subdep}++;
+          }
+        }
+      }
+    }
+  }
+  return(sort keys %toreturn_hash);
+}
+BASHEOM
+}
+# End functions
+
+if [ -f "${FINNIX_STUFF}/devtag" ]; then
+  DEVTAG=$(cat ${FINNIX_STUFF}/devtag)
+  let DEVTAG++
+  echo ${DEVTAG} >${FINNIX_STUFF}/devtag
+  FINNIXDATECLEAN="$(date)"
+  FINNIXDATE="${FINNIXDATECLEAN} (Build ${DEVTAG})"
+else
+  FINNIXDATECLEAN="$(date)"
+  FINNIXDATE="${FINNIXDATECLEAN}"
+fi
+
+DISTRIB_ID_UNDERSCORE="$(echo ${DISTRIB_ID} | sed 's/ /_/g')"
+[ -z "$FINNIXVER" ] && FINNIXVER="${DISTRIB_RELEASE}"
+if [ "$DISTRIB_RELEASE" = "dev" ]; then
+  FINNIXVER="${DISTRIB_RELEASE} (${DISTRIB_CODENAME})"
+fi
+[ -z "$FINNIXVERFMT" ] && FINNIXVERFMT="$(printf '%-20s' "${FINNIXVER}")"
+
+if [ "$DISTRIB_RELEASE" = "dev" ]; then
+  if [ -n "$DEVTAG" ]; then
+    FVTITLE="${FINNIXVER} (Build ${DEVTAG})"
+  else
+    FVTITLE="${FINNIXVER}"
+  fi
+else
+  FVTITLE="${FINNIXVER}"
+fi
+
+
+### make sure required binaries are present
+BAD_BINARIES=""
+which genisoimage 2>&1 >/dev/null || BAD_BINARIES="yes"
+which uuidgen 2>&1 >/dev/null || BAD_BINARIES="yes"
+which md5sum 2>&1 >/dev/null || BAD_BINARIES="yes"
+if [ -n "${BAD_BINARIES}" ]; then
+  echo "One or more required binaries are missing."
+  exit 1
+fi
+
+### generate modules
+if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
+
+  # USB/Firewire
+  IMODS="ehci-hcd ohci-hcd uhci-hcd ohci1394 usb-storage usbhid firewire-sbp2 firewire-ohci sg"
+  # Common SCSI
+  IMODS="${IMODS} aic7xxx BusLogic sym53c8xx"
+  # Slightly less common SCSI
+  IMODS="${IMODS} 3w-xxxx 3w-9xxx 3w-sas"
+  # x86-only SCSI
+  if [ "${FINNIX_DISTARCH}" != "ppc" ]; then
+    IMODS="${IMODS} gdth mptspi"
+  fi
+  # Common USB/Firewire/SCSI
+  IMODS="${IMODS} sr_mod sd_mod"
+  # IDE
+  IMODS="${IMODS} ide-disk ide-cd ide-cd_mod ide-generic"
+  # SATA/etc
+  IMODS="${IMODS} libata"
+  # Block devices
+  IMODS="${IMODS} floppy loop"
+  # Filesystems
+  IMODS="${IMODS} ext2 isofs vfat nls_cp437 nls_utf8 unionfs aufs squashfs"
+  # Xen modules
+  IMODS="${IMODS} xen-blkfront xenfs"
+  # zram
+  IMODS="${IMODS} zram"
+
+  for i in ${FINNIX_SOURCE}/lib/modules/*; do
+    MODKERNEL="$(basename $i)"
+    for MODFILE in $(findmods "$MODKERNEL" "$FINNIX_SOURCE" $IMODS); do
+      MODFILEDIR="$(dirname $MODFILE)"
+      [ -d "${FINNIX_INITRD}/lib/modules/$MODKERNEL/$MODFILEDIR" ] || mkdir -p "${FINNIX_INITRD}/lib/modules/$MODKERNEL/$MODFILEDIR"
+      cp -a "${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/${MODFILE}" "${FINNIX_INITRD}/lib/modules/${MODKERNEL}/${MODFILEDIR}/"
+    done
+
+    # All ATA drivers
+    if [ "${FINNIX_DISTARCH}" != "ppc" ]; then
+      mkdir -p ${FINNIX_INITRD}/lib/modules/${MODKERNEL}/kernel/drivers/ata/
+      cp -a ${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/kernel/drivers/ata/*.ko ${FINNIX_INITRD}/lib/modules/${MODKERNEL}/kernel/drivers/ata/
+      rm -f ${FINNIX_INITRD}/lib/modules/${MODKERNEL}/kernel/drivers/ata/pata_pcmcia.ko
+    fi
+
+    depmod -b ${FINNIX_INITRD} ${MODKERNEL}
+  done
+
+  ### copy lsb-release in
+  if [ -f "${FINNIX_SOURCE}/etc/lsb-release" ]; then
+    cp "${FINNIX_SOURCE}/etc/lsb-release" "${FINNIX_INITRD}/etc/lsb-release"
+  fi
+
+  ### regenerate dist ids
+  NEWUUID=$(uuidgen)
+  cat >${FINNIX_MASTER}/finnix/dist.id<<EOM
+# This file contains a list of IDs unique to the build of this CD.  If
+# one them matches the list of IDs in /etc/dist.id on the initrd,
+# booting will proceed.
+$NEWUUID # ${DISTRIB_ID} $FINNIXVER $FINNIX_DISTARCH, $FINNIXDATE
+EOM
+  cat >${FINNIX_INITRD}/etc/dist.id<<EOM
+# This file contains a list of IDs unique to the build of this initrd.
+# If one them matches the list of IDs in /finnix/dist.id on the CD,
+# booting will proceed.
+$NEWUUID # ${DISTRIB_ID} $FINNIXVER $FINNIX_DISTARCH, $FINNIXDATE
+EOM
+
+  ### calculate forensic sha512sums
+  (
+    cd ${FINNIX_MASTER}/finnix
+    find ${FINNIX_MASTER}/finnix -type f \
+      -printf '%P\0' | xargs -0 sha512sum > ${FINNIX_INITRD}/etc/forensic.ids
+  )
+
+  ### cpio for ramdisk
+  rm -f ${FINNIX_BOOT}/initrd.gz ${FINNIX_BOOT}/initrd.xz ${FINNIX_BOOT}/initrd
+  if [ "$QUICK" = "yes" ]; then
+    INITRD_FN=initrd; (cd ${FINNIX_INITRD} ; find . | cpio --verbose -o -H newc >${FINNIX_BOOT}/initrd; chmod 0644 ${FINNIX_BOOT}/initrd)
+    INITRD_NET_FN=initrd_net
+  elif [ "$QUICK" = "sorta" ]; then
+    INITRD_FN=initrd.gz; (cd ${FINNIX_INITRD} ; find . | cpio --verbose -o -H newc | gzip -9 -c >${FINNIX_BOOT}/initrd.gz; chmod 0644 ${FINNIX_BOOT}/initrd.gz)
+    INITRD_NET_FN=initrd_net.gz
+  else
+    INITRD_FN=initrd.xz; (cd ${FINNIX_INITRD} ; find . | cpio --verbose -o -H newc | xz -C crc32 -c >${FINNIX_BOOT}/initrd.xz; chmod 0644 ${FINNIX_BOOT}/initrd.xz)
+    INITRD_NET_FN=initrd_net.xz
+  fi
+
+fi
+
+### generate splash screens
+if [ -f ${FINNIX_STUFF}/readme.txt.content ]; then
+  cat ${FINNIX_STUFF}/readme.txt.content | sed "s/FINNIX-VERSION-NUMBR/${FINNIXVERFMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" | perl -pe 's/\n/\r\n/g' > ${FINNIX_MASTER}/readme.txt
+fi
+if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
+  if [ -f ${FINNIX_STUFF}/boot.msg.content ]; then
+    cat ${FINNIX_STUFF}/boot.msg.content | sed "s/FINNIX-VERSION-NUMBR/${FINNIXVERFMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/boot.msg
+  fi
+  if [ -f ${FINNIX_STUFF}/yaboot.conf.content ]; then
+    cat ${FINNIX_STUFF}/yaboot.conf.content | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_BOOT}/yaboot.conf
+  fi
+  if [ -f ${FINNIX_STUFF}/yaboot_net.conf.content ]; then
+    cat ${FINNIX_STUFF}/yaboot_net.conf.content | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_BOOT}/yaboot_net.conf
+  fi
+else
+  if [ -f ${FINNIX_STUFF}/boot.msg.content ]; then
+    cat ${FINNIX_STUFF}/boot.msg.content | sed "s/FINNIX-VERSION-NUMBR/${FINNIXVERFMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/boot.msg
+  fi
+  if [ -f ${FINNIX_STUFF}/finnix.header ]; then
+    for i in 1 2; do
+      cat ${FINNIX_STUFF}/finnix.header ${FINNIX_STUFF}/f$i.content ${FINNIX_STUFF}/finnix.footer | sed "s/FINNIX-VERSION-NUMBR/${FINNIXVERFMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/f$i
+    done
+  fi
+  if [ -f ${FINNIX_STUFF}/isolinux.cfg.content ]; then
+    cat ${FINNIX_STUFF}/isolinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${DISTRIB_ID}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_MASTER}/isolinux.cfg
+  fi
+  if [ -f ${FINNIX_STUFF}/syslinux.cfg.content ]; then
+    cat ${FINNIX_STUFF}/syslinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${DISTRIB_ID}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_MASTER}/syslinux.cfg
+  fi
+  if [ -f ${FINNIX_STUFF}/pxelinux.cfg.content ]; then
+    cat ${FINNIX_STUFF}/pxelinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${DISTRIB_ID}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_NET_FN}/g" > ${FINNIX_BOOT}/pxelinux/template.cfg
+  fi
+fi
+
+rm -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/boot.cat"
+if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" ]; then
+  cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" "${FINNIX_MASTER}/isolinux.bin"
+fi
+for com32 in hdt.c32 menu.c32 vesamenu.c32; do
+  if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/$com32" ]; then
+    cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/$com32" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$com32"
+  fi
+done
+if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" ]; then
+  cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pxelinux/pxelinux.0"
+fi
+
+### calculate md5sums
+cd "${FINNIX_MASTER}"
+find ${FINNIX_MASTER} -type f -not -name md5sums \
+  -not -name boot.cat -not -name isolinux.bin \
+  -printf '%P\0' | xargs -0 md5sum > ${FINNIX_MASTER}/md5sums
+
+### the iso itself
+rm -f ${FINNIX_ISO}
+ISOVOL32="${DISTRIB_ID} ${FINNIXVER}"
+ISOVOL32="${ISOVOL32:0:32}" # bashism
+if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
+  time genisoimage -hide-rr-moved -hfs -part -map ${FINNIX_MASTER}/boot/ppc/hfs.map -no-desktop \
+    -hfs-volid "${DISTRIB_ID_UNDERSCORE}_${FINNIXVER}" -hfs-bless ${FINNIX_BOOT} \
+    -pad -l -r -J -v -V "${ISOVOL32}" -o ${FINNIX_ISO} ${FINNIX_MASTER}
+else
+  time genisoimage -pad -l -r -J -v -V "${ISOVOL32}" -no-emul-boot -boot-load-size 4 \
+     -boot-info-table -b isolinux.bin -c boot/${FINNIX_DISTARCH}/boot.cat \
+     -hide-rr-moved -o ${FINNIX_ISO} ${FINNIX_MASTER}
+fi
+
+[ -x /usr/bin/implantisomd5 ] && /usr/bin/implantisomd5 ${FINNIX_ISO}
+
+if [ -n "$VANITYHASH" ]; then
+  (dd if=${FINNIX_ISO} bs=512 count=$(($(($(stat -c %s ${FINNIX_ISO}) / 512)) - 1)); dd if=/dev/zero bs=1 count=508) | vanityhash -a -b 32 -w 2 "$VANITYHASH" > ${FINNIX_ISO}.vanity
+  if [ $(($(stat -c %s ${FINNIX_ISO}.vanity) % 512)) -eq 0 ]; then
+    mv ${FINNIX_ISO}.vanity ${FINNIX_ISO}
+  else
+    echo "vanityhash apparently did not find a match!"
+    rm -f ${FINNIX_ISO}.vanity
+  fi
+fi
+
+if [ -n "${DEVTAG}" -a $(ls ${FINNIX_ISO}-LATEST_IS_* 2>/dev/null | wc -l) -gt 0 ]; then
+  rm -f ${FINNIX_ISO}-LATEST_IS_*
+  touch ${FINNIX_ISO}-LATEST_IS_${DEVTAG}
+fi
+
+rm -f ${FINNIX_ISO}.gpg
+if [ -n "$GPGUSER" ] && [ ! "$QUICK" = "yes" ]; then
+  gpg --sign --local-user "$GPGUSER" -ba -o ${FINNIX_ISO}.gpg ${FINNIX_ISO}
+fi
+
+echo ""
+echo "Version: ${FINNIXVER}"
+echo "Build: ${FINNIXDATE}"
+echo "$(($(($(stat -c %s ${FINNIX_ISO}) * 100)) / 193986560))% of 185 MiB Mini-CD"

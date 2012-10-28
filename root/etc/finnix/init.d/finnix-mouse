@@ -1,0 +1,34 @@
+#!/bin/sh
+
+. /lib/finnix/finnix-rc-helper.sh
+
+[ "${FINNIX_XENU}" = "yes" ] && exit 0
+[ "${FINNIX_UML}" = "yes" ] && exit 0
+
+case "$1" in
+  start)
+    checkbootparam "nomouse" && exit 0
+    if [ -x /usr/sbin/gpm -a -x /etc/init.d/gpm ]; then
+      #modprobe mousedev >/dev/null 2>/dev/null
+      echo -n "${BLUEITEM} Starting mouse services... "
+      invoke-rc.d gpm start >/dev/null 2>/dev/null
+      #modprobe psmouse >/dev/null 2>/dev/null
+      #[ -e /sys/bus/usb ] && modprobe usbmouse >/dev/null 2>/dev/null
+      echo -n "done${CRE}"
+    fi
+    ;;
+  stop)
+    #if invoke-rc.d gpm status 2>/dev/null >/dev/null; then
+    #invoke-rc.d gpm stop 2>/dev/null >/dev/null
+    /etc/init.d/gpm stop 2>/dev/null >/dev/null
+    #fi
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
+
+

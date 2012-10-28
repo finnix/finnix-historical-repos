@@ -1,0 +1,49 @@
+#!/bin/bash
+#zram_stat.sh
+# by John Moser <john.r.moser@gmail.com>
+#
+# This script just stats up a zram block device
+# for analysis as a swap device.  It tells you:
+#
+#   - Amount of RAM swapped into zram0
+#   - The compressed size of swapped data
+#   - The total RAM used by zram0
+#   - The total memory savings
+#   - Total ratio and bare compression ratio
+#   - Effective RAM (RAM + savings)
+#
+# The second column shows predictions based on
+# filling the entire block device at the current
+# ratio.
+
+ZRAM="/sys/block/zram0/"
+
+#total RAM
+RAMSZ=$(( $(cat /proc/meminfo |grep MemTotal | awk '{print $2}') * 1024 ))
+#Original and Compressed size of swap
+OSZ=$(cat "${ZRAM}/orig_data_size")
+CSZ=$(cat "${ZRAM}/compr_data_size")
+TCSZ=$(cat "${ZRAM}/mem_used_total")
+DSZ=$(cat "${ZRAM}/disksize")
+
+# Ratio
+CRATIO=$(( CSZ * 100 / OSZ ))
+TCRATIO=$(( TCSZ * 100 / OSZ ))
+
+
+# Effective and predicted
+ERAM=$(( (RAMSZ + OSZ - TCSZ) / (1024 * 1024) ))
+# Predicted used RAM when filled
+PUSERAM="$(echo "$DSZ * ( $TCSZ / $OSZ )" | bc -l | cut -f 1 -d'.' )"
+PSVRAM="$(echo "$DSZ * (1 - ($TCSZ / $OSZ) ) / (1024*1024)" | bc -l | cut -f 1 -d'.' )"
+PERAM=$(( (RAMSZ + DSZ - PUSERAM) / (1024 * 1024) ))
+
+echo	"		Current		Predicted"
+echo	"Original:	$(( OSZ / (1024 * 1024) ))M		$(( DSZ / (1024*1024) ))M"
+echo	"Compressed:	$(( CSZ / (1024 * 1024) ))M"
+echo	"Total mem use:	$(( TCSZ / (1024 * 1024) ))M		$(( PUSERAM / (1024*1024) ))M"
+echo	"Saved:		$(( (OSZ - TCSZ) / (1024 * 1024) ))M		${PSVRAM}M"
+echo	"Ratio:		${TCRATIO}%	(${CRATIO}%)"
+echo 
+echo	"Physical RAM:	$(( RAMSZ / (1024 * 1024) ))M"
+echo	"Effective RAM:	${ERAM}M		(${PERAM}M)"
