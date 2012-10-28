@@ -1,3 +1,9 @@
+finnix-release (107~4) unstable; urgency=low
+
+  * Add Vcs/Homepage fields
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 04:27:29 +0000
+
 finnix-release (107~3) unstable; urgency=low
 
   * Run postinst on upgrade as well
