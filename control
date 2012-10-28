@@ -1,0 +1,15 @@
+Source: finnix-standard-arch
+Section: misc
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+
+Package: finnix-standard-arch
+Architecture: any
+Depends: ${misc:Depends}, acpi [i386 amd64], cpuburn [i386 amd64], cpuid [i386 amd64], dmidecode [i386 amd64], gpart [i386 amd64], lilo [i386 amd64], syslinux [i386 amd64], mac-fdisk [powerpc], powerpc-utils [powerpc], yaboot [powerpc]
+Description: Standard Finnix dependencies (architecture-specific)
+ This meta-package depends all needed packages for a standard Finnix
+ distribution.
+ .
+ This package contains architecture-specific dependencies.
