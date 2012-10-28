@@ -1,3 +1,9 @@
+finnix-scripts (107~3) unstable; urgency=low
+
+  * Add Vcs/Homepage fields
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 04:28:46 +0000
+
 finnix-scripts (107~2) unstable; urgency=low
 
   * Move man and root to debian/ for VC
