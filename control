@@ -1,0 +1,17 @@
+Source: oui
+Section: utils
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.2
+Homepage: http://www.finnie.org/software/oui/
+
+Package: oui
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, perl
+Description: Searches A locally-installed IEEE OUI database
+ oui searches a system IEEE OUI database.  With any options, it takes a
+ OUI or MAC address in a variety of formats (uppercase, lowercase, 
+ colon delimited, dash delimited, no delimiter).  If an OUI entry is 
+ found, the OUI and organization is printed.
+
