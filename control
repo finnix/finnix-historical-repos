@@ -1,0 +1,21 @@
+Source: vanityhash
+Section: utils
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.2
+Homepage: http://www.finnie.org/software/vanityhash/
+XS-Dm-Upload-Allowed: yes
+
+Package: vanityhash
+Architecture: all
+Depends: ${misc:Depends}, perl, perl-modules, libdigest-perl
+Suggests: libdigest-sha-perl, libdigest-crc-perl, libdigest-md2-perl, libdigest-md4-perl
+Description: Brute-force hashes which match a desired hex string
+ vanityhash is a tool that can discover data to be added to the end of 
+ a file to produce a desired hex hash fragment. It searches a message 
+ space and runs a hashing algorithm against the original data plus the 
+ appended data to determine if the desired hash fragment is present. 
+ vanityhash can run multiple parallel workers to effectively make use 
+ of multiple processors/cores/threads, and supports multiple hash 
+  digest types (MD5, SHA1, SHA256, etc).
