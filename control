@@ -1,0 +1,13 @@
+Source: finnix-base
+Section: misc
+Priority: required
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+
+Package: finnix-base
+Architecture: all
+Depends: ${misc:Depends}, ssmtp | mail-transport-agent, finnix-release, finnix-keyring
+Description: Base Finnix dependencies
+ This meta-package depends all core packages for a base Finnix
+ distribution.
