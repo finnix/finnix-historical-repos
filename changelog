@@ -1,3 +1,9 @@
+finnix-release (107~3) unstable; urgency=low
+
+  * Run postinst on upgrade as well
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 03:44:43 +0000
+
 finnix-release (107~2) unstable; urgency=low
 
   * Add support for /etc/dpkg/origins/finnix (LP: #1071572)

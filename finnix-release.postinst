@@ -3,7 +3,7 @@ set -e
 
 #DEBHELPER#
 
-if [ "$1" = configure ] && [ -z "$2" ]; then
+if [ "$1" = configure ]; then
   ln -sf finnix /etc/dpkg/origins/default
 
   for fn in /etc/os-release; do
