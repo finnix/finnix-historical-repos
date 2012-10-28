@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -e
+
+KEYSDIR="$1"
+DESTRING="$2"
+
+[ -z "$KEYSDIR" ] && exit 1
+[ -z "$DESTRING" ] && exit 1
+[ -e "$KEYSDIR/series" ] || exit 1
+
+TEMPHOME="$(mktemp -d)"
+
+for i in `cat $KEYSDIR/series`; do
+  gpg --batch --no-tty --no-options --homedir "$TEMPHOME" --import "$KEYSDIR/$i"
+done
+
+cat "$TEMPHOME/pubring.gpg" >"$DESTRING"
+chmod 0644 "$DESTRING"
+rm -rf "$TEMPHOME"

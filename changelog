@@ -1,0 +1,19 @@
+finnix-keyring (107~1) unstable; urgency=low
+
+  * Build keyring dynamically from exported key list
+  * Bump standards to 3.9.3
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 03:13:20 +0000
+
+finnix-keyring (106) unstable; urgency=low
+
+  * Finnix 106
+  * Added 4096R/65B619B6 2012-09-24 Finnix Snapshot Signing Key <keymaster@finnix.org>
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 25 Oct 2012 23:52:31 +0000
+
+finnix-keyring (105) unstable; urgency=low
+
+  * Initial release
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 08 Jul 2012 18:41:40 -0700

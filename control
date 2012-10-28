@@ -1,0 +1,12 @@
+Source: finnix-keyring
+Section: misc
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~), gnupg
+Standards-Version: 3.9.3
+
+Package: finnix-keyring
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Scripts needed to run Finnix
+ This package contains the Finnix OpenPGP keyring.
