@@ -27,3 +27,4 @@ override_dh_auto_install:
 
 	(cd $(CURDIR)/debian/neale-initrd/bin && for i in `./busybox --list`; do ln -s busybox $$i; done)
 	(cd $(CURDIR)/debian/neale-initrd/dev && ./MAKEDEV std fd pty console)
+	(cd $(CURDIR)/debian/neale-initrd && tar cf dev.tar dev && rm -rf dev)
