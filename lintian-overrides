@@ -1,0 +1,1 @@
+gdisk-noicu binary: hardening-no-fortify-functions sbin/fixparts
