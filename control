@@ -4,6 +4,9 @@ Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
 Build-Depends: debhelper (>= 7.0.50~)
 Standards-Version: 3.9.3
+Vcs-Browser: https://code.launchpad.net/~fo0bar/finnix/finnix-standard-pkg-debian
+Vcs-Bzr: http://bazaar.launchpad.net/~fo0bar/finnix/finnix-standard-pkg-debian
+Homepage: http://www.finnix.org/
 
 Package: finnix-standard
 Architecture: all

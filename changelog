@@ -1,3 +1,9 @@
+finnix-standard (107~2) unstable; urgency=low
+
+  * Add Vcs/Homepage fields
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 04:30:39 +0000
+
 finnix-standard (107~1) unstable; urgency=low
 
   * Remove root directory, touch inuse file directly
