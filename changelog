@@ -1,0 +1,20 @@
+neale-master (107~1) unstable; urgency=low
+
+  * Bump standards to 3.9.3
+  * Add Vcs/Homepage fields
+  * Add README.source warning
+  * Changed Section to debian-installer
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 05:00:16 +0000
+
+neale-master (106~2) unstable; urgency=low
+
+  * Support native amd64 userland
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 24 Oct 2012 17:19:38 -0700
+
+neale-master (106~1) unstable; urgency=low
+
+  * Initial release
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 15 Jul 2012 00:57:18 -0700

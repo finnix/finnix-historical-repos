@@ -1,0 +1,33 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+ifeq ($(DEB_HOST_ARCH), i386)
+	F_ARCH = x86
+else
+	ifeq ($(DEB_HOST_ARCH), amd64)
+		F_ARCH = amd64
+	else
+		ifeq ($(DEB_HOST_ARCH), powerpc)
+			F_ARCH = ppc
+		else
+			F_ARCH = unknown
+		endif
+	endif
+endif
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -m 0755 -d $(CURDIR)/debian/neale-master
+	install -m 0755 -d $(CURDIR)/debian/neale-master/finnix
+	install -m 0755 -d $(CURDIR)/debian/neale-master/finnix/arch
+	install -m 0755 -d $(CURDIR)/debian/neale-master/finnix/arch/$(F_ARCH)
+	install -m 0755 -d $(CURDIR)/debian/neale-master/boot
+	install -m 0755 -d $(CURDIR)/debian/neale-master/boot/$(F_ARCH)
+
+	install -m 0644 arch.map $(CURDIR)/debian/neale-master/finnix/arch.map
+	cp -a boot/$(F_ARCH)/* $(CURDIR)/debian/neale-master/boot/$(F_ARCH)/
