@@ -1,3 +1,9 @@
+finnix-scripts (107~4) unstable; urgency=low
+
+  * stage1: Set nano as default editor (LP: #1072286)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 09:56:45 +0000
+
 finnix-scripts (107~3) unstable; urgency=low
 
   * Add Vcs/Homepage fields
