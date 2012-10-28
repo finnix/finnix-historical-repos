@@ -1,0 +1,7 @@
+./files
+./neale-kernel
+./neale-kernel.debhelper.log
+./neale-kernel.substvars
+./neale-kernel.postinst.debhelper
+./neale-kernel.postrm.debhelper
+
