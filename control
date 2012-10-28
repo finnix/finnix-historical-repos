@@ -1,0 +1,15 @@
+Source: emad
+Section: games
+Priority: extra
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~), autotools-dev, libncurses5-dev
+Standards-Version: 3.9.2
+Homepage: http://zork.net/pub/
+
+Package: emad
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: He is trapped! Get him out!
+ Miss Cleo has put Emad in a mindjail, which is a prison for your mind.
+ It is your job to get him out! Use the arrow keys on your keyboard, or 
+ the standard nethack or vi movement keys to maneuver Emad.

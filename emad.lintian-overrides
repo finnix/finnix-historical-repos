@@ -1,0 +1,4 @@
+# Not packaged for Debian
+emad binary: new-package-should-close-itp-bug
+# Old software, wording taken directly from upstream COPYING
+emad binary: old-fsf-address-in-copyright-file
