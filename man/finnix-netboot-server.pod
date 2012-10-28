@@ -1,0 +1,61 @@
+=head1 NAME
+
+finnix-netboot-server - Prepare a running Finnix session as a netboot server
+
+=head1 SYNOPSIS
+
+B<finnix-netboot-server>
+
+=head1 DESCRIPTION
+
+B<finnix-netboot-server> is a utility to prepare a running Finnix 
+session as a netboot server.  This is accomplished by re-creating the 
+initrd with network modules, starting an NFS server to host the CD, and 
+starting a TFTP server to host the boot files.
+
+Normally Finnix is distributed with an initrd that includes kernel 
+modules for many different storage controllers, to enable searching for 
+CD-ROM drives to mount the CD and compressed root filesystem.  
+B<finnix-netboot-server> takes that initrd, extracts it, deletes the 
+storage modules, and adds network modules instead.
+
+The contents of the CD boot directory (/isolinux for x86, /boot for 
+PowerPC) are then copied to /srv/tftp/finnix, along with the modified 
+initrd.  A TFTP server is started, hosting /srv/tftp.
+
+An NFS server is started, exporting /cdrom.  Key boot files are 
+modified in the TFTP directory to specify the IP address and path to 
+the NFS server to look for the main CD files.
+
+A DHCP server is B<not> started; it is up to the user to add the proper 
+config to the network's existing DHCP server.  Configuration examples 
+are provided at the conclusion of the program.
+
+Once the initrd and boot files are modified, the user can either run a 
+netboot session against the running Finnix session, or copy them to 
+another server to provide a more permanent Finnix netboot option.
+
+An additional option available is to forego the NFS-mounted CD, and 
+place the entire contents of the CD in the initrd. Note that this method 
+produces a very large initrd, and there are several drawbacks. For 
+various reasons related to the kernel and Finnix itself, you will need 
+at least 3x RAM as the size of the CD distribution itself.  That is, if 
+the Finnix CD is 150MB, you will need at least 450MB of RAM. Once the 
+boot has completed, most of that additional RAM will be available for 
+use again.
+
+=head1 OPTIONS
+
+None.  B<finnix-netboot-server> is an interactive program, and will ask 
+several questions during the run.
+
+=head1 BUGS
+
+None known at this time.
+
+=head1 AUTHOR
+
+B<finnix-netboot-server> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

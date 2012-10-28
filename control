@@ -1,0 +1,14 @@
+Source: finnix-netboot
+Section: misc
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~), perl
+Standards-Version: 3.9.3
+
+Package: finnix-netboot
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, whiptail, nfs-user-server | nfs-kernel-server, tftpd-hpa, portmap, module-init-tools (>= 3.9), syslinux | yaboot, isc-dhcp-client, perl, finnix-release
+Description: Scripts to set up network booting in Finnix
+ This package contains the finnix-netboot-* scripts, which are designed 
+ to build an host a netboot environment for booting Finnix over a 
+ network.

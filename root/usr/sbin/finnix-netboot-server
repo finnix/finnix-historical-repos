@@ -1,0 +1,289 @@
+#!/bin/bash
+
+# finnix-netboot-server
+# Copyright (C) 2011 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+. /etc/lsb-release
+. /lib/lsb/init-functions
+
+### Utility Function(s)
+
+findmods() {
+  perl - "$@" <<"BASHEOM"
+use File::Basename;
+use strict;
+use warnings;
+
+my $kver = $ARGV[0];
+my $base = $ARGV[1];
+$base = "/" unless $base;
+
+my %moddep = ();
+my %modloc = ();
+open(FILE, "/$base/lib/modules/$kver/modules.dep");
+while(my $l = <FILE>) {
+  chomp $l;
+  if($l =~ /^(.*?):(.*)$/) {
+    my $file = $1;
+    my $deps = $2;
+    $deps =~ s/^\s+//;
+    $deps =~ s/\s+$//;
+    $file =~ s,^/lib/modules/$kver/,,;
+    $deps =~ s,^/lib/modules/$kver/,,g;
+    $moddep{$file} = $deps;
+    my $basename = basename($file);
+    $modloc{$basename} = $file;
+  }
+}
+close(FILE);
+
+my @toreturn = findmods_loop($kver, $base, @ARGV[2..$#ARGV]);
+foreach my $m (@toreturn) {
+  print "$m\n";
+}
+
+sub findmods_loop {
+  my $kver = shift;
+  my $base = shift;
+  $base = "/" unless $base;
+  my %toreturn_hash = ();
+  foreach my $modfile (@_) {
+    if(substr($modfile, 0, 1) eq "/") {
+      $modfile =~ s,^/lib/modules/$kver/,,;
+    }
+    unless(substr($modfile, -3, 3) eq ".ko") {
+      $modfile = $modloc{"$modfile.ko"};
+    }
+    next unless $modfile;
+    $toreturn_hash{$modfile}++;
+    if($moddep{$modfile}) {
+      foreach my $dep (split(/\s+/, $moddep{$modfile})) {
+        unless($toreturn_hash{$dep}) {
+          $toreturn_hash{$dep}++;
+          foreach my $subdep (findmods_loop($kver, $base, $dep)) {
+            $toreturn_hash{$subdep}++;
+          }
+        }
+      }
+    }
+  }
+  return(sort keys %toreturn_hash);
+}
+BASHEOM
+}
+
+do_whiptail() {
+  DTMP=`mktemp`
+  whiptail --output-fd 3 --backtitle "${DISTRIB_ID}" --title "${DISTRIB_ID} Network Boot Server" "$@" 3>${DTMP}
+  DOUT=$?
+  DVAL="$(cat ${DTMP})"
+  rm -f ${DTMP}
+  return ${DOUT}
+}
+
+setup_initrd() {
+  if [ "$BIGINIT" = "yes" ]; then
+    log_action_msg "Creating initrd with embedded CD... "
+  else
+    log_action_msg "Creating initrd with network modules... "
+  fi
+  INITRD_NET_DIR="$(mktemp -d)"
+
+  if [ -f "/cdrom${INITRDDIR}/initrd.xz" ]; then
+    INITRD_NET_IMG_MODE="xz"
+    INITRD_NET_IMG="/srv/tftp${TFTPDISTDIR}${INITRDDIR}/initrd_net.xz"
+    (cd $INITRD_NET_DIR ; xz -d -c /cdrom${INITRDDIR}/initrd.xz | cpio --quiet -idm)
+  elif [ -f "/cdrom${INITRDDIR}/initrd.gz" ]; then
+    INITRD_NET_IMG_MODE="gzip"
+    INITRD_NET_IMG="/srv/tftp${TFTPDISTDIR}${INITRDDIR}/initrd_net.gz"
+    (cd $INITRD_NET_DIR ; gunzip -c /cdrom${INITRDDIR}/initrd.gz | cpio --quiet -idm)
+  elif [ -f "/cdrom${INITRDDIR}/initrd" ]; then
+    INITRD_NET_IMG_MODE="uncompressed"
+    INITRD_NET_IMG="/srv/tftp${TFTPDISTDIR}${INITRDDIR}/initrd_net"
+    (cd $INITRD_NET_DIR ; cpio --quiet -idm < /cdrom${INITRDDIR}/initrd)
+  else
+    echo "ERROR: Cannot determine base initrd"
+    exit 1
+  fi
+
+  if [ "$BIGINIT" = "yes" ]; then
+    mkdir -p "$INITRD_NET_DIR/cdroot"
+    cp -a /cdrom/* "$INITRD_NET_DIR/cdroot/"
+  else
+    rm -rf $INITRD_NET_DIR/lib/modules/*
+    for i in /lib/modules/*; do
+      MODKERNEL="$(basename $i)"
+      # All network drivers
+      mkdir -p ${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/
+      NETMODS=""
+      for NETMODF in `find /lib/modules/${MODKERNEL}/kernel/drivers/net -name '*.ko'`; do
+        [ -n "$NETMODS" ] && NETMODS="$NETMODS "
+        NETMODS="$NETMODS$(basename $NETMODF .ko)"
+      done
+
+      for MODFILE in $(findmods "$MODKERNEL" "/" loop unionfs aufs squashfs nfs ehci-hcd ohci-hcd uhci-hcd usbhid zram $NETMODS); do
+        MODFILEDIR="$(dirname $MODFILE)"
+        [ -d "${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/$MODFILEDIR" ] || mkdir -p "${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/${MODFILEDIR}"
+        cp -a "/lib/modules/${MODKERNEL}/${MODFILE}" "${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/${MODFILEDIR}/"
+      done
+
+      depmod -b ${INITRD_NET_DIR} ${MODKERNEL}
+    done
+  fi
+
+  rm -f "${INITRD_NET_IMG}"
+  if [ "${INITRD_NET_IMG_MODE}" = "xz" ]; then
+    (cd ${INITRD_NET_DIR} ; find . | cpio --quiet -o -H newc | xz -C crc32 -c >${INITRD_NET_IMG})
+  elif [ "${INITRD_NET_IMG_MODE}" = "gzip" ]; then
+    (cd ${INITRD_NET_DIR} ; find . | cpio --quiet -o -H newc | gzip -9 >${INITRD_NET_IMG})
+  elif [ "${INITRD_NET_IMG_MODE}" = "uncompressed" ]; then
+    (cd ${INITRD_NET_DIR} ; find . | cpio --quiet -o -H newc >${INITRD_NET_IMG})
+  fi
+  chmod 0644 "${INITRD_NET_IMG}"
+
+  rm -rf $INITRD_NET_DIR
+}
+
+
+# MAIN PROGRAM BEGIN
+
+[ -z "$TFTPDISTDIR" ] && TFTPDISTDIR="/finnix"
+
+do_whiptail --defaultno --yesno "The ${DISTRIB_ID} Network Boot Server will configure the services necessary to facilitate network booting of ${DISTRIB_ID}.\n\nThis program will NOT start a DHCP server, as having multiple DHCP servers on a network will invariably cause problems.  Instead, at the end of this program, you will be given specific information about how to configure your network's existing DHCP servers to use ${DISTRIB_ID} for network booting.\n\nDo you wish to continue?" 0 0
+[ $? -eq 0 ] || exit
+
+do_whiptail --defaultno --yesno "By default, this program makes a configuration where clients TFTP a kernel and initrd, which then mounts the CD via NFS.  Alternatively, it can install a copy of the entire CD within the initrd, requiring no NFS server.  This eliminates complexity, but at a cost of RAM (three times the CD size is needed at minimum to boot).\n\nWould you like to copy the CD to the initrd instead of setting up an NFS server?" 0 0
+if [ $? -eq 0 ]; then
+  BIGINIT="yes"
+else
+  BIGINIT="no"
+fi
+
+if [ "$BIGINIT" = "no" ]; then
+  SERVERIP=""
+  for i in /sys/class/net/eth*; do
+    SERVERIPTEST="$(ifconfig $(basename $i) | grep "inet addr" | awk '{print $2}' | sed 's/^addr://')"
+    [ -n "$SERVERIPTEST" ] && SERVERIP="$SERVERIPTEST"
+  done
+
+  while true; do
+    do_whiptail --inputbox "What is the IP of this server?  This program has filled in its best guess, but you may override." 0 0 "$SERVERIP"
+    [ $? -eq 0 ] || exit
+    SERVERIP="$DVAL"
+    [ -n "$SERVERIP" ] && break
+  done
+fi
+
+BOOTDIR=/boot
+
+(
+  echo; echo
+
+  log_action_msg "Copying boot files to tftpboot..."
+  mkdir -p /srv/tftp${TFTPDISTDIR}${BOOTDIR}
+  cp -a /cdrom${BOOTDIR}/* /srv/tftp${TFTPDISTDIR}${BOOTDIR}/
+
+  if [ "$BIGINIT" = "yes" ]; then
+    NETOPTS=""
+  else
+    NETOPTS="nfsroot=${SERVERIP}:/cdrom"
+  fi
+
+  if [ -e "/cdrom${BOOTDIR}/ppc/yaboot.conf" ]; then
+    INITRDDIR="${BOOTDIR}/ppc"
+    setup_initrd
+
+    log_action_msg "Setting up yaboot..."
+    sed "s'_NETOPTS_'${NETOPTS}'g" /srv/tftp${TFTPDISTDIR}${BOOTDIR}/yaboot_net.conf \
+      | "s'_TFTPBASE_'${TFTPDISTDIR}'g" >/srv/tftp${TFTPDISTDIR}/yaboot.conf
+  fi
+
+  if [ -d "/cdrom${BOOTDIR}/x86/pxelinux" ]; then
+    INITRDDIR="${BOOTDIR}/x86"
+    setup_initrd
+
+    log_action_msg "Setting up pxelinux..."
+    cp -a /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/pxelinux.0 /srv/tftp${TFTPDISTDIR}/
+    mkdir -p /srv/tftp${TFTPDISTDIR}/pxelinux.cfg
+    sed "s'_NETOPTS_'${NETOPTS}'g" /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/template.cfg >/srv/tftp${TFTPDISTDIR}/pxelinux.cfg/default
+  elif [ -d "/cdrom${BOOTDIR}/amd64/pxelinux" ]; then
+    INITRDDIR="${BOOTDIR}/amd64"
+    setup_initrd
+
+    log_action_msg "Setting up pxelinux..."
+    cp -a /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/pxelinux.0 /srv/tftp${TFTPDISTDIR}/
+    mkdir -p /srv/tftp${TFTPDISTDIR}/pxelinux.cfg
+    sed "s'_NETOPTS_'${NETOPTS}'g" /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/template.cfg >/srv/tftp${TFTPDISTDIR}/pxelinux.cfg/default
+  fi
+
+
+
+  log_action_msg "Setting up tftpd-hpa..."
+  TEMPFILE="$(mktemp)"
+  sed "s'RUN_DAEMON=\"no\"'RUN_DAEMON=\"yes\"'g" /etc/default/tftpd-hpa >$TEMPFILE
+  cat $TEMPFILE >/etc/default/tftpd-hpa
+  rm -f $TEMPFILE
+  invoke-rc.d tftpd-hpa start
+  ln -sf ../../init.d/tftpd-hpa /etc/finnix/rc0.d/K20tftpd-hpa
+  ln -sf ../../init.d/tftpd-hpa /etc/finnix/rc6.d/K20tftpd-hpa
+
+  if [ "$BIGINIT" = "no" ]; then
+    log_action_msg "Setting up nfs..."
+    grep -q "^/cdrom" /etc/exports || echo "/cdrom 0.0.0.0/0.0.0.0(ro,sync,no_subtree_check)" >>/etc/exports
+    sleep 1
+    mkdir -p /var/run/rpcbind
+    touch /var/run/rpcbind/rpcbind.xdr
+    touch /var/run/rpcbind/portmap.xdr
+    invoke-rc.d rpcbind start
+    ln -sf ../../init.d/rpcbind /etc/finnix/rc0.d/K05rpcbind
+    ln -sf ../../init.d/rpcbind /etc/finnix/rc6.d/K05rpcbind
+    sleep 1
+    invoke-rc.d nfs-common start
+    ln -sf ../../init.d/nfs-common /etc/finnix/rc0.d/K79nfs-common
+    ln -sf ../../init.d/nfs-common /etc/finnix/rc6.d/K79nfs-common
+    sleep 1
+    if [ -f /etc/init.d/nfs-user-server ]; then
+      invoke-rc.d nfs-user-server start
+      ln -sf ../../init.d/nfs-user-server /finnix/etc/rc0.d/K75nfs-user-server
+      ln -sf ../../init.d/nfs-user-server /finnix/etc/rc6.d/K75nfs-user-server
+    elif [ -f /etc/init.d/nfs-kernel-server ]; then
+      invoke-rc.d nfs-kernel-server start
+      ln -sf ../../init.d/nfs-kernel-server /etc/finnix/rc0.d/K80nfs-kernel-server
+      ln -sf ../../init.d/nfs-kernel-server /etc/finnix/rc6.d/K80nfs-kernel-server
+    fi
+  fi
+
+  log_action_msg "Done!"
+  sleep 2
+)
+
+if [ -z "$SERVERIP" ]; then
+  SERVERIP="<server IP>"
+fi
+
+if [ -d "/cdrom${BOOTDIR}/x86/pxelinux" ]; then
+  DIALOGMSG="${DIALOGMSG}\n\nTo PXE boot an x86 machine, note the machine's MAC address, and put the following in your network's DHCP configuration (assuming an ISC DHCP server):\n\ngroup {\n  next-server ${SERVERIP};\n  filename \"${TFTPDISTDIR}/pxelinux.0\";\n  host clienthostname {\n    hardware ethernet aa:bb:cc:dd:ee:ff; # Client MAC address\n    fixed-address 10.0.0.201; # Client IP address\n  }\n}\n\nFor Microsoft's DHCP server, create a new reservation, then set option 66 to \"${SERVERIP}\", and option 67 to \"${TFTPDISTDIR}/pxelinux.0\"."
+elif [ -d "/cdrom${BOOTDIR}/amd64/pxelinux" ]; then
+  DIALOGMSG="${DIALOGMSG}\n\nTo PXE boot an AMD64 machine, note the machine's MAC address, and put the following in your network's DHCP configuration (assuming an ISC DHCP server):\n\ngroup {\n  next-server ${SERVERIP};\n  filename \"${TFTPDISTDIR}/pxelinux.0\";\n  host clienthostname {\n    hardware ethernet aa:bb:cc:dd:ee:ff; # Client MAC address\n    fixed-address 10.0.0.201; # Client IP address\n  }\n}\n\nFor Microsoft's DHCP server, create a new reservation, then set option 66 to \"${SERVERIP}\", and option 67 to \"${TFTPDISTDIR}/pxelinux.0\"."
+elif [ -e "/cdrom${BOOTDIR}/ppc/yaboot.conf" ]; then
+  DIALOGMSG="${DIALOGMSG}\n\nPowerPC OpenFirmware booting requires no special DHCP options.  Boot into OpenFirmware (hold Command-Option-O-F during boot), then enter \"boot enet:${SERVERIP},\\finnix\\boot\\ppc\\yaboot\"."
+else
+  DIALOGMSG="TFTP and NFS services are now running."
+fi
+
+do_whiptail --msgbox "$DIALOGMSG" 0 0
+

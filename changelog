@@ -1,0 +1,135 @@
+finnix-netboot (107~1) unstable; urgency=low
+
+  * Move root and man to debian/ for VC
+  * Bump standards to 3.9.3
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 28 Oct 2012 03:22:52 +0000
+
+finnix-netboot (106) unstable; urgency=low
+
+  * Finnix 106
+  * Support native amd64 userland
+  * When using biginit, give placeholder server IP in instructions
+    (LP: #1056484)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 25 Oct 2012 23:53:42 +0000
+
+finnix-netboot (105) unstable; urgency=low
+
+  * Finnix 105
+  * Pull in /etc/lsb-release to use DISTRIB_ID
+  * Replace dialog with whiptail
+  * Integrate finnix-netboot-server and finnix-netboot-biginit
+    (LP: #980562)
+  * Uses a new CD boot layout that is less complex and more reliable
+    (LP: #980574)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 08 Jul 2012 18:42:23 -0700
+
+finnix-netboot (104) unstable; urgency=low
+
+  * Finnix 104
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 05 Feb 2012 13:12:59 -0800
+
+finnix-netboot (103) unstable; urgency=low
+
+  * Finnix 103
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 12 Oct 2011 09:49:03 -0700
+
+finnix-netboot (102) unstable; urgency=low
+
+  * Finnix 102
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 21 Jul 2011 22:09:05 -0700
+
+finnix-netboot (101) unstable; urgency=low
+
+  * Many manual updates (yeah, that doesn't help)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 21 Dec 2010 00:09:21 -0800
+
+finnix-netboot (1.4) unstable; urgency=low
+
+  * Added dhclient hook to prevent IP clearing during netboot
+  * Added -m to depmod to build maps (requires recent module-init-tools)
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 05 Aug 2009 22:44:58 -0700
+
+finnix-netboot (1.3) unstable; urgency=low
+
+  * TFTP distribution directory now in /finnix subdirectory under tftproot,
+    instead of in tftproot directly.  Override with TFTPDISTDIR.
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun,  1 Jun 2008 20:35:56 -0700
+
+finnix-netboot (1.2) unstable; urgency=low
+
+  * Finnix 91.0
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 27 Jan 2008 23:24:05 -0800
+
+finnix-netboot (1.2~pre2) unstable; urgency=low
+
+  * Added loop, unionfs, aufs, and squashfs modules to list of modules
+    added to initrd (if found)
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon,  7 Jan 2008 03:29:31 -0800
+
+finnix-netboot (1.2~pre1) unstable; urgency=low
+
+  * Switched from squashfs initrd to cpio initramfs
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun,  6 Jan 2008 20:36:26 -0800
+
+finnix-netboot (1.1) unstable; urgency=low
+
+  * Add tftp/nfs/etc initscripts to rc0.d / rc6.d
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 20 Oct 2007 01:45:05 -0700
+
+finnix-netboot (1.0.1) unstable; urgency=low
+
+  * Added needed CMDLINE variable for alternate finnixfile locations
+  * Fixed typo
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 16 Jan 2007 12:50:35 -0800
+
+finnix-netboot (1.0) unstable; urgency=low
+
+  * Marked stable.
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 14 Jan 2007 21:42:19 -0800
+
+finnix-netboot (0.0.5) unstable; urgency=low
+
+  * Fixed server IP guessing
+  * Fixed nfsroot appending for PPC
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 26 Aug 2006 23:09:08 -0700
+
+finnix-netboot (0.0.4) unstable; urgency=low
+
+  * Added needed ARCH check
+  * Added PPC boot info
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 26 Aug 2006 22:52:42 -0700
+
+finnix-netboot (0.0.3) unstable; urgency=low
+
+  * Fixed typos
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 26 Aug 2006 21:53:11 -0700
+
+finnix-netboot (0.0.2) unstable; urgency=low
+
+  * Added PPC capabilities
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 26 Aug 2006 21:44:37 -0700
+
+finnix-netboot (0.0.1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 26 Aug 2006 21:00:01 -0700
