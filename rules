@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -m 0755 -d $(CURDIR)/debian/finnix-release
+	cp -a $(CURDIR)/debian/root/* $(CURDIR)/debian/finnix-release
+	$(CURDIR)/debian/build-os-release $(CURDIR)/debian/finnix-release/etc/lsb-release $(CURDIR)/debian/finnix-release/etc/os-release.finnix

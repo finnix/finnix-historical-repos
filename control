@@ -1,0 +1,13 @@
+Source: finnix-release
+Section: misc
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+
+Package: finnix-release
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, base-files (>= 6.8), lsb-release
+Description: Identifies the release of Finnix
+ This package contains Finnix /etc/lsb-release, as well as serves as an 
+ automated way of determining the release of Finnix.

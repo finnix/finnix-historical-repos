@@ -1,0 +1,4 @@
+DISTRIB_ID=Finnix
+DISTRIB_RELEASE=dev
+DISTRIB_CODENAME=Oconomowoc
+DISTRIB_DESCRIPTION="Finnix dev (Oconomowoc)"

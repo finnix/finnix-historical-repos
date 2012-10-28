@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ "$1" = configure ] && [ -z "$2" ]; then
+  ln -sf finnix /etc/dpkg/origins/default
+
+  for fn in /etc/os-release; do
+    if ! [ -e "$fn.distrib" ]; then
+      dpkg-divert --rename --package finnix-release --divert "$fn.distrib" --add "$fn"
+      ln -s "$(basename $fn).finnix" "$fn"
+    fi
+  done
+fi
+

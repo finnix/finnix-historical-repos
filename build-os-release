@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+[ -z "$1" ] && exit 1 # lsb-release
+[ -z "$2" ] && exit 1 # os-release
+
+. "$1"
+echo 'PRETTY_NAME="'"$DISTRIB_DESCRIPTION"'"' >"$2"
+echo 'NAME="'"$DISTRIB_ID"'"' >>"$2"
+if [ "$DISTRIB_RELEASE" = "dev" ]; then
+  echo 'VERSION="'"$DISTRIB_RELEASE ($DISTRIB_CODENAME)"'"' >>"$2"
+else
+  echo 'VERSION="'"$DISTRIB_RELEASE"'"' >>"$2"
+fi
+echo 'VERSION_ID="'"$DISTRIB_RELEASE"'"' >>"$2"
+echo 'ID=finnix' >>"$2"
+echo 'ID_LIKE=debian' >>"$2"
+echo 'ANSI_COLOR="1;34"' >>"$2"
+echo 'HOME_URL="http://www.finnix.org/"' >>"$2"
+echo 'SUPPORT_URL="http://www.finnix.org/"' >>"$2"
+echo 'BUG_REPORT_URL="https://bugs.launchpad.net/finnix"' >>"$2"
