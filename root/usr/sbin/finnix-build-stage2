@@ -348,7 +348,8 @@ else
      -hide-rr-moved -o ${FINNIX_ISO} ${FINNIX_MASTER}
 fi
 
-[ -x /usr/bin/implantisomd5 ] && /usr/bin/implantisomd5 ${FINNIX_ISO}
+which isohybrid 2>/dev/null >/dev/null && isohybrid ${FINNIX_ISO}
+which implantisomd5 2>/dev/null >/dev/null && implantisomd5 ${FINNIX_ISO}
 
 if [ -n "$VANITYHASH" ]; then
   (dd if=${FINNIX_ISO} bs=512 count=$(($(($(stat -c %s ${FINNIX_ISO}) / 512)) - 1)); dd if=/dev/zero bs=1 count=508) | vanityhash -a -b 32 -w 2 "$VANITYHASH" > ${FINNIX_ISO}.vanity
