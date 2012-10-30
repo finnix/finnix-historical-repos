@@ -37,16 +37,14 @@ class config_object(object):
   unsafe_targetless_updates = False
   # Short project names to match against bug targets
   allowed_targets = []
-  # If a specific target matches, should the status be updated?
-  update_milestone_status = True
   # If a specific target matches, the status to be set
+  # (Set to None to disable)
   milestone_status = 'Fix Released'
   # If any target matches, tags to be set
   tags = []
-  # If any target matches, should a comment be added?
-  add_comment = True
   # If any target matches, the boilerplate text to be added above the
   # copy of the .changes file in the comment
+  # (set to None to disable)
   comment_text = 'A package update has been sent to the archive, which marks this\nbug as fixed.  A copy of the upload changes is included below.\n\nThank you.\n'
 
   def __init__(self, override):
@@ -106,7 +104,7 @@ def main(argv, config):
       # (prevents spamming someone else's bug by mistake)
       if task.target.name in config.allowed_targets:
         is_targeted_bug = True
-        if config.update_milestone_status:
+        if config.milestone_status:
           milestone = task.milestone
           # If the reprepro codename matches the milestone name or codename,
           # update the bug status
@@ -125,7 +123,7 @@ def main(argv, config):
         bug.tags = bug.tags + totags
         bug.lp_save()
       # Add a comment
-      if config.add_comment:
+      if config.comment_text:
         comment  = 'Distribution: %s\n' % codename
         comment += 'Source: %s\n' % pkgsource
         comment += 'Source-Version: %s\n' % pkgversion
