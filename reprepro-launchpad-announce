@@ -124,7 +124,7 @@ def main(argv, config):
           milestone = task.milestone
           # If the reprepro codename matches the milestone name or codename,
           # update the bug status
-          if codename.lower() in (milestone.name.lower(), milestone.code_name.lower()):
+          if milestone and (codename.lower() in (milestone.name.lower(), milestone.code_name.lower())):
             task.status = config.milestone_status
             task.lp_save()
     # Only do bug-level actions if one of the targets matched
