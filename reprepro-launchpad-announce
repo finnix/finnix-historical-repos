@@ -79,7 +79,9 @@ def main(argv, config):
 
   # Only process reprepro Log: --changes
   if (len(argv) < 6) or (not argv[1] == 'accepted'):
-    print 'Usage: %s accepted <codename> <source package> <version> <changes file>' % argv[0]
+    print 'Usage:'
+    print '  %s launchpad-login' % argv[0]
+    print '  %s accepted <codename> <source package> <version> <changes file>' % argv[0]
     return(1)
 
   # 'accepted' 'blorpy' 'source-package' '1.2.3~4.1' '.../tempdir/source-package_1.2.3~4.1_i386.changes'
