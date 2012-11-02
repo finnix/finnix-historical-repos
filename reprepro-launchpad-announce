@@ -69,7 +69,7 @@ def main(argv, config):
   # Only process reprepro Log: --changes
   if (len(argv) < 6) or (not argv[1] == 'accepted'):
     print 'Usage: %s accepted <codename> <source package> <version> <changes file>' % argv[0]
-    sys.exit(1)
+    return(1)
 
   # 'accepted' 'blorpy' 'source-package' '1.2.3~4.1' '.../tempdir/source-package_1.2.3~4.1_i386.changes'
   (action, codename, pkgsource, pkgversion, changesfile) = argv[1:6]
@@ -137,4 +137,4 @@ def main(argv, config):
 if __name__ == "__main__":
   import config as config_user
   config = config_object(config_user)
-  main(sys.argv, config)
+  sys.exit(main(sys.argv, config))
