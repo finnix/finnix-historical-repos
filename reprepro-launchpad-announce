@@ -145,7 +145,7 @@ def main(argv, config):
         comment += content
         bug.newMessage(content=comment, subject='Fixed in %s %s' % (pkgsource, pkgversion))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   import config as config_user
   config = config_object(config_user)
   sys.exit(main(sys.argv, config))
