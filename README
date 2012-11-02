@@ -1,0 +1,50 @@
+reprepro-launchpad-announce
+Copyright (C) 2012 Ryan Finnie
+
+reprepro-launchpad-announce is a reprepro interface, intended to process 
+source uploads (through "reprepro include" or "reprepro 
+processincoming") and, if the changelog in the .changes contains one or 
+more "LP: #12345" entries, it will look those bugs up in Launchpad and 
+perform several actions, including changing the bug target's status, 
+adding a tag, and adding a comment with a copy of the .changes file.
+
+reprepro-launchpad-announce requires launchpadlib.  This is available in 
+the python-launchpadlib package on Debian systems.
+
+Create a config.py in the same directory as the script.  At the very 
+least, you will need to add an "allowed_targets" list, containing a list 
+of permitted LP projects to process.  This is so typo'd changelog 
+entries don't accidentally spam an unrelated bug.
+
+  allowed_targets = ['myproject', 'otherproject']
+
+By default, reprepro-launchpad-announce stores its launchpad credentials 
+in the "lpcreds" file in the same directory as the script (this is 
+configurable).  You may run the following to initiate the authorization 
+process and write the credentials file:
+
+  /path/to/reprepro-launchpad-announce launchpad-login
+
+Note that, by default, this script uses staging.launchpad.net.  When you 
+are ready for production, remove lpcreds, change the target, and 
+re-authorize the computer.  To change to production, add this to 
+config.py:
+
+  import launchpadlib.uris
+  lpapi_url = launchpadlib.uris.LPNET_SERVICE_ROOT
+
+Other configuration variables are available; see the config_object class 
+in the source for a full list.
+
+Once reprepro-launchpad-announce is configured, edit your reprepro 
+conf/distributions file, and add this to the section for each 
+distribution you wish to monitor:
+
+Log: dist-codename.log
+ --changes /path/to/reprepro-launchpad-announce
+
+The log file itself is optional; you may omit it, but the --changes line 
+(with space prepended) must still be on a separate line:
+
+Log:
+ --changes /path/to/reprepro-launchpad-announce
