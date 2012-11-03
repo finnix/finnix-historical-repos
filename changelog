@@ -1,3 +1,9 @@
+finnix-standard (107~3) unstable; urgency=low
+
+  * Remove install-info, manpages (LP: #1074614)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 03 Nov 2012 11:19:26 +0000
+
 finnix-standard (107~2) unstable; urgency=low
 
   * Add Vcs/Homepage fields
