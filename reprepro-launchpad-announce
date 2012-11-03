@@ -152,11 +152,12 @@ def main(argv, config):
       }
       totags = []
       for ctag in config.tags:
-        if not ctag in bug.tags:
-          try:
+        try:
+          ctagmapped = ctag % tagmappings
+          if not ctag in bug.tags:
             totags.append(ctag % tagmappings)
-          except KeyError:
-            None
+        except KeyError:
+          None
       if len(totags) > 0:
         bug.tags = bug.tags + totags
         bug.lp_save()
