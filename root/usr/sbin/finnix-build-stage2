@@ -66,19 +66,30 @@ if [ -z "$FINNIX_BOOT" ]; then
 fi
 [ -z "$FINNIX_INITRD" ] && FINNIX_INITRD=${FINNIX_BASE}/initrd
 [ -z "$FINNIX_STUFF" ] && FINNIX_STUFF=${FINNIX_BASE}/stuff
-if [ -f "${FINNIX_SOURCE}/etc/lsb-release" ]; then
-  . "${FINNIX_SOURCE}/etc/lsb-release"
-elif [ -f "${FINNIX_STUFF}/lsb-release" ]; then
-  . "${FINNIX_STUFF}/lsb-release"
+if [ -f "${FINNIX_SOURCE}/etc/os-release" ]; then
+  RELEASE_FILE="${FINNIX_SOURCE}/etc/os-release"
+elif [ -f "${FINNIX_STUFF}/os-release" ]; then
+  RELEASE_FILE="${FINNIX_STUFF}/os-release"
 else
-  echo "Cannot find an appropriate lsb-release.  It appears you don't have an"
+  echo "Cannot find an appropriate os-release.  It appears you don't have an"
   echo "extracted root in ${FINNIX_SOURCE}."
   echo "That's fine, but you will need to provide a copy of"
-  echo "/etc/lsb-release from the Finnix system you are mastering."
-  echo "Please copy it into ${FINNIX_STUFF}/lsb-release"
+  echo "/etc/os-release from the Finnix system you are mastering."
+  echo "Please copy it into ${FINNIX_STUFF}/os-release"
   echo "and re-run this script."
   exit 1
 fi
+for i in OS_NAME OS_VERSION OS_VERSION_ID; do
+  read "$i"
+done <<EOM
+$(
+  . "$RELEASE_FILE"
+  echo "$NAME"
+  echo "$VERSION"
+  echo "$VERSION_ID"
+)
+EOM
+
 
 ### sanity check
 for i in "${FINNIX_BASE}" "${FINNIX_MASTER}"; do
@@ -165,21 +176,13 @@ else
   FINNIXDATE="${FINNIXDATECLEAN}"
 fi
 
-DISTRIB_ID_UNDERSCORE="$(echo ${DISTRIB_ID} | sed 's/ /_/g')"
-[ -z "$FINNIXVER" ] && FINNIXVER="${DISTRIB_RELEASE}"
-if [ "$DISTRIB_RELEASE" = "dev" ]; then
-  FINNIXVER="${DISTRIB_RELEASE} (${DISTRIB_CODENAME})"
-fi
-[ -z "$FINNIXVERFMT" ] && FINNIXVERFMT="$(printf '%-20s' "${FINNIXVER}")"
+OS_NAME_UNDERSCORE="$(echo ${OS_NAME} | sed 's/ /_/g')"
+[ -z "$OS_VERSION_FMT" ] && OS_VERSION_FMT="$(printf '%-20s' "${OS_VERSION}")"
 
-if [ "$DISTRIB_RELEASE" = "dev" ]; then
-  if [ -n "$DEVTAG" ]; then
-    FVTITLE="${FINNIXVER} (Build ${DEVTAG})"
-  else
-    FVTITLE="${FINNIXVER}"
-  fi
+if [ "$OS_VERSION_ID" = "dev" ] && [ -n "$DEVTAG" ]; then
+  FVTITLE="${OS_VERSION} (Build ${DEVTAG})"
 else
-  FVTITLE="${FINNIXVER}"
+  FVTITLE="${OS_VERSION}"
 fi
 
 
@@ -239,9 +242,9 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
     depmod -b ${FINNIX_INITRD} ${MODKERNEL}
   done
 
-  ### copy lsb-release in
-  if [ -f "${FINNIX_SOURCE}/etc/lsb-release" ]; then
-    cp "${FINNIX_SOURCE}/etc/lsb-release" "${FINNIX_INITRD}/etc/lsb-release"
+  ### copy os-release in
+  if [ -f "${FINNIX_SOURCE}/etc/os-release" ]; then
+    cp "${FINNIX_SOURCE}/etc/os-release" "${FINNIX_INITRD}/etc/os-release"
   fi
 
   ### regenerate dist ids
@@ -250,13 +253,13 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
 # This file contains a list of IDs unique to the build of this CD.  If
 # one them matches the list of IDs in /etc/dist.id on the initrd,
 # booting will proceed.
-$NEWUUID # ${DISTRIB_ID} $FINNIXVER $FINNIX_DISTARCH, $FINNIXDATE
+$NEWUUID # ${OS_NAME} $OS_VERSION $FINNIX_DISTARCH, $FINNIXDATE
 EOM
   cat >${FINNIX_INITRD}/etc/dist.id<<EOM
 # This file contains a list of IDs unique to the build of this initrd.
 # If one them matches the list of IDs in /finnix/dist.id on the CD,
 # booting will proceed.
-$NEWUUID # ${DISTRIB_ID} $FINNIXVER $FINNIX_DISTARCH, $FINNIXDATE
+$NEWUUID # ${OS_NAME} $OS_VERSION $FINNIX_DISTARCH, $FINNIXDATE
 EOM
 
   ### calculate forensic sha512sums
@@ -283,11 +286,11 @@ fi
 
 ### generate splash screens
 if [ -f ${FINNIX_STUFF}/readme.txt.content ]; then
-  cat ${FINNIX_STUFF}/readme.txt.content | sed "s/FINNIX-VERSION-NUMBR/${FINNIXVERFMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" | perl -pe 's/\n/\r\n/g' > ${FINNIX_MASTER}/readme.txt
+  cat ${FINNIX_STUFF}/readme.txt.content | sed "s/FINNIX-VERSION-NUMBR/${OS_VERSION_FMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" | perl -pe 's/\n/\r\n/g' > ${FINNIX_MASTER}/readme.txt
 fi
 if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
   if [ -f ${FINNIX_STUFF}/boot.msg.content ]; then
-    cat ${FINNIX_STUFF}/boot.msg.content | sed "s/FINNIX-VERSION-NUMBR/${FINNIXVERFMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/boot.msg
+    cat ${FINNIX_STUFF}/boot.msg.content | sed "s/FINNIX-VERSION-NUMBR/${OS_VERSION_FMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/boot.msg
   fi
   if [ -f ${FINNIX_STUFF}/yaboot.conf.content ]; then
     cat ${FINNIX_STUFF}/yaboot.conf.content | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_BOOT}/yaboot.conf
@@ -297,21 +300,21 @@ if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
   fi
 else
   if [ -f ${FINNIX_STUFF}/boot.msg.content ]; then
-    cat ${FINNIX_STUFF}/boot.msg.content | sed "s/FINNIX-VERSION-NUMBR/${FINNIXVERFMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/boot.msg
+    cat ${FINNIX_STUFF}/boot.msg.content | sed "s/FINNIX-VERSION-NUMBR/${OS_VERSION_FMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/boot.msg
   fi
   if [ -f ${FINNIX_STUFF}/finnix.header ]; then
     for i in 1 2; do
-      cat ${FINNIX_STUFF}/finnix.header ${FINNIX_STUFF}/f$i.content ${FINNIX_STUFF}/finnix.footer | sed "s/FINNIX-VERSION-NUMBR/${FINNIXVERFMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/f$i
+      cat ${FINNIX_STUFF}/finnix.header ${FINNIX_STUFF}/f$i.content ${FINNIX_STUFF}/finnix.footer | sed "s/FINNIX-VERSION-NUMBR/${OS_VERSION_FMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/f$i
     done
   fi
   if [ -f ${FINNIX_STUFF}/isolinux.cfg.content ]; then
-    cat ${FINNIX_STUFF}/isolinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${DISTRIB_ID}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_MASTER}/isolinux.cfg
+    cat ${FINNIX_STUFF}/isolinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${OS_NAME}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_MASTER}/isolinux.cfg
   fi
   if [ -f ${FINNIX_STUFF}/syslinux.cfg.content ]; then
-    cat ${FINNIX_STUFF}/syslinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${DISTRIB_ID}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_MASTER}/syslinux.cfg
+    cat ${FINNIX_STUFF}/syslinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${OS_NAME}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_MASTER}/syslinux.cfg
   fi
   if [ -f ${FINNIX_STUFF}/pxelinux.cfg.content ]; then
-    cat ${FINNIX_STUFF}/pxelinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${DISTRIB_ID}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_NET_FN}/g" > ${FINNIX_BOOT}/pxelinux/template.cfg
+    cat ${FINNIX_STUFF}/pxelinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${OS_NAME}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_NET_FN}/g" > ${FINNIX_BOOT}/pxelinux/template.cfg
   fi
 fi
 
@@ -336,11 +339,11 @@ find ${FINNIX_MASTER} -type f -not -name md5sums \
 
 ### the iso itself
 rm -f ${FINNIX_ISO}
-ISOVOL32="${DISTRIB_ID} ${FINNIXVER}"
+ISOVOL32="${OS_NAME} ${OS_VERSION}"
 ISOVOL32="${ISOVOL32:0:32}" # bashism
 if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
   time genisoimage -hide-rr-moved -hfs -part -map ${FINNIX_MASTER}/boot/ppc/hfs.map -no-desktop \
-    -hfs-volid "${DISTRIB_ID_UNDERSCORE}_${FINNIXVER}" -hfs-bless ${FINNIX_BOOT} \
+    -hfs-volid "${OS_NAME_UNDERSCORE}_${OS_VERSION}" -hfs-bless ${FINNIX_BOOT} \
     -pad -l -r -J -v -V "${ISOVOL32}" -o ${FINNIX_ISO} ${FINNIX_MASTER}
 else
   time genisoimage -pad -l -r -J -v -V "${ISOVOL32}" -no-emul-boot -boot-load-size 4 \
@@ -372,6 +375,6 @@ if [ -n "$GPGUSER" ] && [ ! "$QUICK" = "yes" ]; then
 fi
 
 echo ""
-echo "Version: ${FINNIXVER}"
+echo "Version: ${OS_VERSION}"
 echo "Build: ${FINNIXDATE}"
 echo "$(($(($(stat -c %s ${FINNIX_ISO}) * 100)) / 193986560))% of 185 MiB Mini-CD"

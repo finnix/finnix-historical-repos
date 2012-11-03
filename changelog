@@ -1,3 +1,9 @@
+finnix-scripts (107~6) unstable; urgency=low
+
+  * Switch scripts over to using /etc/os-release (LP: #1074290)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 03 Nov 2012 06:59:45 +0000
+
 finnix-scripts (107~5) unstable; urgency=low
 
   * Add isohybrid support if found (LP: #1072525)

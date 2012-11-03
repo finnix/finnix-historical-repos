@@ -17,12 +17,19 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-. /etc/lsb-release
+for i in OS_NAME; do
+  read "$i"
+done <<EOM
+$(
+  . /etc/os-release
+  echo "$NAME"
+)
+EOM
 
 ### Utility Function(s)
 do_whiptail() {
   DTMP=`mktemp`
-  whiptail --output-fd 3 --backtitle "${DISTRIB_ID}" --title "${DISTRIB_ID} Entropy Generation" "$@" 3>${DTMP}
+  whiptail --output-fd 3 --backtitle "${OS_NAME}" --title "${OS_NAME} Entropy Generation" "$@" 3>${DTMP}
   DOUT=$?
   DVAL="$(cat ${DTMP})"
   rm -f ${DTMP}

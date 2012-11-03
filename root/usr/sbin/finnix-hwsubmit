@@ -22,30 +22,38 @@ if [ ! -f /proc/cpuinfo ]; then
   exit 1
 fi
 
-. /etc/lsb-release
+for i in OS_NAME OS_PRETTY_NAME; do
+  read "$i"
+done <<EOM
+$(
+  . /etc/os-release
+  echo "$NAME"
+  echo "$PRETTY_NAME"
+)
+EOM
 do_whiptail() {
   DTMP=`mktemp`
-  whiptail --output-fd 3 --backtitle "${DISTRIB_ID}" --title "${DISTRIB_ID} Hardware Submission Program" "$@" 3>${DTMP}
+  whiptail --output-fd 3 --backtitle "${OS_NAME}" --title "${OS_NAME} Hardware Submission Program" "$@" 3>${DTMP}
   DOUT=$?
   DVAL="$(cat ${DTMP})"
   rm -f ${DTMP}
   return ${DOUT}
 }
 
-do_whiptail --msgbox "Thank you for participating in the ${DISTRIB_ID} Hardware Submission Program. 
+do_whiptail --msgbox "Thank you for participating in the ${OS_NAME} Hardware Submission Program. 
 This program will submit several pieces of information about your 
 running system.  Before your information is submitted, an editor will be 
 launched that will allow you to enter notes about the system.  Please 
 specify what type of computer you are running (IE \"Apple iMac G4\", 
 \"Dell PowerEdge 350\", etc), and if there were any problems with booting 
-${DISTRIB_ID} (undetected hardware, kernel errors, etc).
+${OS_NAME} (undetected hardware, kernel errors, etc).
 
 After you exit the editor, you will have a final chance to cancel, 
 modify your information, or send the report.
 
 No personal information is sent, nor is anything not in the report 
 (which, again, you will have the opportunity to review).  However, any 
-information submitted to ${DISTRIB_ID} may be displayed publicly.  Please 
+information submitted to ${OS_NAME} may be displayed publicly.  Please 
 review all information before submitting, and don't submit anything you 
 don't want the world to see." 0 0
 
@@ -58,16 +66,16 @@ cat >${TEMPFILE} <<EOT
 #
 # Please specify what type of computer you are running (IE "Apple iMac
 # G4", "Dell PowerEdge 350", etc), and if there were any problems with
-# booting ${DISTRIB_ID} (undetected hardware, kernel errors, etc).  Feel free
+# booting ${OS_NAME} (undetected hardware, kernel errors, etc).  Feel free
 # to specify as much information as you would like.
 ########################################################################
 
 
 
 ########################################################################
-# ${DISTRIB_ID} version
+# ${OS_NAME} version
 ########################################################################
-${DISTRIB_DESCRIPTION}
+${OS_PRETTY_NAME}
 
 
 EOT
@@ -230,7 +238,7 @@ done
 COLUMNS=80 nano +9 -r 72 "${TEMPFILE}"
 
 while true; do
-  do_whiptail --menu "Ready to send report to ${DISTRIB_ID}." 0 0 0 \
+  do_whiptail --menu "Ready to send report to ${OS_NAME}." 0 0 0 \
     EDIT "Edit report" \
     SEND "Send report" \
     SAVE "Save report locally, do not send" \

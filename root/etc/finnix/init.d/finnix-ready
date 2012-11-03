@@ -1,14 +1,18 @@
 #!/bin/sh
 
-. /etc/lsb-release
+for i in OS_NAME OS_VERSION; do
+  read "$i"
+done <<EOM
+$(
+  . /etc/os-release
+  echo "$NAME"
+  echo "$VERSION"
+)
+EOM
 . /lib/finnix/finnix-rc-helper.sh
 
 case "$1" in
   start)
-    DISTRIB_RELEASE_PRINT="$DISTRIB_RELEASE"
-    if [ "$DISTRIB_RELEASE" = "dev" ] && [ -n "${DISTRIB_CODENAME}" ]; then
-      DISTRIB_RELEASE_PRINT="${DISTRIB_RELEASE} (${DISTRIB_CODENAME})"
-    fi
     STATINFO="$(stat -t -f /FINNIX 2>/dev/null)"
     if [ -n "$STATINFO" ]; then
       while read SUNDEF1 SUNDEF2 SUNDEF3 SUNDEF4 SBLOCKSIZE SUNDEF5 SBLOCKS SUNDEF6; do
@@ -21,7 +25,7 @@ EOM
       fi
     fi
     PACKAGESINSTALLED="`dpkg -l | egrep '^[hi]i' | wc -l`"
-    echo "${BLUEITEM} ${BLUE}${DISTRIB_ID}${NORMAL} ${WHITE}${DISTRIB_RELEASE_PRINT}${NORMAL} ready; ${WHITE}$PACKAGESINSTALLED${NORMAL} packages${ONA}"
+    echo "${BLUEITEM} ${BLUE}${OS_NAME}${NORMAL} ${WHITE}${OS_VERSION}${NORMAL} ready; ${WHITE}$PACKAGESINSTALLED${NORMAL} packages${ONA}"
     echo
     ;;
   *)
