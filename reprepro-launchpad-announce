@@ -45,7 +45,20 @@ class config_object(object):
   # If any target matches, the boilerplate text to be added above the
   # copy of the .changes file in the comment
   # (set to None to disable)
-  comment_text = 'A package update has been sent to the archive, which marks this\nbug as fixed.  A copy of the upload changes is included below.\n\nThank you.\n'
+  comment_text = 'Distribution: %(repo-codename)s\n' + \
+    'Source: %(pkg-source)s\n' + \
+    'Source-Version: %(pkg-version)s\n' + \
+    '\n' + \
+    'A package update has been sent to the archive, which marks this\n' + \
+    'bug as fixed.  A copy of the upload changes is included below.\n' + \
+    '\n' + \
+    'Thank you.\n' + \
+    '\n' + \
+    '\n' + \
+    '%(changes)s'
+  # And the subject to send with the comment
+  # (set to None to send no subject)
+  comment_subject = 'Fixed in %(pkg-source)s %(pkg-version)s'
 
   def __init__(self, override):
     for key in dir(self):
@@ -131,23 +144,38 @@ def main(argv, config):
     # (or you like living dangerously)
     if is_targeted_bug or config.unsafe_targetless_updates:
       # Tag the bug if the tags don't already exist
+      tagmappings = {
+        'bug-number': bugnum,
+        'repo-codename': codename,
+        'pkg-source': pkgsource,
+        'pkg-version': pkgversion,
+      }
       totags = []
       for ctag in config.tags:
         if not ctag in bug.tags:
-          totags.append(ctag)
+          try:
+            totags.append(ctag % tagmappings)
+          except KeyError:
+            None
       if len(totags) > 0:
         bug.tags = bug.tags + totags
         bug.lp_save()
       # Add a comment
       if config.comment_text:
-        comment  = 'Distribution: %s\n' % codename
-        comment += 'Source: %s\n' % pkgsource
-        comment += 'Source-Version: %s\n' % pkgversion
-        comment += '\n'
-        comment += config.comment_text
-        comment += '\n\n'
-        comment += content
-        bug.newMessage(content=comment, subject='Fixed in %s %s' % (pkgsource, pkgversion))
+        commentmappings = {
+          'bug-number': bugnum,
+          'repo-codename': codename,
+          'pkg-source': pkgsource,
+          'pkg-version': pkgversion,
+          'changes': content,
+        }
+        try:
+          if config.comment_subject:
+            bug.newMessage(content=config.comment_text % commentmappings, subject=config.comment_subject % commentmappings)
+          else:
+            bug.newMessage(content=config.comment_text % commentmappings)
+        except KeyError:
+          None
 
 if __name__ == '__main__':
   import config as config_user
