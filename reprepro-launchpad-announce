@@ -154,8 +154,8 @@ def main(argv, config):
       for ctag in config.tags:
         try:
           ctagmapped = ctag % tagmappings
-          if not ctag in bug.tags:
-            totags.append(ctag % tagmappings)
+          if not ctagmapped in bug.tags:
+            totags.append(ctagmapped)
         except KeyError:
           None
       if len(totags) > 0:
