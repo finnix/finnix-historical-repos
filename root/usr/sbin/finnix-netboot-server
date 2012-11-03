@@ -17,7 +17,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-. /etc/lsb-release
+for i in OS_NAME; do
+  read "$i"
+done <<EOM
+$(
+  . /etc/os-release
+  echo "$NAME"
+)
+EOM
 . /lib/lsb/init-functions
 
 ### Utility Function(s)
@@ -88,7 +95,7 @@ BASHEOM
 
 do_whiptail() {
   DTMP=`mktemp`
-  whiptail --output-fd 3 --backtitle "${DISTRIB_ID}" --title "${DISTRIB_ID} Network Boot Server" "$@" 3>${DTMP}
+  whiptail --output-fd 3 --backtitle "${OS_NAME}" --title "${OS_NAME} Network Boot Server" "$@" 3>${DTMP}
   DOUT=$?
   DVAL="$(cat ${DTMP})"
   rm -f ${DTMP}
@@ -163,7 +170,7 @@ setup_initrd() {
 
 [ -z "$TFTPDISTDIR" ] && TFTPDISTDIR="/finnix"
 
-do_whiptail --defaultno --yesno "The ${DISTRIB_ID} Network Boot Server will configure the services necessary to facilitate network booting of ${DISTRIB_ID}.\n\nThis program will NOT start a DHCP server, as having multiple DHCP servers on a network will invariably cause problems.  Instead, at the end of this program, you will be given specific information about how to configure your network's existing DHCP servers to use ${DISTRIB_ID} for network booting.\n\nDo you wish to continue?" 0 0
+do_whiptail --defaultno --yesno "The ${OS_NAME} Network Boot Server will configure the services necessary to facilitate network booting of ${OS_NAME}.\n\nThis program will NOT start a DHCP server, as having multiple DHCP servers on a network will invariably cause problems.  Instead, at the end of this program, you will be given specific information about how to configure your network's existing DHCP servers to use ${OS_NAME} for network booting.\n\nDo you wish to continue?" 0 0
 [ $? -eq 0 ] || exit
 
 do_whiptail --defaultno --yesno "By default, this program makes a configuration where clients TFTP a kernel and initrd, which then mounts the CD via NFS.  Alternatively, it can install a copy of the entire CD within the initrd, requiring no NFS server.  This eliminates complexity, but at a cost of RAM (three times the CD size is needed at minimum to boot).\n\nWould you like to copy the CD to the initrd instead of setting up an NFS server?" 0 0

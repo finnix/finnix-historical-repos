@@ -1,3 +1,15 @@
+finnix-netboot (107~4) unstable; urgency=low
+
+  * Replace module-init-tools dep with kmod (LP: #1074613)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 03 Nov 2012 11:17:32 +0000
+
+finnix-netboot (107~3) unstable; urgency=low
+
+  * Switch scripts over to using /etc/os-release (LP: #1074290)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 03 Nov 2012 07:17:14 +0000
+
 finnix-netboot (107~2) unstable; urgency=low
 
   * Add Vcs/Homepage fields
