@@ -1,3 +1,9 @@
+neale-initrd (107~3) unstable; urgency=low
+
+  * Switch scripts over to using /etc/os-release (LP: #1074290)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 03 Nov 2012 07:13:06 +0000
+
 neale-initrd (107~2) unstable; urgency=low
 
   * Tar up dev, let build-neale untar it
