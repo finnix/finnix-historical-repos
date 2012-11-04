@@ -17,8 +17,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-HWSUBMIT_API="http://hwsubmit.finnix.org/api/submit"
-
 if [ ! -f /proc/cpuinfo ]; then
   echo "/proc is not mounted.  Exiting."
   exit 1
@@ -35,6 +33,11 @@ $(
   echo "$ID"
 )
 EOM
+
+HWSUBMIT_API="http://hwsubmit.finnix.org/api/submit"
+ADDRESS_FROM="${OS_NAME} Hardware Submission <submit@hwsubmit.finnix.org>"
+ADDRESS_TO="$ADDRESS_FROM"
+
 do_whiptail() {
   DTMP=`mktemp`
   whiptail --output-fd 3 --backtitle "${OS_NAME}" --title "${OS_NAME} Hardware Submission Program" "$@" 3>${DTMP}
@@ -82,6 +85,8 @@ while true; do
 
     echo -n >"$REPORT_TMP"
     echo "Date: $DATE" >>"$REPORT_TMP"
+    echo "From: $ADDRESS_FROM" >>"$REPORT_TMP"
+    echo "To: $ADDRESS_TO" >>"$REPORT_TMP"
     echo "Subject: ${OS_NAME} hardware submission" >>"$REPORT_TMP"
     echo "Message-ID: <$MESSAGEID@hwsubmit>" >>"$REPORT_TMP"
     echo "User-Agent: ${OS_ID}-hwsubmit (${OS_NAME} ${OS_VERSION})" >>"$REPORT_TMP"
