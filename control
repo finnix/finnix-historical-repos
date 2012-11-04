@@ -10,7 +10,7 @@ Homepage: http://www.finnix.org/
 
 Package: finnix-scripts
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, whiptail, perl, pciutils, udev, pwgen, finnix-release, runit, openssh-server, utmptty
+Depends: ${shlibs:Depends}, ${misc:Depends}, whiptail, perl, pciutils, udev, pwgen, finnix-release, runit, openssh-server, utmptty, lshw
 Description: Scripts needed to run Finnix
  This package contains the bulk of the scripts needed to build and run 
  the Finnix distribution.

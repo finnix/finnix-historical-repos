@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # finnix-hwsubmit
-# Copyright (C) 2011 Ryan Finnie
+# Copyright (C) 2012 Ryan Finnie
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,18 +17,22 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+HWSUBMIT_API="http://hwsubmit.finnix.org/api/submit"
+
 if [ ! -f /proc/cpuinfo ]; then
   echo "/proc is not mounted.  Exiting."
   exit 1
 fi
 
-for i in OS_NAME OS_PRETTY_NAME; do
+for i in OS_NAME OS_VERSION OS_VERSION_ID OS_ID; do
   read "$i"
 done <<EOM
 $(
   . /etc/os-release
   echo "$NAME"
-  echo "$PRETTY_NAME"
+  echo "$VERSION"
+  echo "$VERSION_ID"
+  echo "$ID"
 )
 EOM
 do_whiptail() {
@@ -40,224 +44,153 @@ do_whiptail() {
   return ${DOUT}
 }
 
-do_whiptail --msgbox "Thank you for participating in the ${OS_NAME} Hardware Submission Program. 
-This program will submit several pieces of information about your 
-running system.  Before your information is submitted, an editor will be 
-launched that will allow you to enter notes about the system.  Please 
-specify what type of computer you are running (IE \"Apple iMac G4\", 
-\"Dell PowerEdge 350\", etc), and if there were any problems with booting 
-${OS_NAME} (undetected hardware, kernel errors, etc).
+do_whiptail --defaultno --yesno "Thank you for participating in the ${OS_NAME} Hardware Submission Program.  This program will submit several pieces of information about your running system.\n\nDo you wish to continue?" 0 0
+[ $? -eq 0 ] || exit
 
-After you exit the editor, you will have a final chance to cancel, 
-modify your information, or send the report.
-
-No personal information is sent, nor is anything not in the report 
-(which, again, you will have the opportunity to review).  However, any 
-information submitted to ${OS_NAME} may be displayed publicly.  Please 
-review all information before submitting, and don't submit anything you 
-don't want the world to see." 0 0
-
-
-
-TEMPFILE="$(mktemp)"
-cat >${TEMPFILE} <<EOT
-########################################################################
-# Notes
-#
-# Please specify what type of computer you are running (IE "Apple iMac
-# G4", "Dell PowerEdge 350", etc), and if there were any problems with
-# booting ${OS_NAME} (undetected hardware, kernel errors, etc).  Feel free
-# to specify as much information as you would like.
-########################################################################
-
-
-
-########################################################################
-# ${OS_NAME} version
-########################################################################
-${OS_PRETTY_NAME}
-
-
-EOT
-
-ARCH="$(uname -m)"
-if [ "${ARCH}" = "ppc" -o "${ARCH}" = "ppc64" -o "${ARCH}" = "powerpc" ]; then
-  do_whiptail --checklist "The following information may be included in the report.
-
-Please make any desired changes, then select \"OK\"." 0 0 0 \
-    UNAME "uname" on \
-    CPUINFO "cpuinfo" on \
-    MEMINFO "meminfo" on \
-    CMDLINE "cmdline" on \
-    LSPCI "lspci" on \
-    LSUSB "lsusb" on \
-    LSBLK "lsblk" on \
-    MODULES "modules" on \
-    DMESG "dmesg" on
-  [ $? -eq 0 ] || exit
+do_whiptail --defaultno --yesno "Would you like to remove potentially sensitive information from the lshw report, such as serial numbers and IP addresses?" 0 0
+if [ $? -eq 0 ]; then
+  SANITIZE="-sanitize"
 else
-  do_whiptail --checklist "The following information may be included in the report. \"dmidecode\" 
-may include information about the system you consider sensitive, such 
-as serial numbers.  Please review the information, and unselect it if 
-you do not wish to submit that information.  For most users dmidecode 
-is safe to share with others, so please consider submitting it.
-
-Please make any desired changes, then select \"OK\"." 0 0 0 \
-    UNAME "uname" on \
-    CPUINFO "cpuinfo" on \
-    MEMINFO "meminfo" on \
-    CMDLINE "cmdline" on \
-    LSPCI "lspci" on \
-    LSUSB "lsusb" on \
-    LSBLK "lsblk" on \
-    MODULES "modules" on \
-    DMESG "dmesg" on \
-    DMIDECODE "dmidecode" on
-  [ $? -eq 0 ] || exit
+  SANITIZE=""
 fi
 
-for opt in ${DVAL}; do
-case $opt in
-  \"UNAME\")
-    UNAME="$(uname -a)"
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# uname
-########################################################################
-${UNAME}
+INCLUDE_DMESG="yes"
+if [ -n "$SANITIZE" ]; then
+  do_whiptail --defaultno --yesno "Would you like to include the output of \"dmesg\"?  This output will contain potentially sensitive information such as serial numbers, which cannot be sanitized, but the output will be useful for debugging problems." 0 0
+  if [ $? -eq 0 ]; then
+    INCLUDE_DMESG="yes"
+  else
+    INCLUDE_DMESG="no"
+  fi
+fi
+if [ "$INCLUDE_DMESG" = "yes" ]; then
+  DMESG_TMP="$(mktemp)"
+  dmesg >"$DMESG_TMP"
+fi
 
+echo "Collecting system information..."
+LSHW_TMP="$(mktemp)"
+lshw -xml $SANITIZE -numeric >"$LSHW_TMP"
 
-EOT
-    ;;
-  \"CPUINFO\")
-    CPUINFO="$(cat /proc/cpuinfo)"
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# cpuinfo
-########################################################################
-${CPUINFO}
-
-
-EOT
-    ;;
-  \"MEMINFO\")
-    MEMINFO="$(cat /proc/meminfo)"
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# meminfo
-########################################################################
-${MEMINFO}
-
-
-EOT
-    ;;
-  \"CMDLINE\")
-    CMDLINE="$(cat /proc/cmdline)"
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# cmdline
-########################################################################
-${CMDLINE}
-
-
-EOT
-    ;;
-  \"LSPCI\")
-    [ -d /sys/bus/pci/devices -o -d /proc/bus/pci ] && LSPCI="$(lspci -vvnnk)"
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# lspci
-########################################################################
-${LSPCI}
-
-
-EOT
-    ;;
-  \"LSUSB\")
-    [ -d /proc/bus/usb ] && LSUSB="$(lsusb -v)"
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# lsusb
-########################################################################
-${LSUSB}
-
-
-EOT
-    ;;
-  \"LSBLK\")
-    [ -n "$(which lsblk)" ] && LSBLK="$(lsblk -a)"
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# lsblk
-########################################################################
-${LSBLK}
-
-
-EOT
-    ;;
-  \"MODULES\")
-    [ -f /proc/modules ] && MODULES="$(cat /proc/modules)"
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# modules
-########################################################################
-${MODULES}
-
-
-EOT
-    ;;
-  \"DMESG\")
-    if [ -s /var/log/dmesg ]; then
-      DMESG="$(cat /var/log/dmesg)"
-    else
-      DMESG="$(dmesg)"
-    fi
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# dmesg
-########################################################################
-${DMESG}
-
-
-EOT
-    ;;
-  \"DMIDECODE\")
-    DMIDECODE="$(dmidecode)"
-    cat >>${TEMPFILE} <<EOT
-########################################################################
-# dmidecode
-########################################################################
-${DMIDECODE}
-
-
-EOT
-    ;;
-esac
-done
-
-COLUMNS=80 nano +9 -r 72 "${TEMPFILE}"
-
+BUILD_REPORT="yes"
 while true; do
+  if [ "$BUILD_REPORT" = "yes" ]; then
+    [ -z "$REPORT_TMP" ] && REPORT_TMP="$(mktemp)"
+    BOUNDARY="-----$(uuidgen)"
+    MESSAGEID="$(uuidgen)"
+    DATE="$(date -R)"
+
+    echo -n >"$REPORT_TMP"
+    echo "Date: $DATE" >>"$REPORT_TMP"
+    echo "Subject: ${OS_NAME} hardware submission" >>"$REPORT_TMP"
+    echo "Message-ID: <$MESSAGEID@hwsubmit>" >>"$REPORT_TMP"
+    echo "User-Agent: ${OS_ID}-hwsubmit (${OS_NAME} ${OS_VERSION})" >>"$REPORT_TMP"
+    echo "X-Hwsubmit-Format: 2" >>"$REPORT_TMP"
+    echo "X-OS-Name: $OS_NAME" >>"$REPORT_TMP"
+    echo "X-OS-ID: $OS_ID" >>"$REPORT_TMP"
+    echo "X-OS-Version: $OS_VERSION" >>"$REPORT_TMP"
+    echo "X-OS-Version-ID: $OS_VERSION_ID" >>"$REPORT_TMP"
+    echo "MIME-Version: 1.0" >>"$REPORT_TMP"
+    echo "Content-Type: multipart/mixed; boundary=$BOUNDARY" >>"$REPORT_TMP"
+    echo "" >>"$REPORT_TMP"
+    echo "This is a multi-part message in MIME format." >>"$REPORT_TMP"
+    echo "" >>"$REPORT_TMP"
+    if [ -n "$NOTE_TMP2" ]; then
+      echo "--$BOUNDARY" >>"$REPORT_TMP"
+      echo "Content-Type: text/plain" >>"$REPORT_TMP"
+      echo "Content-Description: Submitter note" >>"$REPORT_TMP"
+      echo "Content-Disposition: inline" >>"$REPORT_TMP"
+      echo "" >>"$REPORT_TMP"
+      cat "$NOTE_TMP2" >>"$REPORT_TMP"
+      echo "" >>"$REPORT_TMP"
+    fi
+    echo "--$BOUNDARY" >>"$REPORT_TMP"
+    echo "Content-Type: text/xml" >>"$REPORT_TMP"
+    echo "Content-Description: lshw" >>"$REPORT_TMP"
+    echo "Content-Disposition: attachment; filename=lshw" >>"$REPORT_TMP"
+    if [ -n "$SANITIZE" ]; then
+      echo "X-Sanitized: yes" >>"$REPORT_TMP"
+    else
+      echo "X-Sanitized: no" >>"$REPORT_TMP"
+    fi
+    echo "" >>"$REPORT_TMP"
+    cat "$LSHW_TMP" >>"$REPORT_TMP"
+    echo "" >>"$REPORT_TMP"
+    echo "--$BOUNDARY" >>"$REPORT_TMP"
+    echo "Content-Type: text/plain" >>"$REPORT_TMP"
+    echo "Content-Description: /proc/modules" >>"$REPORT_TMP"
+    echo "Content-Disposition: attachment; filename=proc-modules" >>"$REPORT_TMP"
+    echo "" >>"$REPORT_TMP"
+    cat /proc/modules >>"$REPORT_TMP"
+    echo "" >>"$REPORT_TMP"
+    if [ -n "$DMESG_TMP" ]; then
+      echo "--$BOUNDARY" >>"$REPORT_TMP"
+      echo "Content-Type: text/plain" >>"$REPORT_TMP"
+      echo "Content-Description: dmesg" >>"$REPORT_TMP"
+      echo "Content-Disposition: attachment; filename=dmesg" >>"$REPORT_TMP"
+      echo "" >>"$REPORT_TMP"
+      cat "$DMESG_TMP" >>"$REPORT_TMP"
+      echo "" >>"$REPORT_TMP"
+    fi
+    echo "--$BOUNDARY--" >>"$REPORT_TMP"
+
+    BUILD_REPORT="no"
+  fi
+
+
   do_whiptail --menu "Ready to send report to ${OS_NAME}." 0 0 0 \
-    EDIT "Edit report" \
-    SEND "Send report" \
+    NOTE "Add note to report" \
+    REVIEW "Review report" \
+    SEND "Send report to ${OS_NAME}" \
     SAVE "Save report locally, do not send" \
     || break
-  if [ "${DVAL}" = "EDIT" ]; then
-    COLUMNS=80 nano +9 -r 72 "${TEMPFILE}"
+  if [ "${DVAL}" = "NOTE" ]; then
+    if [ -z "$NOTE_TMP1" ]; then
+      [ -z "$NOTE_TMP1" ] && NOTE_TMP1="$(mktemp)"
+      [ -z "$NOTE_TMP2" ] && NOTE_TMP2="$(mktemp)"
+      echo "" >"$NOTE_TMP1"
+      echo "" >>"$NOTE_TMP1"
+      echo "#HWSUBMIT Please type your note above.  A copy of the gathered system" >>"$NOTE_TMP1"
+      echo "#HWSUBMIT information is below.  Please don't edit it, as it's just" >>"$NOTE_TMP1"
+      echo "#HWSUBMIT being included below for your reference.  It will be placed" >>"$NOTE_TMP1"
+      echo "#HWSUBMIT in a machine-readable format for submission." >>"$NOTE_TMP1"
+      echo "#HWSUBMIT" >>"$NOTE_TMP1"
+      echo "#HWSUBMIT (Any line beginning with \"#HWSUBMIT\" will be stripped.)" >>"$NOTE_TMP1"
+      echo "#HWSUBMIT" >>"$NOTE_TMP1"
+      echo "#HWSUBMIT" >>"$NOTE_TMP1"
+      awk '{ print "#HWSUBMIT "$0 }' <"$REPORT_TMP" >>"$NOTE_TMP1"
+    fi
+    editor "$NOTE_TMP1"
+    grep -v '^#HWSUBMIT' "$NOTE_TMP1" >"$NOTE_TMP2"
+    BUILD_REPORT="yes"
+  elif [ "${DVAL}" = "REVIEW" ]; then
+    pager "$REPORT_TMP"
   elif [ "${DVAL}" = "SAVE" ]; then
-    HWFILE="/tmp/finnix-hwsubmit-$(date +%Y%m%d-%H%M%S)"
-    cp "${TEMPFILE}" "${HWFILE}"
+    HWFILE="/tmp/${OS_ID}-hwsubmit-$(date +%Y%m%d-%H%M%S)"
+    cp "$REPORT_TMP" "${HWFILE}"
     do_whiptail --msgbox "The report has been saved locally as ${HWFILE}" 0 0
-    break
   elif [ "${DVAL}" = "SEND" ]; then
+    do_whiptail --defaultno --yesno "Would you like this report to be made public?  If so, the server will give you a URL of the report.  If not, only ${OS_NAME} developers will be able to read it." 0 0
+    if [ $? -eq 0 ]; then
+      PUBLIC="yes"
+    else
+      PUBLIC="no"
+    fi
     do_whiptail --infobox "Please wait, your submission is being uploaded...\n\n\n" 0 0
-    gzip -9 "${TEMPFILE}" && TEMPFILE="${TEMPFILE}.gz"
-    RESP="$(curl -s -S -F reportdata=@"${TEMPFILE}" http://www.finnix.org/hwsubmit.php 2>&1)"
-    do_whiptail --msgbox "The server replied: ${RESP}\n\n\n" 0 0
+    if ! [ "$REPORT_COMPRESSED" = "yes" ]; then
+      if gzip -9 "${REPORT_TMP}"; then
+        REPORT_TMP="${REPORT_TMP}.gz"
+        REPORT_COMPRESSED="yes"
+      fi
+    fi
+    RESP="$(curl -s -S -F report_public="$PUBLIC" -F reportdata=@"${REPORT_TMP}" $HWSUBMIT_API 2>&1)"
+    do_whiptail --msgbox "The server replied:\n${RESP}\n\n\n" 0 0
     break
   fi
 done
 
-rm -f "${TEMPFILE}"
-exit 0
+[ -n "$LSHW_TMP" ] && rm -f "$LSHW_TMP"
+[ -n "$DMESG_TMP" ] && rm -f "$DMESG_TMP"
+[ -n "$REPORT_TMP" ] && rm -f "$REPORT_TMP"
+[ -n "$NOTE_TMP1" ] && rm -f "$NOTE_TMP1"
+[ -n "$NOTE_TMP2" ] && rm -f "$NOTE_TMP2"
