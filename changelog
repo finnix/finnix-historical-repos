@@ -1,3 +1,10 @@
+finnix-standard (107~4) unstable; urgency=low
+
+  * Add chntpw ifenslave-2.6 sshfs udftools zerofree
+    (LP: #1075921)
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 07 Nov 2012 22:53:35 +0000
+
 finnix-standard (107~3) unstable; urgency=low
 
   * Remove install-info, manpages (LP: #1074614)
