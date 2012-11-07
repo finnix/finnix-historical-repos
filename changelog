@@ -1,3 +1,9 @@
+finnix-standard-arch (107~3) unstable; urgency=low
+
+  * Add cmospwd (LP: #1075921)
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 07 Nov 2012 22:55:32 +0000
+
 finnix-standard-arch (107~2) unstable; urgency=low
 
   * Add Vcs/Homepage fields
