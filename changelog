@@ -1,3 +1,10 @@
+finnix-scripts (107~9) unstable; urgency=low
+
+  * Move /etc/profile.d/finnix to /etc/profile.d/finnix.sh
+    (LP: #1075406)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 06 Nov 2012 22:19:18 +0000
+
 finnix-scripts (107~8) unstable; urgency=low
 
   * finnix-hwsubmit: Add From/To to output
