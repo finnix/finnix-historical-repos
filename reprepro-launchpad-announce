@@ -113,9 +113,10 @@ def main(argv, config):
     return
 
   # Parse for LP: bug numbers
-  bugnums = []
-  for l in re.findall('^Changes:\s*$(.*?)^(?! )', content, re.DOTALL | re.MULTILINE):
-    bugnums.extend(re.findall('LP:[ \n]*#([0-9]+)', l))
+  changestext = ''
+  for l in re.findall('^Changes:\s*^(.*?)^(?! )', content, re.DOTALL | re.MULTILINE):
+    changestext += l
+  bugnums = re.findall('LP:[ \n]*#([0-9]+)', changestext)
   trimlist(bugnums)
   if len(bugnums) == 0:
     return
@@ -169,6 +170,7 @@ def main(argv, config):
           'pkg-source': pkgsource,
           'pkg-version': pkgversion,
           'changes': content,
+          'changes-text': changestext,
         }
         try:
           if config.comment_subject:
