@@ -1,3 +1,9 @@
+finnix-scripts (107~10) unstable; urgency=low
+
+  * finnix-hwsubmit: Add kernel/arch information to report
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 08 Nov 2012 01:21:42 +0000
+
 finnix-scripts (107~9) unstable; urgency=low
 
   * Move /etc/profile.d/finnix to /etc/profile.d/finnix.sh

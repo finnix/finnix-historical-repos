@@ -95,6 +95,11 @@ while true; do
     echo "X-OS-ID: $OS_ID" >>"$REPORT_TMP"
     echo "X-OS-Version: $OS_VERSION" >>"$REPORT_TMP"
     echo "X-OS-Version-ID: $OS_VERSION_ID" >>"$REPORT_TMP"
+    echo "X-Boot-Kernel: $(uname -r)" >>"$REPORT_TMP"
+    echo "X-Boot-Arch: $(uname -m)" >>"$REPORT_TMP"
+    if [ -x /usr/bin/dpkg ]; then
+      echo "X-Userland-Arch: $(dpkg --print-architecture)" >>"$REPORT_TMP"
+    fi
     echo "MIME-Version: 1.0" >>"$REPORT_TMP"
     echo "Content-Type: multipart/mixed; boundary=$BOUNDARY" >>"$REPORT_TMP"
     echo "" >>"$REPORT_TMP"
