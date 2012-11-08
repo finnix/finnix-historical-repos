@@ -81,13 +81,13 @@ def trimlist(mylist):
 def main(argv, config):
   # A convenient way to initiate the authorization procedure
   if (len(argv) > 1) and (argv[1] == 'launchpad-login'):
+    print 'API URL: %s' % config.lpapi_url
+    print 'API name: %s' % config.lpapi_name
+    print 'Credentials file: %s' % config.lpapi_credsfile
     print 'Roll for swiss...'
     launchpad = Launchpad.login_with(config.lpapi_name, config.lpapi_url, credentials_file=config.lpapi_credsfile)
     bug = launchpad.bugs[1]
     print 'Success!'
-    print 'API URL: %s' % config.lpapi_url
-    print 'API name: %s' % config.lpapi_name
-    print 'Credentials file: %s' % config.lpapi_credsfile
     return
 
   # Only process reprepro Log: --changes
