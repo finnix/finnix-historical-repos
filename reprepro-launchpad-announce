@@ -37,6 +37,10 @@ class config_object(object):
   unsafe_targetless_updates = False
   # Short project names to match against bug targets
   allowed_targets = []
+  # Whether to match a task's milestone name or code name to the 
+  # codename of the source upload to change its status.  (The task's 
+  # target must still match allowed_targets.)
+  match_milestone_name = True
   # If a specific target matches, the status to be set
   # (Set to None to disable)
   milestone_status = 'Fix Released'
@@ -137,10 +141,11 @@ def main(argv, config):
         if config.milestone_status:
           milestone = task.milestone
           # If the reprepro codename matches the milestone name or codename,
-          # update the bug status
-          if milestone and (codename.lower() in (milestone.name.lower(), milestone.code_name.lower())):
-            task.status = config.milestone_status
-            task.lp_save()
+          # or overridden by match_milestone_name, update the bug status
+          if milestone:
+            if (not config.match_milestone_name) or (codename.lower() in (milestone.name.lower(), milestone.code_name.lower())):
+              task.status = config.milestone_status
+              task.lp_save()
     # Only do bug-level actions if one of the targets matched
     # (or you like living dangerously)
     if is_targeted_bug or config.unsafe_targetless_updates:
