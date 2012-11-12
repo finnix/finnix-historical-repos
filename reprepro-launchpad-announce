@@ -88,10 +88,16 @@ def main(argv, config):
     print 'API URL: %s' % config.lpapi_url
     print 'API name: %s' % config.lpapi_name
     print 'Credentials file: %s' % config.lpapi_credsfile
-    print 'Roll for swiss...'
+    print
+    print 'Roll for swiss...',; sys.stdout.flush()
     launchpad = Launchpad.login_with(config.lpapi_name, config.lpapi_url, credentials_file=config.lpapi_credsfile)
-    bug = launchpad.bugs[1]
+    me = launchpad.me
+    email = me.preferred_email_address
     print 'Success!'
+    print
+    print 'Logged in as %s (%s) <%s>' % (me.display_name, me.name, email.email)
+    print 'Profile: %s' % me.web_link
+    print 'Created: %s' % me.date_created
     return
 
   # Only process reprepro Log: --changes
