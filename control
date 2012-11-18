@@ -3,13 +3,13 @@ Section: utils
 Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
 Build-Depends: debhelper (>= 7.0.50~)
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Homepage: http://www.finnie.org/software/twuewand/
 
 Package: twuewand
-Architecture: all
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, perl
-Recommends: libdigest-sha-perl
+Recommends: libdigest-sha-perl, libcrypt-rijndael-perl
 Description: Hardware-generated random data using the truerand algorithm
  twuewand is software that creates hardware-generated random data.  It
  accomplishes this by exploiting the fact that the CPU clock and the RTC

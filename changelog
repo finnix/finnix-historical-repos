@@ -1,3 +1,9 @@
+twuewand (2.0-0~1finnix1) unstable; urgency=low
+
+  * twuewand 2.0 (LP: #1078235)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 14 Aug 2012 03:37:50 -0700
+
 twuewand (1.0-0~1finnix1) unstable; urgency=low
 
   * Initial release

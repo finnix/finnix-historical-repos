@@ -1,2 +1,5 @@
 # Not packaged for Debian
 twuewand binary: new-package-should-close-itp-bug
+
+# False positive
+twuewand binary: hardening-no-fortify-functions usr/sbin/rndaddentropy
