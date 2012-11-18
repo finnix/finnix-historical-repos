@@ -1,3 +1,10 @@
+finnix-scripts (107~11) unstable; urgency=low
+
+  * finnix-autoconfig: twuewand 2.0 suppot (LP: #1078235)
+  * finnix-autoconfig: Hardcoded bin path cleanup
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 18 Nov 2012 02:52:46 -0800
+
 finnix-scripts (107~10) unstable; urgency=low
 
   * finnix-hwsubmit: Add kernel/arch information to report

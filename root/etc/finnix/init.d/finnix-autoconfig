@@ -33,7 +33,7 @@ checkbootparam "strace" >/dev/null 2>&1 && STRACE="yes"
 if [ -n "${STRACE}" ]; then
   # Don't be tempted to redirect to /dev/null
   # If /dev/null is open when udev is started, it'll never finish
-  /usr/bin/strace -q -p $$ -f -eopen,execve -o /tmp/thestrace &
+  strace -q -p $$ -f -eopen,execve -o /tmp/thestrace &
   sleep 3
 fi
 
@@ -220,16 +220,25 @@ ifconfig lo 127.0.0.1 up
 # This will take approximately 0.25s.
 SEEDBYTES="$(getbootparam seedbytes 2>/dev/null)"
 if [ "$SEEDBYTES" = "pool" ]; then
-  SEEDBYTES=$(cat /proc/sys/kernel/random/poolsize)
+  SEEDBYTES=$(($(cat /proc/sys/kernel/random/poolsize)/8))
 fi
 [ -z "$SEEDBYTES" ] && SEEDBYTES=8
-if [ $SEEDBYTES -gt 0 ] && [ -x /usr/bin/twuewand ]; then
+if [ $SEEDBYTES -gt 0 ] && which twuewand >/dev/null 2>/dev/null; then
   if [ $SEEDBYTES -gt 32 ]; then
     echo "${CRE}${BLUEITEM} Generating $SEEDBYTES random seed bytes..."
-    /usr/bin/twuewand "$SEEDBYTES" >/dev/urandom
+    TWOPTS=""
   else
     echo -n "${CRE}${BLUEITEM} Generating $SEEDBYTES random seed bytes... "
-    /usr/bin/twuewand -w -q "$SEEDBYTES" >/dev/urandom
+    TWOPTS="-q"
+  fi
+  if which rndaddentropy >/dev/null 2>/dev/null; then
+    # Actually inject entropy
+    twuewand $TWOPTS "$SEEDBYTES" | rndaddentropy
+  else
+    # Merely stirring the pot
+    twuewand $TWOPTS "$SEEDBYTES" >/dev/random
+  fi
+  if ! [ $SEEDBYTES -gt 32 ]; then
     echo -n "done${CRE}"
   fi
 fi
@@ -347,7 +356,7 @@ if checkbootparam "nocrypt" || [ "$FINNIX_FORENSIC" = "yes" ]; then
   echo -n
 else
   lukspartitions=""
-  if [ -x /usr/sbin/luksformat ]; then
+  if which luksformat >/dev/null 2>/dev/null; then
   for i in `find /sys/block -follow -maxdepth 3 -name dev 2>/dev/null`; do
     [ -e "$i" ] || continue
     DEVNAME="$(basename $(dirname $i) | sed 's/\!/\//g')"
