@@ -1,0 +1,5 @@
+grub-finnix (107~0.1) unstable; urgency=low
+
+  * Initial release. (LP: #1080572)
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 19 Nov 2012 07:55:15 +0000

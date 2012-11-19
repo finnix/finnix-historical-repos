@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+    if [ -e /boot/grub/grub.cfg ] && [ -x "`which update-grub2 2>/dev/null`" ] ; then
+	update-grub2
+    fi
+fi
+
+#DEBHELPER#
