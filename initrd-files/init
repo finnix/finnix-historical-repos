@@ -23,7 +23,7 @@ mountblindly() {
     test -e "$i" || continue
     dispdev=$(basename "$i")
     echo -n "${CRE}${BLUEITEM} Looking for ${OS_NAME} media at ${WHITE}$dispdev${NORMAL}... "
-    if finnix_testmount $i /ramdisk/cdrom "-o ro"; then
+    if finnix_testmount $i; then
       echo "${CRE}${BLUEITEM} ${OS_NAME} media found at ${WHITE}$dispdev${NORMAL}"
       if [ ! "$i" = "/dev/$dispdev" ]; then
         cp -a $i /dev/$dispdev
@@ -41,16 +41,36 @@ mountblindly() {
 
 # Mount a device, look for a Finnix signature
 finnix_testmount() {
-  # Usage: finnix_testmount dev mountpoint "-o otherstuff"
-  if [ "$FINNIX_FORENSIC" = "yes" ] && [ `blockdev --getro $1` = "0" ]; then
-    blockdev --setro $1
+  # Usage: finnix_testmount dev
+  dev="$1"
+  if [ "$FINNIX_FORENSIC" = "yes" ] && [ `blockdev --getro $dev` = "0" ]; then
+    blockdev --setro $dev
   fi
-  if test -b $1 && mount -n $3 $1 $2 >/dev/null 2>&1; then
-    if test -f "$2$CDDISTID" && check_distid "$2$CDDISTID" "$INITDISTIDS"; then
-      umount $2
+  if [ -n "${FINNIX_FINDISO}" ]; then
+    testmount_cdbase="${FINNIX_CDBASE}_findisobacking"
+  else
+    testmount_cdbase="${FINNIX_CDBASE}"
+  fi
+  [ -d "${testmount_cdbase}" ] || mkdir -p "${testmount_cdbase}"
+  if test -b $dev && mount -n -o ro $dev ${testmount_cdbase} >/dev/null 2>&1; then
+    if [ -n "${FINNIX_FINDISO}" ]; then
+      if [ -f "${testmount_cdbase}${FINNIX_FINDISO}" ]; then
+        if ! mount -o ro,loop "${testmount_cdbase}${FINNIX_FINDISO}" "${FINNIX_CDBASE}" >/dev/null 2>&1; then
+          umount ${testmount_cdbase}
+          return 1
+        fi
+      else
+        umount ${testmount_cdbase}
+        return 1
+      fi
+    fi
+    if test -f "${FINNIX_CDBASE}$CDDISTID" && check_distid "${FINNIX_CDBASE}$CDDISTID" "$INITDISTIDS"; then
+      [ -n "${FINNIX_FINDISO}" ] && umount -d "${FINNIX_CDBASE}"
+      umount ${testmount_cdbase}
       return 0
     fi
-    umount $2
+    [ -n "${FINNIX_FINDISO}" ] && umount -d "${FINNIX_CDBASE}"
+    umount ${testmount_cdbase}
   fi
   return 1
 }
@@ -249,6 +269,7 @@ ARCHMAP="${FINNIX_DIR}/arch.map"
 CDDISTID="${FINNIX_DIR}/dist.id"
 
 USERROOT="$(getbootparam root)"
+FINNIX_FINDISO="$(getbootparam findiso)"
 
 # Read the initrd dist IDs
 INITDISTIDS=""
@@ -418,6 +439,7 @@ done
 
 # Let's begin looking for ourself!
 FOUND_FINNIX=""
+FINNIX_CDBASE="/ramdisk/cdrom"
 
 # Full CD on initrd
 # Note: a skeleton /finnix layout can be placed in /cdroot as long as
@@ -427,7 +449,6 @@ FOUND_FINNIX=""
 # self-hosting.
 # BEGIN INITRDROOT
 if [ -e "/cdroot$CDDISTID" ] && check_distid "/cdroot$CDDISTID" "$INITDISTIDS"; then
-  FINNIX_CDBASE="/ramdisk/cdrom"
   mkdir -p "${FINNIX_CDBASE}"
   cp -a /cdroot/* "${FINNIX_CDBASE}/"
   FOUND_FINNIX=yes
@@ -508,16 +529,15 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
     echo "domain $IP_DOMAIN"  >>/etc/resolv.conf
   fi
 
-  FINNIX_CDBASE="/ramdisk/cdrom"
   echo -n "${CRE}${BLUEITEM} Mounting NFS point ${WHITE}${NFSROOT}${NORMAL}... "
   modprobe nfs 2>/dev/null >/dev/null
-  if mount -t nfs -o ${ROOTWRITE},nfsvers=${NFSVERS},nolock ${NFSROOT} /ramdisk/cdrom 2>/dev/null >/dev/null; then
-    if [ -e "/ramdisk/cdrom$CDDISTID" ] && check_distid "/ramdisk/cdrom$CDDISTID" "$INITDISTIDS"; then
+  if mount -t nfs -o ${ROOTWRITE},nfsvers=${NFSVERS},nolock ${NFSROOT} ${FINNIX_CDBASE} 2>/dev/null >/dev/null; then
+    if [ -e "${FINNIX_CDBASE}$CDDISTID" ] && check_distid "${FINNIX_CDBASE}$CDDISTID" "$INITDISTIDS"; then
       echo -n "done${CRE}"
       FOUND_FINNIX="yes"
     else
       echo "${RED}failed${NORMAL}"
-      umount /ramdisk/cdrom 2>/dev/null >/dev/null
+      umount ${FINNIX_CDBASE} 2>/dev/null >/dev/null
     fi
   else
     echo "${RED}failed${NORMAL}"
@@ -525,12 +545,11 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
 
   while test -z "$FOUND_FINNIX"; do
     echo "${CRE}${REDITEM} Cannot find ${OS_NAME} media.  You're on your own."
-    echo "${REDITEM} Giving you a shell, hopefully you can mount the media to ${WHITE}/ramdisk/cdrom${NORMAL}."
+    echo "${REDITEM} Giving you a shell, hopefully you can mount the media to ${WHITE}${FINNIX_CDBASE}${NORMAL}."
     echo "${REDITEM} If you can, exit the shell and startup will proceed as normal."
     rundebugshell
-    if [ -e "/ramdisk/cdrom$CDDISTID" ] && check_distid "/ramdisk/cdrom$CDDISTID" "$INITDISTIDS"; then
+    if [ -e "${FINNIX_CDBASE}$CDDISTID" ] && check_distid "${FINNIX_CDBASE}$CDDISTID" "$INITDISTIDS"; then
       FOUND_FINNIX="yes"
-      FINNIX_CDBASE="/ramdisk/cdrom"
     fi
   done
 
@@ -551,10 +570,10 @@ else
 
    if test -z "$FOUND_FINNIX"; then
      echo "${CRE}${REDITEM} Cannot find ${OS_NAME} media.  You're on your own."
-     echo "${REDITEM} Giving you a shell, hopefully you can mount the media to ${WHITE}/ramdisk/cdrom${NORMAL}."
+     echo "${REDITEM} Giving you a shell, hopefully you can mount the media to ${WHITE}${FINNIX_CDBASE}${NORMAL}."
      echo "${REDITEM} If you can, exit the shell and startup will proceed as normal."
      rundebugshell  
-     if [ -e "/ramdisk/cdrom$CDDISTID" ] && check_distid "/ramdisk/cdrom$CDDISTID" "$INITDISTIDS"; then
+     if [ -e "${FINNIX_CDBASE}$CDDISTID" ] && check_distid "${FINNIX_CDBASE}$CDDISTID" "$INITDISTIDS"; then
        FOUND_FINNIX="yes"
      fi
    fi
@@ -562,13 +581,20 @@ else
 
   [ "${FINNIX_DEBUG}" = "yes" ] && rundebugshell
 
-  FINNIX_CDBASE="/ramdisk/cdrom"
   # If dist.id file exists, the user mounted it during emergency debug; don't try again.
   if [ ! -f "${FINNIX_CDBASE}${CDDISTID}" ]; then
     if [ "$FINNIX_FORENSIC" = "yes" ] && [ `blockdev --getro "$FINNIX_DEV"` = "0" ]; then
       blockdev --setro "$FINNIX_DEV"
     fi
-    mount -o $ROOTWRITE "$FINNIX_DEV" ${FINNIX_CDBASE}
+    if [ -n "${FINNIX_FINDISO}" ]; then
+      dispdev="$(basename "$FINNIX_DEV")"
+      [ -d "/ramdisk/media/$dispdev" ] || mkdir -p "/ramdisk/media/$dispdev"
+      mount -o $ROOTWRITE "$FINNIX_DEV" "/ramdisk/media/$dispdev"
+      mount -o ro,loop "/ramdisk/media/$dispdev${FINNIX_FINDISO}" "${FINNIX_CDBASE}"
+      [ -d "${FINNIX_CDBASE}_findisobacking" ] && rmdir "${FINNIX_CDBASE}_findisobacking"
+    else
+      mount -o $ROOTWRITE "$FINNIX_DEV" "${FINNIX_CDBASE}"
+    fi
   fi
 
 # NFS END
@@ -655,10 +681,10 @@ if [ "$FINNIX_FORENSIC" = "yes" ]; then
 
   # I'm not satisfied with the various filename support in this block.
   # It'll break on files in /finnix with spaces, extended characters, etc.
-  for FILE in $(find /ramdisk/cdrom/finnix -type f | sed 's,^/ramdisk/cdrom/finnix/,,g'); do
+  for FILE in $(find ${FINNIX_CDBASE}/finnix -type f | sed 's,^'"${FINNIX_CDBASE}/finnix/"',,g'); do
     echo -n "${CRE}${BLUEITEM} Verifying files for forensic mode: ${WHITE}finnix/${FILE}${NORMAL}"
     FOUNDFILE=""
-    SHA="$(sha512sum /ramdisk/cdrom/finnix/$FILE | awk '{print $1}')"
+    SHA="$(sha512sum ${FINNIX_CDBASE}/finnix/$FILE | awk '{print $1}')"
     while read SHATEST FILETEST; do
       if [ "$FILETEST" = "$FILE" ]; then
         FOUNDFILE="yes"
@@ -860,6 +886,8 @@ FINNIX_XENU_OLD="${FINNIX_XENU_OLD}"
 FINNIX_XENU_NEW="${FINNIX_XENU_NEW}"
 FINNIX_UML="${FINNIX_UML}"
 FINNIX_NFSBOOT="${FINNIX_NFSBOOT}"
+FINNIX_DEV="${FINNIX_DEV}"
+FINNIX_FINDISO="${FINNIX_FINDISO}"
 EOM
 
 # If udhcpc was used, copy the created resolv.conf to the final filesystem.

@@ -1,3 +1,11 @@
+neale-initrd (107~5) unstable; urgency=low
+
+  * initrd: Add support for findiso (LP: #1078492)
+  * initrd: Clean up usage of FINNIX_CDBASE
+  * initrd: export FINNIX_DEV and FINNIX_FINDISO to initrd.env
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 19 Nov 2012 03:51:51 +0000
+
 neale-initrd (107~4) unstable; urgency=low
 
   * Move initrd scripts to debian/initrd-files so they can be tracked
