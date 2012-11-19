@@ -1,0 +1,874 @@
+#!/bin/ash
+#
+# Finnix General Startup Script
+# (C) Ryan Finnie <ryan@finnie.org>
+# Portions (C) Klaus Knopper <knoppix@knopper.net>
+
+### BEGIN FUNCTIONS ####
+
+# Loop through discovered block devices, look for a
+# Finnix signature
+mountblindly() {
+  rm -rf /dev/guesses
+  mkdir -p /dev/guesses
+  for i in $(find /sys/block -follow -maxdepth 3 -name dev 2>/dev/null); do mknod /dev/guesses/$(basename $(dirname $i)) b $(sed 's/:/ /' $i) >/dev/null 2>&1; done
+  # Normally we would convert /sys/block's "cciss!c0d0p0" to "cciss/c0d0p0",
+  # but it's actually more useful to leave it as is here.
+  rm -rf /dev/guesses/fd*
+  rm -rf /dev/guesses/loop*
+  rm -rf /dev/guesses/ram*
+  rm -rf /dev/guesses/nbd*
+  DEVICES="$USERROOT /dev/guesses/*"
+  for i in $DEVICES; do
+    test -e "$i" || continue
+    dispdev=$(basename "$i")
+    echo -n "${CRE}${BLUEITEM} Looking for ${OS_NAME} media at ${WHITE}$dispdev${NORMAL}... "
+    if finnix_testmount $i /ramdisk/cdrom "-o ro"; then
+      echo "${CRE}${BLUEITEM} ${OS_NAME} media found at ${WHITE}$dispdev${NORMAL}"
+      if [ ! "$i" = "/dev/$dispdev" ]; then
+        cp -a $i /dev/$dispdev
+      fi
+      if [ ! "$i" = "/ramdisk/dev/$dispdev" ]; then
+        cp -a $i /ramdisk/dev/$dispdev
+      fi
+      rm -rf /dev/guesses
+      FOUND_FINNIX="yes"
+      FINNIX_DEV="/dev/$dispdev"
+      break
+    fi
+  done
+}
+
+# Mount a device, look for a Finnix signature
+finnix_testmount() {
+  # Usage: finnix_testmount dev mountpoint "-o otherstuff"
+  if [ "$FINNIX_FORENSIC" = "yes" ] && [ `blockdev --getro $1` = "0" ]; then
+    blockdev --setro $1
+  fi
+  if test -b $1 && mount -n $3 $1 $2 >/dev/null 2>&1; then
+    if test -f "$2$CDDISTID" && check_distid "$2$CDDISTID" "$INITDISTIDS"; then
+      umount $2
+      return 0
+    fi
+    umount $2
+  fi
+  return 1
+}
+
+# Simple shell grep
+stringinfile() {
+  case "$(cat $2)" in *$1*) return 0;; esac
+  return 1
+}
+
+# Same for strings
+stringinstring() {
+  case "$2" in *$1*) return 0;; esac
+  return 1
+}
+
+# Reread boot command line; echo last parameter's argument or return false.
+getbootparam() {
+  stringinstring " $1=" "randomstring $CMDLINE randomstring" || return 1
+  result="${CMDLINE##*$1=} randomstring"
+  # Note: the second whitespace is a tab
+  result="${result%%[ 	]*}"
+  echo "$result"
+  return 0
+}
+
+# Check boot commandline for specified option
+checkbootparam() {
+  stringinstring " $1 " "randomstring $CMDLINE randomstring"
+  return "$?"
+}
+
+# See if a dist.id file contains an allowed ID
+check_distid() {
+  CHECK_DISTIDFILE="$1"
+  ALLOWED_DISTIDS="$2"
+  while read ID REST; do
+    [ -z "$ID" ] && continue
+    for CHECKID in $ALLOWED_DISTIDS; do
+      [ "$ID" = "$CHECKID" ] && return 0
+    done
+  done <<EOM
+$(egrep -v '^#' "${CHECK_DISTIDFILE}")
+EOM
+  return 1  
+}
+
+# Run a shell if in debug mode
+rundebugshell() {
+  echo "${BLUEITEM} Starting debug shell."
+  echo "${BLUEITEM} Type \"exit\" to continue."
+  # Allow signals
+  [ "${FINNIX_DEBUG}" = "no" ] && trap 1 2 3 15
+  [ "${FINNIX_DEBUG}" = "no" ] && echo "6" > /proc/sys/kernel/printk
+   `which bash >/dev/null 2>/dev/null` && bash || ash
+  # Don't allow interrupt signals
+  [ "${FINNIX_DEBUG}" = "no" ] && echo "0" > /proc/sys/kernel/printk
+  [ "${FINNIX_DEBUG}" = "no" ] && trap "" 1 2 3 15
+}
+
+# Emergency shell for failures
+runemergencyshell() {
+  echo
+  echo "${REDITEM} Dropping you to a BusyBox shell."
+  echo "${REDITEM} Press reset button to quit."
+  PS1="finnix# "
+  export PS1
+  [ "${FINNIX_DEBUG}" = "no" ] && echo "6" > /proc/sys/kernel/printk
+  # Allow signals
+  [ "${FINNIX_DEBUG}" = "no" ] && trap 1 2 3 15
+  exec /bin/ash
+}
+
+### END FUNCTIONS ####
+
+# Everything in /bin is a link to busybox
+PATH="/bin"
+export PATH
+
+umask 022
+
+# Mount /proc
+mount -n -t proc none /proc >/dev/null 2>&1
+
+# Mount /sys
+mount -n -t sysfs none /sys >/dev/null 2>&1
+
+# Get arch
+ARCH="$(uname -m)"
+
+# Read boot command line with builtin cat command
+CMDLINE="$(cat /proc/cmdline)"
+
+# Clean input/output
+exec >/dev/console </dev/console 2>&1
+
+# 2010-10: Get around kernel bug. If a framebuffer mode is specified, 
+# the screen goes white, and is slowly replaced by white-on-black text.  
+# A reset masks this.  We only want to do it if "quiet" though.
+VGAMODE="$(getbootparam vga)"
+[ "$VGAMODE" = "normal" ] && VGAMODE=""
+[ -z "$VGAMODE" ] && checkbootparam quiet && reset
+
+for i in OS_NAME OS_VERSION OS_VERSION_ID; do
+  read "$i"
+done <<EOM
+$(
+  . /etc/os-release
+  echo "$NAME"
+  echo "$VERSION"
+  echo "$VERSION_ID"
+)
+EOM
+. /bin/finnix-colors.sh
+
+echo ""
+if [ "${OS_VERSION_ID}" = "dev" ]; then
+  echo "${WHITE}Welcome to ${BLUE}${OS_NAME}${WHITE} ${RED}${OS_VERSION}${WHITE}!${NORMAL}"
+else
+  echo "${WHITE}Welcome to ${BLUE}${OS_NAME}${WHITE}!${NORMAL}"
+fi
+echo ""
+
+FINNIX_DEBUG="no"
+checkbootparam debug && FINNIX_DEBUG="yes"
+checkbootparam umldebug && FINNIX_DEBUG="yes"
+checkbootparam usbhid && USBHID="yes"
+checkbootparam toram && TORAM="yes"
+checkbootparam testcd && TESTCD="yes"
+FINNIX_NOEJECT="no"
+checkbootparam noeject && FINNIX_NOEJECT="yes"
+checkbootparam noboothwsetup && NOBOOTHWSETUP="yes"
+checkbootparam nodma && NODMA="yes"
+ROOTWRITE="ro"
+checkbootparam rw && ROOTWRITE="rw"
+checkbootparam bootchart && BOOTCHART="yes"
+FINNIX_FORENSIC="no"
+checkbootparam forensic && FINNIX_FORENSIC="yes"
+checkbootparam forensics && FINNIX_FORENSIC="yes"
+[ "$FINNIX_FORENSIC" = "yes" ] && ROOTWRITE="ro"
+UNIONMOD=$(getbootparam unionmod)
+INIT="$(getbootparam init)"
+[ -z $INIT ] && INIT=/sbin/runit-init
+INIT_RUNLEVEL="$(getbootparam runlevel)"
+checkbootparam 0 && INIT_RUNLEVEL=0
+checkbootparam 1 && INIT_RUNLEVEL=1
+checkbootparam 2 && INIT_RUNLEVEL=2
+checkbootparam 3 && INIT_RUNLEVEL=3
+checkbootparam 4 && INIT_RUNLEVEL=4
+checkbootparam 5 && INIT_RUNLEVEL=5
+checkbootparam 6 && INIT_RUNLEVEL=6
+checkbootparam single && INIT_RUNLEVEL=S
+
+if [ "$FINNIX_FORENSIC" = "yes" ]; then
+  echo "${BLUEITEM} ${WHITE}Forensic mode${NORMAL} is active"
+fi
+
+FINNIX_XEN="no"
+FINNIX_XENU="no"
+FINNIX_XENU_OLD="no"
+FINNIX_XENU_NEW="no"
+FINNIX_UML="no"
+# We'll need to differentiate between UML and Xen (xenU)
+grep "User Mode Linux" /proc/cpuinfo 2>&1 >/dev/null && FINNIX_UML="yes"
+if [ -d /proc/xen ]; then
+  FINNIX_XEN="yes"
+  MOUNTED_XENFS="no"
+  modprobe xenfs >/dev/null 2>/dev/null
+  if grep -q xenfs /proc/filesystems; then
+    mount -t xenfs xenfs /proc/xen >/dev/null 2>/dev/null && MOUNTED_XENFS="yes"
+  fi
+  if [ -e /proc/xen/capabilities ]; then
+    grep -q "control_d" /proc/xen/capabilities || FINNIX_XENU="yes"
+  fi
+  [ "${FINNIX_XENU}" = "yes" ] && FINNIX_XENU_NEW="yes"
+  [ "$MOUNTED_XENFS" = "yes" ] && umount /proc/xen >/dev/null 2>/dev/null
+fi
+
+# Line clearing screws up readability in debug mode
+[ "${FINNIX_DEBUG}" = "yes" ] && CRE="
+"
+
+# Don't allow interrupt signals
+[ "${FINNIX_DEBUG}" = "no" ] && trap "" 1 2 3 15
+
+# Disable kernel messages while probing modules in autodetect mode
+[ "${FINNIX_DEBUG}" = "no" ] && echo "0" > /proc/sys/kernel/printk
+
+USERFINNIXDIR="$(getbootparam finnixdir)"
+if [ -n "$USERFINNIXDIR" ]; then
+  FINNIX_DIR="$USERFINNIXDIR"
+else
+  FINNIX_DIR="/finnix"
+fi
+ARCHMAP="${FINNIX_DIR}/arch.map"
+CDDISTID="${FINNIX_DIR}/dist.id"
+
+USERROOT="$(getbootparam root)"
+
+# Read the initrd dist IDs
+INITDISTIDS=""
+while read ID REST; do
+  [ -n "$INITDISTIDS" ] && INITDISTIDS="$INITDISTIDS "
+  INITDISTIDS="$INITDISTIDS$ID"
+done <<EOM
+$(egrep -v '^#' "/etc/dist.id")
+EOM
+
+# If the user needs to get keyboard access ASAP on a USB system...
+if [ -n "${USBHID}" ]; then
+  for modname in ohci-hcd uhci-hcd ehci-hcd usbhid; do
+    echo -n "${CRE}${BLUEITEM} Loading emergency USB HID module: ${WHITE}$modname${NORMAL}"
+    modprobe $modname >/dev/null 2>&1
+  done
+  echo -n "${CRE}"
+fi
+
+[ "${FINNIX_DEBUG}" = "yes" ] && rundebugshell
+
+# Normally these are built into the Finnix kernel,
+# but it doesn't hurt to try anyway.
+for i in isofs nls_cp437 nls_utf8 vfat ext2 loop squashfs unionfs aufs; do
+  modprobe $i >/dev/null 2>&1
+done
+
+# tmpfs with variable ramdisk size.
+# We check for available memory anyway and limit the ramdisks
+# to a reasonable size.
+FOUNDMEM="$(awk '/MemTotal/{print $2}' /proc/meminfo)"
+
+# Set up zram on low-memory systems
+if [ $FOUNDMEM -lt 131072 ]; then
+  if checkbootparam nozram; then
+    USE_ZRAM=no
+  else
+    USE_ZRAM=yes
+  fi
+else
+  if checkbootparam zram; then
+    USE_ZRAM=yes
+  else
+    USE_ZRAM=no
+  fi
+fi
+if [ "$USE_ZRAM" = "yes" ]; then
+  if modprobe zram 2>/dev/null; then
+    if [ $FOUNDMEM -lt 131072 ]; then
+      echo "${BLUEITEM} Low memory system detected, enabling zram RAM compression"
+    else
+      echo "${BLUEITEM} Enabling zram RAM compression"
+    fi
+    echo $(expr $FOUNDMEM \* 1024) >/sys/block/zram0/disksize
+    mknod /dev/zram0 b $(sed 's/:/ /' /sys/block/zram0/dev) 2>/dev/null >/dev/null
+    mkswap /dev/zram0 2>/dev/null >/dev/null
+    swapon -p 100 /dev/zram0 2>/dev/null >/dev/null
+  fi
+fi
+
+# Current free memory, used to determine how big to make the ramdisk
+FREEMEM="$(awk 'BEGIN{m=0};/MemFree|Cached/{m+=$2};END{print m}' /proc/meminfo)"
+
+# Never use more than 80% of the RAM available at this point
+# Dividing first because 32GiB will roll over the multiplication past 32 bit signed (thanks linproknan)
+RAMSIZE=$(expr $FREEMEM / 10 \* 8)
+
+# Remainder math to make pretty memory output
+FOUNDMEM_M=$(expr $FOUNDMEM / 1024)
+if [ $FOUNDMEM_M -lt 192 ]; then
+  FOUNDMEM_R=$(expr $(expr $FOUNDMEM - $(expr $FOUNDMEM_M \* 1024)) / 1024 \* 10)
+  FOUNDMEM_M="$FOUNDMEM_M.$FOUNDMEM_R"
+fi
+RAMSIZE_M=$(expr $RAMSIZE / 1024)
+if [ $RAMSIZE_M -lt 192 ]; then
+  RAMSIZE_R=$(expr $(expr $RAMSIZE - $(expr $RAMSIZE_M \* 1024)) / 1024 \* 10)
+  RAMSIZE_M="$RAMSIZE_M.$RAMSIZE_R"
+fi
+
+echo "${BLUEITEM} Total memory: ${WHITE}${FOUNDMEM_M}MiB${NORMAL}, shared ramdisk: ${WHITE}${RAMSIZE_M}MiB${NORMAL}"
+
+echo -n "${BLUEITEM} Setting up ramdisk... "
+mount -n -t tmpfs -o "size=${RAMSIZE}k" tmpfs /ramdisk
+for i in UNIONFS FINNIX cdrom dev initrd mnt media proc selinux sys tmp tmp/UNIONFS tmp/FINNIX busybin; do
+  mkdir /ramdisk/$i
+done
+chmod 777 /ramdisk/tmp
+chmod a+t /ramdisk/tmp
+# We will need the busybox binaries during shutdown
+cp -a /bin/* /ramdisk/busybin/
+echo -n "done${CRE}"
+
+# Hardware module loading
+if [ -n "${NODMA}" ]; then
+  #modprobe ide-core options="ide=nodma"
+  modprobe libata dma=0
+fi
+if [ -z "${NOBOOTHWSETUP}" ]; then
+  echo -n "${CRE}${BLUEITEM} Loading probed module: "
+
+  MODALIASES="/lib/modules/$(uname -r)/modules.alias"
+  LOADMODS="$(sysmodules <$MODALIASES 2>/dev/null) ide-generic generic"
+  if [ "${FINNIX_XENU}" = "yes" ]; then
+    LOADMODS="$LOADMODS xen-blkfront xen-netfront"
+  fi
+  for modname in $LOADMODS; do
+    echo -n "${CRE}${BLUEITEM} Loading probed module: ${WHITE}$modname${NORMAL}"
+    modprobe $modname >/dev/null 2>&1
+  done
+
+  MOREMODS=""
+  [ -e /sys/bus/ide ] && MOREMODS="${MOREMODS} ide-cd ide-disk"
+  [ -e /sys/bus/usb ] && MOREMODS="${MOREMODS} usb-storage usbhid"
+  [ -e /sys/bus/ieee1394 ] && MOREMODS="${MOREMODS} firewire-sbp2"
+  [ -e /sys/bus/usb -o -e /sys/bus/ieee1394 -o -e /sys/bus/scsi ] && MOREMODS="${MOREMODS} sr_mod sd_mod"
+
+  for modname in ${MOREMODS}; do
+    echo -n "${CRE}${BLUEITEM} Loading probed module: ${WHITE}$modname${NORMAL}"
+    modprobe $modname >/dev/null 2>&1
+  done
+
+  echo -n "${CRE}"
+fi
+
+if [ "${FINNIX_DEBUG}" = "yes" ]; then
+  for dev in /proc/sys/dev/cdrom*/debug; do [ -f "$dev" ] && echo 1 > "$dev"; done
+fi
+
+# The kernel should do this, but it's not for some reason (as of 2.6.17).
+for i in /proc/ide/ide*/hd*; do
+  if [ -f "$i/model" ]; then
+    IDEBLACKLIST=""
+    case "$(cat "$i/model")" in
+      *"WDC AC11000H"*) IDEBLACKLIST="yes";;
+      *"WDC AC22100H"*) IDEBLACKLIST="yes";;
+      *"WDC AC32500H"*) IDEBLACKLIST="yes";;
+      *"WDC AC33100H"*) IDEBLACKLIST="yes";;
+      *"WDC AC31600H"*) IDEBLACKLIST="yes";;
+      *"WDC AC32100H"*) IDEBLACKLIST="yes";;
+      *"WDC AC23200L"*) IDEBLACKLIST="yes";;
+      *"Compaq CRD-8241B"*) IDEBLACKLIST="yes";;
+      *"CRD-8400B"*) IDEBLACKLIST="yes";;
+      *"CRD-8480B"*) IDEBLACKLIST="yes";;
+      *"CRD-8482B"*) IDEBLACKLIST="yes";;
+      *"CRD-84"*) IDEBLACKLIST="yes";;
+      *"SanDisk SDP3B"*) IDEBLACKLIST="yes";;
+      *"SanDisk SDP3B-64"*) IDEBLACKLIST="yes";;
+      *"SANYO CD-ROM CRD"*) IDEBLACKLIST="yes";;
+      *"HITACHI CDR-8"*) IDEBLACKLIST="yes";;
+      *"HITACHI CDR-8335"*) IDEBLACKLIST="yes";;
+      *"HITACHI CDR-8435"*) IDEBLACKLIST="yes";;
+      *"Toshiba CD-ROM XM-6202B"*) IDEBLACKLIST="yes";;
+      *"CD-532E-A"*) IDEBLACKLIST="yes";;
+      *"E-IDE CD-ROM CR-840"*) IDEBLACKLIST="yes";;
+      *"CD-ROM Drive/F5A"*) IDEBLACKLIST="yes";;
+      *"WPI CDD-820"*) IDEBLACKLIST="yes";;
+      *"SAMSUNG CD-ROM SC-148C"*) IDEBLACKLIST="yes";;
+      *"SAMSUNG CD-ROM SC"*) IDEBLACKLIST="yes";;
+      *"SanDisk SDP3B-64"*) IDEBLACKLIST="yes";;
+      *"ATAPI CD-ROM DRIVE 40X MAXIMUM"*) IDEBLACKLIST="yes";;
+      *"_NEC DV5800A"*) IDEBLACKLIST="yes";;
+      *"SAMSUNG CD-ROM SN-124"*) IDEBLACKLIST="yes";;
+    esac
+    [ -n "$IDEBLACKLIST" ] && echo "using_dma:0" > "$i/settings"
+  fi
+done
+
+# Let's begin looking for ourself!
+FOUND_FINNIX=""
+
+# Full CD on initrd
+# Note: a skeleton /finnix layout can be placed in /cdroot as long as
+# it has a proper arch.map file, and will be enough to boot.  However,
+# it will not be recursively self-hosting.
+# A full extracted CD copy can be placed in /cdroot and WILL be
+# self-hosting.
+# BEGIN INITRDROOT
+if [ -e "/cdroot$CDDISTID" ] && check_distid "/cdroot$CDDISTID" "$INITDISTIDS"; then
+  FINNIX_CDBASE="/ramdisk/cdrom"
+  mkdir -p "${FINNIX_CDBASE}"
+  cp -a /cdroot/* "${FINNIX_CDBASE}/"
+  FOUND_FINNIX=yes
+
+# ELSE INITRDROOT
+else
+
+# NFS BEGIN
+NFSROOT="$(getbootparam nfsroot)"
+FINNIX_NFSBOOT="no"
+if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
+  FINNIX_NFSBOOT="yes"
+  NFSVERS="$(getbootparam nfsvers)"
+  [ -z "${NFSVERS}" ] && NFSVERS="2"
+
+  if [ "${ARCH}" = "ppc" -o "${ARCH}" = "ppc64" -o "${ARCH}" = "powerpc" ]; then
+    # For some reason, libpci doesn't report/detect sungem devices correctly until the module is loaded
+    echo -n "${CRE}${BLUEITEM} Loading probed module: ${WHITE}sungem${NORMAL}"
+    modprobe sungem >/dev/null 2>/dev/null
+    echo -n "${CRE}"
+  fi
+
+  ifconfig lo 127.0.0.1 up
+  IP_INT="$(getbootparam ip_int 2>/dev/null)"
+  arr=$(echo "$IP_INT" | tr "," "\n")
+  if [ "$arr" = "all" ] || [ -z "$arr" ]; then
+    arr="$(awk -F: '/eth.:|tr.:/{print $1}' /proc/net/dev 2>/dev/null)"
+  fi
+  for i in $arr; do
+    ifconfig "${i}" up
+    IP_V4DHCP="$(getbootparam ip_${i}_v4dhcp 2>/dev/null)"
+    IP_V4ADDR="$(getbootparam ip_${i}_v4addr 2>/dev/null)"
+    IP_V4NETMASK="$(getbootparam ip_${i}_v4netmask 2>/dev/null)"
+    IP_V4GATEWAY="$(getbootparam ip_v4gateway 2>/dev/null)"
+    IP_V6ADDR="$(getbootparam ip_${i}_v6addr 2>/dev/null)"
+    IP_V6GATEWAY="$(getbootparam ip_v6gateway 2>/dev/null)"
+    IP_DNS="$(getbootparam ip_dns 2>/dev/null)"
+    IP_DOMAIN="$(getbootparam ip_domain 2>/dev/null)"
+    IP_SEARCH="$(getbootparam ip_search 2>/dev/null)"
+    if [ "$IP_V4DHCP" = "yes" ] || [ -z "${IP_V4ADDR}${IP_V6ADDR}" ]; then
+      if ! checkbootparam "nodhcp"; then
+        echo -n "${CRE}${BLUEITEM} Attempting DHCP on ${WHITE}${i}${NORMAL}... "
+        if udhcpc -q -n -s /bin/udhcpc.script -i $i 2>/dev/null >/dev/null; then
+          echo -n "done${CRE}"
+        else
+          echo -n "failed${CRE}"
+        fi
+      fi
+    else
+      if [ -n "$IP_V4ADDR" ]; then
+        [ -z "$IP_V4NETMASK" ] && IP_V4NETMASK="255.255.255.0"
+        ifconfig "${i}" "$IP_V4ADDR" netmask "$IP_V4NETMASK"
+      fi
+    fi
+    if [ -n "$IP_V6ADDR" ]; then
+      ip -6 addr add "$IP_V6ADDR" dev "${i}"
+    fi
+  done
+  if [ -n "$IP_V4GATEWAY" ]; then
+    route add default gw "$IP_V4GATEWAY"
+  fi
+  if [ -n "$IP_V6GATEWAY" ]; then
+    ip -6 route add default via "$IP_V6GATEWAY"
+  fi
+  if [ -n "$IP_DNS" ]; then
+    : >/etc/resolv.conf
+    arr=$(echo "$IP_DNS" | tr "," "\n")
+    for i in $arr; do
+      echo "nameserver $i" >>/etc/resolv.conf
+    done
+  fi
+  if [ -n "$IP_SEARCH" ]; then
+    arr=$(echo "$IP_SEARCH" | tr "," "\n")
+    for i in $arr; do
+      echo "search $i" >>/etc/resolv.conf
+    done
+  elif [ -n "$IP_DOMAIN" ]; then
+    echo "domain $IP_DOMAIN"  >>/etc/resolv.conf
+  fi
+
+  FINNIX_CDBASE="/ramdisk/cdrom"
+  echo -n "${CRE}${BLUEITEM} Mounting NFS point ${WHITE}${NFSROOT}${NORMAL}... "
+  modprobe nfs 2>/dev/null >/dev/null
+  if mount -t nfs -o ${ROOTWRITE},nfsvers=${NFSVERS},nolock ${NFSROOT} /ramdisk/cdrom 2>/dev/null >/dev/null; then
+    if [ -e "/ramdisk/cdrom$CDDISTID" ] && check_distid "/ramdisk/cdrom$CDDISTID" "$INITDISTIDS"; then
+      echo -n "done${CRE}"
+      FOUND_FINNIX="yes"
+    else
+      echo "${RED}failed${NORMAL}"
+      umount /ramdisk/cdrom 2>/dev/null >/dev/null
+    fi
+  else
+    echo "${RED}failed${NORMAL}"
+  fi
+
+  while test -z "$FOUND_FINNIX"; do
+    echo "${CRE}${REDITEM} Cannot find ${OS_NAME} media.  You're on your own."
+    echo "${REDITEM} Giving you a shell, hopefully you can mount the media to ${WHITE}/ramdisk/cdrom${NORMAL}."
+    echo "${REDITEM} If you can, exit the shell and startup will proceed as normal."
+    rundebugshell
+    if [ -e "/ramdisk/cdrom$CDDISTID" ] && check_distid "/ramdisk/cdrom$CDDISTID" "$INITDISTIDS"; then
+      FOUND_FINNIX="yes"
+      FINNIX_CDBASE="/ramdisk/cdrom"
+    fi
+  done
+
+# NFS ELSE
+else
+  # Search for CD device
+  while test -z "$FOUND_FINNIX"; do  
+   mountblindly
+   if test -z "$FOUND_FINNIX"; then
+     for try in 1 2 3; do
+       echo -n "${CRE}${YELLOWITEM} Waiting for devices to settle (${WHITE}try ${try}${NORMAL})... "
+       sleep 5
+       echo -n "${CRE}"
+       mountblindly
+       test -n "$FOUND_FINNIX" && break
+     done
+   fi
+
+   if test -z "$FOUND_FINNIX"; then
+     echo "${CRE}${REDITEM} Cannot find ${OS_NAME} media.  You're on your own."
+     echo "${REDITEM} Giving you a shell, hopefully you can mount the media to ${WHITE}/ramdisk/cdrom${NORMAL}."
+     echo "${REDITEM} If you can, exit the shell and startup will proceed as normal."
+     rundebugshell  
+     if [ -e "/ramdisk/cdrom$CDDISTID" ] && check_distid "/ramdisk/cdrom$CDDISTID" "$INITDISTIDS"; then
+       FOUND_FINNIX="yes"
+     fi
+   fi
+  done
+
+  [ "${FINNIX_DEBUG}" = "yes" ] && rundebugshell
+
+  FINNIX_CDBASE="/ramdisk/cdrom"
+  # If dist.id file exists, the user mounted it during emergency debug; don't try again.
+  if [ ! -f "${FINNIX_CDBASE}${CDDISTID}" ]; then
+    if [ "$FINNIX_FORENSIC" = "yes" ] && [ `blockdev --getro "$FINNIX_DEV"` = "0" ]; then
+      blockdev --setro "$FINNIX_DEV"
+    fi
+    mount -o $ROOTWRITE "$FINNIX_DEV" ${FINNIX_CDBASE}
+  fi
+
+# NFS END
+fi
+
+if [ -n "$TORAM" -o -n "$TESTCD" ]; then
+  if [ ! -f "${FINNIX_CDBASE}/md5sums" ]; then
+    echo "${YELLOWITEM} md5sums not found; ${WHITE}toram${NORMAL}/${WHITE}testcd${NORMAL} skipped"
+    unset TORAM
+    unset TESTCD
+  fi
+fi
+
+if [ -n "$TORAM" -a -n "${FINNIX_CDBASE}" ]; then
+  echo "${BLUEITEM} Copying ${OS_NAME} image to ramdisk, please be patient... "
+  TORAM_FAILED=""
+  mkdir -p ${FINNIX_CDBASE}_ramdisk 2>/dev/null >/dev/null || TORAM_FAILED="yes"
+  for i in `awk '{print $2}' ${FINNIX_CDBASE}/md5sums`; do
+    echo -n "${CRE}${BLUEITEM}   ${WHITE}$i${NORMAL}"
+    mkdir -p "${FINNIX_CDBASE}_ramdisk/$(dirname "$i")" 2>/dev/null >/dev/null || TORAM_FAILED="yes"
+    cp -af "${FINNIX_CDBASE}/$i" "${FINNIX_CDBASE}_ramdisk/$i" 2>/dev/null >/dev/null || TORAM_FAILED="yes"
+  done
+  mkdir -p ${FINNIX_CDBASE}_ramdisk${FINNIX_DIR} 2>/dev/null >/dev/null || TORAM_FAILED="yes"
+  cp -af ${FINNIX_CDBASE}/md5sums ${FINNIX_CDBASE}_ramdisk/md5sums 2>/dev/null >/dev/null || TORAM_FAILED="yes"
+  echo -n "${CRE}${ESC}[1A"
+
+  if [ -n "$TORAM_FAILED" ]; then
+    echo "${CRE}${REDITEM} Copying ${OS_NAME} image to ramdisk ${RED}FAILED${NORMAL}"
+    echo "${YELLOWITEM} Falling back to CD mount"
+    unset TORAM
+    rm -rf ${FINNIX_CDBASE}_ramdisk
+  else
+    if [ "${FINNIX_NOEJECT}" = "no" ]; then
+      # At this point, all of this code block is to simply eject the CD.
+      # Turn on autoeject of CD-Roms
+      for dev in /proc/sys/dev/cdrom*/lock; do [ -f "$dev" ] && echo 0 > "$dev"; done
+      for dev in /proc/sys/dev/cdrom*/autoeject; do [ -f "$dev" ] && echo 1 > "$dev"; done
+    fi  
+    # Unmount the device, triggering CD ejection
+    umount ${FINNIX_CDBASE} 2>/dev/null >/dev/null
+    if [ "${FINNIX_NOEJECT}" = "no" ]; then
+      # Bring everything back to normal after ejection
+      for dev in /proc/sys/dev/cdrom*/lock; do [ -f "$dev" ] && echo 1 > "$dev"; done
+      for dev in /proc/sys/dev/cdrom*/autoeject; do [ -f "$dev" ] && echo 0 > "$dev"; done
+    fi  
+    # At this point /ramdisk/cdrom is empty and /ramdisk/cdrom_ramdisk is populated.  Fix that.
+    rm -rf ${FINNIX_CDBASE}
+    mv ${FINNIX_CDBASE}_ramdisk ${FINNIX_CDBASE}
+    echo -n "${CRE}${BLUEITEM} Copying ${OS_NAME} image to ramdisk, please be patient... done${CRE}"
+  fi
+fi
+
+if [ -n "$TESTCD" ]; then
+  echo "${BLUEITEM} Checking CD data integrity, please be patient... "
+  ( cd ${FINNIX_CDBASE}/ ; rm -f /ramdisk/tmp/md5sum.log ; ( md5sum -c ${FINNIX_CDBASE}/md5sums 2>&1 && touch /ramdisk/tmp/goodmd5 ) | tee /ramdisk/tmp/md5sum.log ) |
+  while read testline; do
+    echo -n "${CRE}${BLUEITEM}   ${WHITE}$testline${NORMAL}"
+  done
+  echo -n "${CRE}${ESC}[1A"
+  if [ -f /ramdisk/tmp/goodmd5 ]; then
+    rm -f /ramdisk/tmp/goodmd5 /ramdisk/tmp/md5sum.log
+  else
+    echo "${CRE}${REDITEM} Checking CD data integrity ${RED}FAILED${NORMAL}"
+    echo "${REDITEM}  Checksum failed for these files:"
+    egrep -v '(^md5sum:|OK$)' /ramdisk/tmp/md5sum.log
+    TESTCD_FAILED="yes"
+  fi
+  if [ -n "$TESTCD_FAILED" ]; then
+    echo "${REDITEM} ${RED}The CD test has failed.  This may be due to bad RAM, a bad CD burn,${NORMAL}"
+    echo "${REDITEM} ${RED}or a bad ISO download.  Please verify that the ISO download was${NORMAL}"
+    echo "${REDITEM} ${RED}successful, then try burning the CD again.${NORMAL}"
+    echo -n "${WHITE}Hit return to contine, or press the reset button to quit.${NORMAL} "
+    read a </dev/console
+  else
+    echo -n "${CRE}${BLUEITEM} Checking CD data integrity, please be patient... done${CRE}"
+  fi
+fi
+
+if [ "$FINNIX_FORENSIC" = "yes" ]; then
+  if ! [ -f /etc/forensic.ids ]; then
+    echo "${REDITEM} Forensic SHA512 IDs not found on initrd!  Aborting."
+    runemergencyshell
+  fi
+
+  # I'm not satisfied with the various filename support in this block.
+  # It'll break on files in /finnix with spaces, extended characters, etc.
+  for FILE in $(find /ramdisk/cdrom/finnix -type f | sed 's,^/ramdisk/cdrom/finnix/,,g'); do
+    echo -n "${CRE}${BLUEITEM} Verifying files for forensic mode: ${WHITE}finnix/${FILE}${NORMAL}"
+    FOUNDFILE=""
+    SHA="$(sha512sum /ramdisk/cdrom/finnix/$FILE | awk '{print $1}')"
+    while read SHATEST FILETEST; do
+      if [ "$FILETEST" = "$FILE" ]; then
+        FOUNDFILE="yes"
+        if ! [ "$SHATEST" = "$SHA" ]; then
+          echo " ${RED}BAD SHA512${NORMAL}"
+          runemergencyshell
+        fi
+      fi
+    done </etc/forensic.ids
+    if [ -z "$FOUNDFILE" ]; then
+      echo " ${RED}UNKNOWN FILE${NORMAL}"
+      runemergencyshell
+    fi
+  done
+  echo -n "${CRE}"
+fi
+
+# FI INITRDROOT
+fi
+
+# When udev is used, only a few files are needed to begin with
+# /ramdisk/dev may or may not exist at this point
+mkdir -p /ramdisk/dev 2>/dev/null >/dev/null
+mknod -m 0666 /ramdisk/dev/null c 1 3
+mknod -m 0600 /ramdisk/dev/console c 5 1
+
+echo -n "${BLUEITEM} Creating unionfs overlay... "
+
+case "$UNIONMOD" in
+  unionfs) UNIONMOD="unionfs"; break;;
+  unionfs2) UNIONMOD="unionfs2"; break;;
+  aufs) UNIONMOD="aufs"; break;;
+  *)
+    if [ -e /sys/module/aufs ]; then
+      UNIONMOD="aufs"
+    elif [ -e /sys/module/unionfs ]; then
+      UNIONMOD="unionfs2"
+    elif [ -n "$(grep aufs /proc/filesystems)" ]; then
+      UNIONMOD="aufs"
+    elif [ -n "$(grep unionfs /proc/filesystems)" ]; then
+      UNIONMOD="unionfs2"
+    else
+      # Either the union code is built in, or something went
+      # terribly wrong.
+      UNIONMOD="aufs"
+    fi
+    ;;
+esac
+
+# Figure out which CD arch we should use
+while read UNAMEMT DISTARCHT DISTARCHFT; do
+  [ -z "$UNAMEMT" ] && continue
+  if [ "$ARCH" = "$UNAMEMT" ]; then
+    if [ -f "${FINNIX_CDBASE}${FINNIX_DIR}/arch/${DISTARCHT}/root.img" ]; then
+      FINNIX_CDARCHDIR="${FINNIX_DIR}/arch/${DISTARCHT}"
+      FINNIX_CDINDEPDIR="${FINNIX_DIR}/arch/indep"
+      FINNIX_DISTARCH="${DISTARCHT}"
+      FINNIX_DISTARCH_FALLBACK="${DISTARCHFT}"
+    elif [ -n "${DISTARCHFT}" -a -f "${FINNIX_CDBASE}${FINNIX_DIR}/arch/${DISTARCHFT}/root.img" ]; then
+      FINNIX_CDARCHDIR="${FINNIX_DIR}/arch/${DISTARCHFT}"
+      FINNIX_CDINDEPDIR="${FINNIX_DIR}/arch/indep"
+      FINNIX_DISTARCH="${DISTARCHT}"
+      FINNIX_DISTARCH_FALLBACK="${DISTARCHFT}"
+    fi
+  fi
+done <<EOM
+$(egrep -v '^#' "${FINNIX_CDBASE}${ARCHMAP}")
+EOM
+
+# If we don't have the correct arch directory yet, something
+# went terribly wrong
+if [ -z "${FINNIX_CDARCHDIR}" ]; then
+  echo "${REDITEM} ${RED}Cannot find mapped arch directory!  Is the CD mastered correctly?${NORMAL}"
+  runemergencyshell
+fi
+
+# Mount the compressed root image
+FINNIX_ROOTIMG="${FINNIX_CDARCHDIR}/root.img"
+mount -n -o ro,loop "${FINNIX_CDBASE}$FINNIX_ROOTIMG" /ramdisk/FINNIX
+
+# Begin building the unionfs mount line
+if [ "$UNIONMOD" = "aufs" ]; then
+  UNION="/ramdisk/FINNIX=ro+wh"
+else
+  UNION="/ramdisk/FINNIX=ro"
+fi
+
+# Overlay support in /finnix/arch/indep/overlays on cdrom
+# Add to unionfs mount line
+OSRCDIR="${FINNIX_CDBASE}/${FINNIX_CDINDEPDIR}/overlays"
+if [ -d "${OSRCDIR}" ]; then
+  for i in `cd ${OSRCDIR}; ls -1`; do
+   echo -n "${WHITE}$i${NORMAL} "
+   if [ -d "${OSRCDIR}/$i" ]; then
+     if [ "$UNIONMOD" = "aufs" ]; then
+       UNION="${OSRCDIR}/$i=ro:${UNION}"
+     else
+       UNION="${OSRCDIR}/$i=ro:${UNION}"
+     fi
+   else
+     mkdir -p "/ramdisk/tmp/OVERLAYS/$i"
+     mount -o ro,loop "${OSRCDIR}/$i" "/ramdisk/tmp/OVERLAYS/$i"
+     if [ "$UNIONMOD" = "aufs" ]; then
+       UNION="/ramdisk/tmp/OVERLAYS/$i=ro+wh:${UNION}"
+     else
+       UNION="/ramdisk/tmp/OVERLAYS/$i=ro:${UNION}"
+     fi
+    fi
+  done
+fi
+
+# Overlay support in /finnix/arch/ARCH/overlays on cdrom
+# Add to unionfs mount line
+OSRCDIR="${FINNIX_CDBASE}/${FINNIX_CDARCHDIR}/overlays"
+if [ -d "${OSRCDIR}" ]; then
+  for i in `cd ${OSRCDIR}; ls -1`; do
+    echo -n "${WHITE}$i${NORMAL} "
+    if [ -d "${OSRCDIR}/$i" ]; then
+      if [ "$UNIONMOD" = "aufs" ]; then
+        UNION="${OSRCDIR}/$i=ro:${UNION}"
+      else
+        UNION="${OSRCDIR}/$i=ro:${UNION}"
+      fi
+    else
+      mkdir -p "/ramdisk/tmp/OVERLAYS/$i"
+      mount -o ro,loop "${OSRCDIR}/$i" "/ramdisk/tmp/OVERLAYS/$i"
+      if [ "$UNIONMOD" = "aufs" ]; then
+        UNION="/ramdisk/tmp/OVERLAYS/$i=ro+wh:${UNION}"
+      else
+        UNION="/ramdisk/tmp/OVERLAYS/$i=ro:${UNION}"
+      fi
+    fi
+  done
+fi
+
+# The actual unionfs mount
+if [ "$UNIONMOD" = "aufs" ]; then
+  UNION="br:/ramdisk/tmp/UNIONFS=rw:${UNION}"
+else
+  UNION="dirs=/ramdisk/tmp/UNIONFS=rw:${UNION}"
+  if [ "$UNIONMOD" = "unionfs" ]; then
+    UNION="${UNION},delete=whiteout"
+  fi
+fi
+if [ "$UNIONMOD" = "unionfs2" ]; then
+  UNIONMOD="unionfs"
+fi
+if mount -n -t $UNIONMOD -o "$UNION" unionfs /ramdisk/UNIONFS; then
+  echo -n "done${CRE}"
+else
+  echo ""
+  echo "${RED}ERROR: CANNOT UNITE READ-ONLY MEDIA AND INITIAL RAMDISK!${NORMAL}"
+  runemergencyshell
+fi
+
+for i in `cd /ramdisk/UNIONFS; ls -1`; do
+  [ -e "/ramdisk/$i" ] || ln -s /UNIONFS/$i /ramdisk/$i
+done
+
+# Set real root device
+echo "0x100" > /proc/sys/kernel/real-root-dev
+
+[ "${FINNIX_DEBUG}" = "yes" ] && rundebugshell
+
+umount /sys >/dev/null 2>&1
+umount /proc >/dev/null 2>&1
+
+# Give control to the init process.
+PATH=/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+
+# To make cd ejection possible on shutdown, let's use a replacement (static) init
+#rm -f /ramdisk/UNIONFS/sbin/init
+#ln -s ../../busybin/init.debianstatic /ramdisk/UNIONFS/sbin/init
+rm -f /ramdisk/UNIONFS/sbin/runit
+cp -p /ramdisk/FINNIX/sbin/runit /ramdisk/busybin/runit.debianstatic
+ln -s ../../busybin/runit.debianstatic /ramdisk/UNIONFS/sbin/runit
+
+# If the user really wants SELinux, let them.
+# Otherwise, prevent init from trying to start it.
+selinux_check="$(getbootparam selinux)"
+if [ ! "${selinux_check}" = "1" ]; then
+  export SELINUX_INIT=NO
+fi
+
+# Give a few things to the userland
+mkdir -p /ramdisk/UNIONFS/etc/finnix
+cat >/ramdisk/UNIONFS/etc/finnix/initrd.env <<EOM
+FINNIX_DIR="${FINNIX_DIR}"
+FINNIX_DISTARCH="${FINNIX_DISTARCH}"
+FINNIX_DISTARCH_FALLBACK="${FINNIX_DISTARCH_FALLBACK}"
+FINNIX_CDARCHDIR="${FINNIX_CDARCHDIR}"
+FINNIX_ROOTIMG="${FINNIX_ROOTIMG}"
+FINNIX_DEBUG="${FINNIX_DEBUG}"
+FINNIX_NOEJECT="${FINNIX_NOEJECT}"
+FINNIX_FORENSIC="${FINNIX_FORENSIC}"
+FINNIX_XEN="${FINNIX_XEN}"
+FINNIX_XENU="${FINNIX_XENU}"
+FINNIX_XENU_OLD="${FINNIX_XENU_OLD}"
+FINNIX_XENU_NEW="${FINNIX_XENU_NEW}"
+FINNIX_UML="${FINNIX_UML}"
+FINNIX_NFSBOOT="${FINNIX_NFSBOOT}"
+EOM
+
+# If udhcpc was used, copy the created resolv.conf to the final filesystem.
+[ -f /etc/resolv.conf.udhcpc ] && cat /etc/resolv.conf.udhcpc >/ramdisk/UNIONFS/etc/resolv.conf
+
+# Let's go!
+cd /
+if [ -n "${BOOTCHART}" ]; then
+  exec switch_root /ramdisk /sbin/bootchartd </dev/console >/dev/console 2>&1
+else
+  exec switch_root /ramdisk $INIT $INIT_RUNLEVEL </dev/console >/dev/console 2>&1
+fi

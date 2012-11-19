@@ -1,3 +1,10 @@
+neale-initrd (107~4) unstable; urgency=low
+
+  * Move initrd scripts to debian/initrd-files so they can be tracked
+    in bzr
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 18 Nov 2012 23:53:24 +0000
+
 neale-initrd (107~3) unstable; urgency=low
 
   * Switch scripts over to using /etc/os-release (LP: #1074290)
