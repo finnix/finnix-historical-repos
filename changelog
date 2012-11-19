@@ -1,3 +1,9 @@
+finnix-scripts (107~12) unstable; urgency=low
+
+  * Add os-release to master /finnix/os-release (LP: #1080573)
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 19 Nov 2012 06:59:51 +0000
+
 finnix-scripts (107~11) unstable; urgency=low
 
   * finnix-autoconfig: twuewand 2.0 suppot (LP: #1078235)

@@ -70,6 +70,8 @@ if [ -f "${FINNIX_SOURCE}/etc/os-release" ]; then
   RELEASE_FILE="${FINNIX_SOURCE}/etc/os-release"
 elif [ -f "${FINNIX_STUFF}/os-release" ]; then
   RELEASE_FILE="${FINNIX_STUFF}/os-release"
+elif [ -f "${FINNIX_MASTER}/finnix/os-release" ]; then
+  RELEASE_FILE="${FINNIX_MASTER}/finnix/os-release"
 else
   echo "Cannot find an appropriate os-release.  It appears you don't have an"
   echo "extracted root in ${FINNIX_SOURCE}."
@@ -243,8 +245,8 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   done
 
   ### copy os-release in
-  if [ -f "${FINNIX_SOURCE}/etc/os-release" ]; then
-    cp "${FINNIX_SOURCE}/etc/os-release" "${FINNIX_INITRD}/etc/os-release"
+  if [ -f "${RELEASE_FILE}" ]; then
+    cp "${RELEASE_FILE}" "${FINNIX_INITRD}/etc/os-release"
   fi
 
   ### regenerate dist ids
@@ -329,6 +331,13 @@ for com32 in hdt.c32 menu.c32 vesamenu.c32; do
 done
 if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" ]; then
   cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pxelinux/pxelinux.0"
+fi
+
+### copy os-release in
+if [ -f "${RELEASE_FILE}" ]; then
+  if ! [ "${RELEASE_FILE}" = "${FINNIX_MASTER}/finnix/os-release" ]; then
+    cp "${RELEASE_FILE}" "${FINNIX_MASTER}/finnix/os-release"
+  fi
 fi
 
 ### calculate md5sums
