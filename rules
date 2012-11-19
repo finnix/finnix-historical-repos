@@ -9,4 +9,5 @@
 
 override_dh_auto_install:
 	install -m 0755 -d $(CURDIR)/debian/neale-stuff
-	cp -a $(DEB_HOST_ARCH)/* $(CURDIR)/debian/neale-stuff
+	cp -a $(CURDIR)/debian/stuff-files/common/* $(CURDIR)/debian/neale-stuff
+	cp -a $(CURDIR)/debian/stuff-files/$(DEB_HOST_ARCH)/* $(CURDIR)/debian/neale-stuff

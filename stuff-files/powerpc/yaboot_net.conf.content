@@ -1,0 +1,29 @@
+device=enet:
+default=finnix
+
+message=_TFTPBASE_/boot/ppc/boot.msg
+
+image=_TFTPBASE_/boot/ppc/linux
+  label=finnix
+  initrd=_TFTPBASE_/boot/ppc/FINNIX-INITRD
+  append="_NETOPTS_ quiet"
+  read-only
+
+image=_TFTPBASE_/boot/ppc/linux
+  label=debug
+  initrd=_TFTPBASE_/boot/ppc/FINNIX-INITRD
+  append="_NETOPTS_ debug"
+  read-only
+
+image=_TFTPBASE_/boot/ppc/linux64
+  label=finnix64
+  initrd=_TFTPBASE_/boot/ppc/FINNIX-INITRD
+  append="_NETOPTS_ quiet"
+  read-only
+
+image=_TFTPBASE_/boot/ppc/linux64
+  label=debug64
+  initrd=_TFTPBASE_/boot/ppc/FINNIX-INITRD
+  append="_NETOPTS_ debug"
+  read-only
+

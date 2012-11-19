@@ -1,3 +1,10 @@
+neale-stuff (107~2) unstable; urgency=low
+
+  * Move all files into debian/stuff-files/
+  * Move finnix-chroot-dev into debian/stuff/files/common/
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 19 Nov 2012 11:58:15 +0000
+
 neale-stuff (107~1) unstable; urgency=low
 
   * Bump standards to 3.9.3

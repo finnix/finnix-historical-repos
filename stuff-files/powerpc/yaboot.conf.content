@@ -1,0 +1,29 @@
+device=cd:
+default=finnix
+
+message=/boot/ppc/boot.msg
+
+image=/boot/ppc/linux
+  label=finnix
+  initrd=/boot/ppc/FINNIX-INITRD
+  append="quiet"
+  read-only
+
+image=/boot/ppc/linux
+  label=debug
+  initrd=/boot/ppc/FINNIX-INITRD
+  append="debug"
+  read-only
+
+image=/boot/ppc/linux64
+  label=finnix64
+  initrd=/boot/ppc/FINNIX-INITRD
+  append="quiet"
+  read-only
+
+image=/boot/ppc/linux64
+  label=debug64
+  initrd=/boot/ppc/FINNIX-INITRD
+  append="debug"
+  read-only
+

@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# finnix-chroot-dev
+# Copyright (C) 2011 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+set -e
+
+cpre () {
+  if [ ! -e /proc/cmdline ]; then
+    mount -t proc none /proc
+    MOUNTEDPROC="yes"
+  fi
+  if [ ! -e /sys/bus ]; then
+    mount -t sysfs none /sys
+    MOUNTEDSYS="yes"
+  fi
+  #if [ -z "$(awk '$2 == "/dev/pts" { print "yes" }' </proc/mounts)" ]; then
+  if [ $(ls -1 /dev/pts | wc -l | awk '{print $1}') = 0 ]; then
+    mount -t devpts devpts /dev/pts
+    MOUNTEDDEVPTS="yes"
+  fi
+  if [ ! -e /sbin/start-stop-daemon.distrib ]; then
+    dpkg-divert --rename --add /sbin/start-stop-daemon 1>&2
+    cat >/sbin/start-stop-daemon <<EOT
+#!/bin/sh
+echo
+echo "Warning: Fake start-stop-daemon called, doing nothing"
+EOT
+    chmod 755 /sbin/start-stop-daemon
+  fi
+  if [ ! -e /usr/sbin/invoke-rc.d.distrib ]; then
+    dpkg-divert --rename --add /usr/sbin/invoke-rc.d 1>&2
+    cat >/usr/sbin/invoke-rc.d <<EOT
+#!/bin/sh
+echo
+echo "Warning: Fake invoke-rc.d called, doing nothing"
+EOT
+    chmod 755 /usr/sbin/invoke-rc.d
+  fi
+}
+
+cpost () {
+  if [ -e /sbin/start-stop-daemon.distrib ]; then
+    rm -f /sbin/start-stop-daemon
+    dpkg-divert --rename --remove /sbin/start-stop-daemon 1>&2
+  fi
+  if [ -e /usr/sbin/invoke-rc.d.distrib ]; then
+    rm -f /usr/sbin/invoke-rc.d
+    dpkg-divert --rename --remove /usr/sbin/invoke-rc.d 1>&2
+  fi
+  [ -n "$MOUNTEDDEVPTS" ] && umount /dev/pts
+  [ -n "$MOUNTEDSYS" ] && umount /sys
+  [ -n "$MOUNTEDPROC" ] && umount /proc
+}
+
+REALCMD="$(which "$1")"
+[ -z "$REALCMD" ] && exit 1
+shift
+
+cpre
+trap "cpost" EXIT
+"$REALCMD" "$@"
+

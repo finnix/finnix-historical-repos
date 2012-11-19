@@ -1,0 +1,10 @@
+
+Finnix version FINNIX-VERSION-NUMBR                   http://www.finnix.org/
+Copyright (C) 1999-2000, 2005-FYER Ryan Finnie        http://www.finnie.org/
+
+Compiled: FINNIX-COMPILE-DATE
+Available boot profiles:
+  finnix (default), debug, finnix64, debug64
+
+
+.
