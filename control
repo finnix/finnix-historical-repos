@@ -4,20 +4,16 @@ Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
 Build-Depends: debhelper (>= 7.0.50~)
 Standards-Version: 3.9.3
-Vcs-Browser: https://code.launchpad.net/~fo0bar/finnix/grub-finnix-pkg-debian
-Vcs-Bzr: http://bazaar.launchpad.net/~fo0bar/finnix/grub-finnix-pkg-debian
-Homepage: https://code.launchpad.net/~fo0bar/finnix/grub-finnix-pkg-debian
+Vcs-Browser: https://code.launchpad.net/~finnix/finnix/grub-finnix-pkg-debian
+Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/grub-finnix-pkg-debian
 
 Package: grub-finnix
 Architecture: i386 amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}, grub-pc (>= 1.99-1)
-Description: Build a Finnix bootloader stanza on GRUB 2 systems
- grub-finnix is a GRUB2 configuration hook to boot Finnix, given a 
- compatible ISO.  The stanzas built utilize GRUB 2's loopback mount 
- support to boot a Finnix kernel and initrd, and passes the location of 
- the ISO to Finnix.  Finnix's first-stage initrd then searches for the 
- partition containing the specified ISO.
- .
- Note that there are certain restrictions regarding where the ISO may be 
- placed.  Please see README.Debian for installation instructions and 
- restrictions.
+Description: Boot a Finnix rescue/maintenance ISO from GRUB 2
+ grub-finnix is a GRUB 2 configuration hook to boot compatible versions
+ of Finnix, a Debian-based rescue and maintenance LiveCD distribution,
+ from ISOs stored on the host filesystem. The stanzas built utilize GRUB
+ 2's loopback mount support to boot a Finnix kernel and initrd, and
+ passes the location of the ISO to Finnix.  Finnix's first-stage initrd
+ then searches for the partition containing the specified ISO.
