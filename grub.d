@@ -151,7 +151,7 @@ EOF
     cat << EOF
 	insmod iso9660
 	loopback loop ${iso_syspath}
-	linux (loop)/boot/x86/linux64 findiso=${iso_syspath} quiet
+	linux (loop)${kernel_x86_linux64} findiso=${iso_syspath} quiet
 	initrd (loop)${initrd_x86}
 }
 EOF
@@ -165,7 +165,7 @@ EOF
     cat << EOF
 	insmod iso9660
 	loopback loop ${iso_syspath}
-	linux (loop)/boot/x86/linux findiso=${iso_syspath} quiet
+	linux (loop)${kernel_x86_linux} findiso=${iso_syspath} quiet
 	initrd (loop)${initrd_x86}
 }
 EOF
@@ -179,7 +179,7 @@ EOF
     cat << EOF
 	insmod iso9660
 	loopback loop ${iso_syspath}
-	linux (loop)/boot/amd64/linux64 findiso=${iso_syspath} quiet
+	linux (loop)${kernel_amd64_linux} findiso=${iso_syspath} quiet
 	initrd (loop)${initrd_amd64}
 }
 EOF
