@@ -1,3 +1,4 @@
 ./grub-finnix
 ./grub-finnix.debhelper.log
 ./grub-finnix.substvars
+./files
