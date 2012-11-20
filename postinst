@@ -11,7 +11,7 @@ if [ "$1" = configure ]; then
         echo "/etc/default/grub-finnix, specify the location of the Finnix ISO(s),"
         echo "then run 'update-grub2'."
         echo
-    elif [ -e /boot/grub/grub.cfg ] && [ -x "`which update-grub2 2>/dev/null`" ] ; then
+    if [ -e /boot/grub/grub.cfg ] && [ -x "`which update-grub2 2>/dev/null`" ] ; then
 	update-grub2
     fi
 fi
