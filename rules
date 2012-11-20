@@ -9,4 +9,4 @@
 
 override_dh_auto_install:
 	install -d -m 0755 $(CURDIR)/debian/grub-finnix/etc/grub.d
-	install -m 0755 debian/grub.d $(CURDIR)/debian/grub-finnix/etc/grub.d/20_finnix
+	install -m 0755 debian/grub.d $(CURDIR)/debian/grub-finnix/etc/grub.d/35_finnix
