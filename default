@@ -1,10 +1,13 @@
-# To have GRUB2 boot a Finnix ISO, uncomment the following line and 
-# specify the location.  This can either be a single ISO, or a 
-# directory containing Finnix ISOs.
+# To build GRUB 2 menu entries Finnix ISO, specify the location here.  
+# This can either be a single ISO, or a directory containing multiple 
+# Finnix ISOs.
 #
-# Note that there are several restrictions, both from GRUB2 and Finnix, 
+# Note that there are several restrictions, both from GRUB 2 and Finnix, 
 # regarding where the ISO may be booted from (type of partition, 
 # filesystem, etc).  Please see the package's README.Debian file for 
 # details.
 #
-#FINNIX_ISO=
+FINNIX_ISO=
+
+# Extra options may be passed to Finnix here.
+EXTRA_OPTS="quiet"
