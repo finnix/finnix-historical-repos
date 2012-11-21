@@ -1,3 +1,14 @@
+neale-initrd (107~6) unstable; urgency=low
+
+  * Add /etc/passwd and /etc/group (LP: #1081418)
+  * Use devtmpfs for /dev (LP: #1081433)
+    * Mount devtmpfs, umount before switch_root
+    * Remove /dev/guesses functionality
+    * Remove /dev/MAKEDEV
+    * Remove all static /dev entries but console, null, zero
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 21 Nov 2012 05:42:36 +0000
+
 neale-initrd (107~5) unstable; urgency=low
 
   * initrd: Add support for findiso (LP: #1078492)

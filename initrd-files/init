@@ -9,31 +9,28 @@
 # Loop through discovered block devices, look for a
 # Finnix signature
 mountblindly() {
-  rm -rf /dev/guesses
-  mkdir -p /dev/guesses
-  for i in $(find /sys/block -follow -maxdepth 3 -name dev 2>/dev/null); do mknod /dev/guesses/$(basename $(dirname $i)) b $(sed 's/:/ /' $i) >/dev/null 2>&1; done
-  # Normally we would convert /sys/block's "cciss!c0d0p0" to "cciss/c0d0p0",
-  # but it's actually more useful to leave it as is here.
-  rm -rf /dev/guesses/fd*
-  rm -rf /dev/guesses/loop*
-  rm -rf /dev/guesses/ram*
-  rm -rf /dev/guesses/nbd*
-  DEVICES="$USERROOT /dev/guesses/*"
+  DEVICES="$USERROOT"
+  for i in $(find /sys/block -follow -maxdepth 3 -name dev 2>/dev/null); do
+    dev="$(basename $(dirname $i) | sed 's/!/\//g')"
+    case "$dev" in
+      fd*) continue;;
+      loop*) continue;;
+      ram*) continue;;
+      nbd*) continue;;
+      *) DEVICES="$DEVICES /dev/$dev";;
+    esac
+  done
   for i in $DEVICES; do
     test -e "$i" || continue
     dispdev=$(basename "$i")
     echo -n "${CRE}${BLUEITEM} Looking for ${OS_NAME} media at ${WHITE}$dispdev${NORMAL}... "
     if finnix_testmount $i; then
       echo "${CRE}${BLUEITEM} ${OS_NAME} media found at ${WHITE}$dispdev${NORMAL}"
-      if [ ! "$i" = "/dev/$dispdev" ]; then
-        cp -a $i /dev/$dispdev
+      if [ ! "$i" = "/ramdisk$i" ]; then
+        cp -a $i /ramdisk$i
       fi
-      if [ ! "$i" = "/ramdisk/dev/$dispdev" ]; then
-        cp -a $i /ramdisk/dev/$dispdev
-      fi
-      rm -rf /dev/guesses
       FOUND_FINNIX="yes"
-      FINNIX_DEV="/dev/$dispdev"
+      FINNIX_DEV="$i"
       break
     fi
   done
@@ -157,6 +154,9 @@ mount -n -t proc none /proc >/dev/null 2>&1
 
 # Mount /sys
 mount -n -t sysfs none /sys >/dev/null 2>&1
+
+# Mount /dev
+mount -n -t devtmpfs none /dev >/dev/null 2>&1
 
 # Get arch
 ARCH="$(uname -m)"
@@ -849,8 +849,9 @@ echo "0x100" > /proc/sys/kernel/real-root-dev
 
 [ "${FINNIX_DEBUG}" = "yes" ] && rundebugshell
 
-umount /sys >/dev/null 2>&1
-umount /proc >/dev/null 2>&1
+umount -l /sys >/dev/null 2>&1
+umount -l /proc >/dev/null 2>&1
+umount -l /dev >/dev/null 2>&1
 
 # Give control to the init process.
 PATH=/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
