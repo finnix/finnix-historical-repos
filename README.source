@@ -1,5 +1,0 @@
-Note that if you are retrieving this package from bzr, the bzr tree
-only tracks the debian/ directory.  And since there is no upstream for
-this package, you cannot reconstruct the package from an upstream
-canonical tarball.  The bzr tree is merely to track changes in debian/
-over time, sorry.

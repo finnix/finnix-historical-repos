@@ -1,4 +1,4 @@
-./files
-./neale-stuff
-./neale-stuff.debhelper.log
-./neale-stuff.substvars
+debian/files
+debian/neale-stuff
+debian/neale-stuff.debhelper.log
+debian/neale-stuff.substvars

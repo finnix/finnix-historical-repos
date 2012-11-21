@@ -1,3 +1,10 @@
+neale-stuff (107~3) unstable; urgency=low
+
+  * Migrate native package to full bzr tracking
+  * Rename Vcs-*
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 21 Nov 2012 19:42:28 +0000
+
 neale-stuff (107~2) unstable; urgency=low
 
   * Move all files into debian/stuff-files/
