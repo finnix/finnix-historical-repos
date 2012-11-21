@@ -1,4 +1,4 @@
-./files
-./finnix-base
-./finnix-base.debhelper.log
-./finnix-base.substvars
+debian/files
+debian/finnix-base
+debian/finnix-base.debhelper.log
+debian/finnix-base.substvars
