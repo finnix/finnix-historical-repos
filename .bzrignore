@@ -1,4 +1,4 @@
-./files
-./finnix-netboot
-./finnix-netboot.debhelper.log
-./finnix-netboot.substvars
+debian/files
+debian/finnix-netboot
+debian/finnix-netboot.debhelper.log
+debian/finnix-netboot.substvars

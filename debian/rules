@@ -10,5 +10,5 @@
 override_dh_auto_install:
 	install -m 0755 -d $(CURDIR)/debian/finnix-netboot
 	install -m 0755 -d $(CURDIR)/debian/finnix-netboot/usr/share/man/man1
-	cp -a debian/root/* $(CURDIR)/debian/finnix-netboot
-	pod2man -c '' -r '' -s 1 debian/man/finnix-netboot-server.pod >$(CURDIR)/debian/finnix-netboot/usr/share/man/man1/finnix-netboot-server.1
+	cp -a root/* $(CURDIR)/debian/finnix-netboot
+	pod2man -c '' -r '' -s 1 man/finnix-netboot-server.pod >$(CURDIR)/debian/finnix-netboot/usr/share/man/man1/finnix-netboot-server.1
