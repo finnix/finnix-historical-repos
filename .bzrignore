@@ -1,4 +1,4 @@
-./files
-./finnix-release
-./finnix-release.debhelper.log
-./finnix-release.substvars
+debian/files
+debian/finnix-release
+debian/finnix-release.debhelper.log
+debian/finnix-release.substvars

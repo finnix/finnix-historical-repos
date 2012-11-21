@@ -4,8 +4,8 @@ Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
 Build-Depends: debhelper (>= 7.0.50~)
 Standards-Version: 3.9.3
-Vcs-Browser: https://code.launchpad.net/~fo0bar/finnix/finnix-release-pkg-debian
-Vcs-Bzr: http://bazaar.launchpad.net/~fo0bar/finnix/finnix-release-pkg-debian
+Vcs-Browser: https://code.launchpad.net/~fo0bar/finnix/finnix-release-pkg
+Vcs-Bzr: http://bazaar.launchpad.net/~fo0bar/finnix/finnix-release-pkg
 Homepage: http://www.finnix.org/
 
 Package: finnix-release

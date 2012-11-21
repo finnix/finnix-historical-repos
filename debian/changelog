@@ -1,3 +1,10 @@
+finnix-release (107~5) unstable; urgency=low
+
+  * Migrate native package to full bzr tracking
+  * Rename Vcs-*
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 21 Nov 2012 13:12:02 +0000
+
 finnix-release (107~4) unstable; urgency=low
 
   * Add Vcs/Homepage fields
