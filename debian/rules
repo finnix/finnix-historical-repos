@@ -9,8 +9,8 @@
 
 override_dh_auto_install:
 	# Prevent this package from disappearing
-	install -m 0755 -d $(CURDIR)/debian/finnix-standard-arch/var/lib/finnix-standard-arch
-	touch $(CURDIR)/debian/finnix-standard-arch/var/lib/finnix-standard-arch/inuse
+	install -m 0755 -d $(CURDIR)/debian/finnix-standard-arch/usr/share/finnix-standard-arch
+	touch $(CURDIR)/debian/finnix-standard-arch/usr/share/finnix-standard-arch/inuse
 
 override_dh_md5sums:
 	dh_md5sums -x

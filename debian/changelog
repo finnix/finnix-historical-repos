@@ -1,3 +1,11 @@
+finnix-standard-arch (107~4) unstable; urgency=low
+
+  * Migrate native package to full bzr tracking
+  * Rename Vcs-*
+  * Use /usr/share for inuse instead of /var/lib
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 21 Nov 2012 13:07:07 +0000
+
 finnix-standard-arch (107~3) unstable; urgency=low
 
   * Add cmospwd (LP: #1075921)
