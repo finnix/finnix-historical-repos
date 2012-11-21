@@ -1,4 +1,4 @@
-./files
-./finnix-keyring
-./finnix-keyring.debhelper.log
-./finnix-keyring.substvars
+debian/files
+debian/finnix-keyring
+debian/finnix-keyring.debhelper.log
+debian/finnix-keyring.substvars
