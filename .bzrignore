@@ -1,4 +1,4 @@
-./files
-./finnix-scripts
-./finnix-scripts.debhelper.log
-./finnix-scripts.substvars
+debian/files
+debian/finnix-scripts
+debian/finnix-scripts.debhelper.log
+debian/finnix-scripts.substvars

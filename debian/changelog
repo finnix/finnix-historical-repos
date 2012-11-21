@@ -1,3 +1,10 @@
+finnix-scripts (107~13) unstable; urgency=low
+
+  * Migrate native package to full bzr tracking
+  * Rename Vcs-*
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 21 Nov 2012 13:13:47 +0000
+
 finnix-scripts (107~12) unstable; urgency=low
 
   * Add os-release to master /finnix/os-release (LP: #1080573)
