@@ -1,0 +1,43 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+DEB_HOST_ARCH := $(shell dpkg-architecture -qDEB_HOST_ARCH)
+
+%:
+	dh $@
+
+override_dh_auto_install: install-common install-$(DEB_HOST_ARCH)
+
+install-common:
+	install -m 0755 -d $(CURDIR)/debian/neale-master
+	install -m 0755 -d $(CURDIR)/debian/neale-master/finnix
+	install -m 0644 arch.map $(CURDIR)/debian/neale-master/finnix/arch.map
+	install -m 0755 -d $(CURDIR)/debian/neale-master/finnix/arch
+	install -m 0755 -d $(CURDIR)/debian/neale-master/boot
+
+install-i386:
+	install -m 0755 -d $(CURDIR)/debian/neale-master/finnix/arch/x86
+	install -m 0755 -d $(CURDIR)/debian/neale-master/boot/x86
+	install -m 0755 -d $(CURDIR)/debian/neale-master/boot/x86/pxelinux
+	install -m 0644 splash.png $(CURDIR)/debian/neale-master/boot/x86/splash.png
+	install -m 0644 memtest $(CURDIR)/debian/neale-master/boot/x86/memtest
+	install -m 0644 sbm.imz $(CURDIR)/debian/neale-master/boot/x86/sbm.imz
+	install -m 0644 dos.imz $(CURDIR)/debian/neale-master/boot/x86/dos.imz
+
+install-amd64:
+	install -m 0755 -d $(CURDIR)/debian/neale-master/finnix/arch/amd64
+	install -m 0755 -d $(CURDIR)/debian/neale-master/boot/amd64
+	install -m 0755 -d $(CURDIR)/debian/neale-master/boot/amd64/pxelinux
+	install -m 0644 splash.png $(CURDIR)/debian/neale-master/boot/amd64/splash.png
+	install -m 0644 memtest $(CURDIR)/debian/neale-master/boot/amd64/memtest
+	install -m 0644 sbm.imz $(CURDIR)/debian/neale-master/boot/amd64/sbm.imz
+	install -m 0644 dos.imz $(CURDIR)/debian/neale-master/boot/amd64/dos.imz
+
+install-powerpc:
+	install -m 0755 -d $(CURDIR)/debian/neale-master/finnix/arch/ppc
+	install -m 0755 -d $(CURDIR)/debian/neale-master/boot/ppc
+	install -m 0644 ofboot.b $(CURDIR)/debian/neale-master/boot/ppc/ofboot.b
+	install -m 0644 hfs.map $(CURDIR)/debian/neale-master/boot/ppc/hfs.map

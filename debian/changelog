@@ -1,3 +1,14 @@
+neale-master (107~2) unstable; urgency=low
+
+  * Migrate native package to full bzr tracking
+  * Rename Vcs-*
+  * Remove most binaries; let stage2 provide them
+  * Add source tarballs for Balder, SBM, Memtest86+
+  * bzr ignore sources, binaries
+  * bzr track everything else
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 21 Nov 2012 19:33:33 +0000
+
 neale-master (107~1) unstable; urgency=low
 
   * Bump standards to 3.9.3

@@ -1,4 +1,8 @@
-./files
-./neale-master
-./neale-master.debhelper.log
-./neale-master.substvars
+dos.imz
+memtest
+sbm.imz
+sources/
+debian/files
+debian/neale-master
+debian/neale-master.debhelper.log
+debian/neale-master.substvars
