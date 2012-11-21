@@ -1,4 +1,4 @@
-./files
-./finnix-standard
-./finnix-standard.debhelper.log
-./finnix-standard.substvars
+debian/files
+debian/finnix-standard
+debian/finnix-standard.debhelper.log
+debian/finnix-standard.substvars

@@ -1,3 +1,11 @@
+finnix-standard (107~5) unstable; urgency=low
+
+  * Migrate native package to full bzr tracking
+  * Rename Vcs-*
+  * Use /usr/share for inuse instead of /var/lib
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 21 Nov 2012 13:05:08 +0000
+
 finnix-standard (107~4) unstable; urgency=low
 
   * Add chntpw ifenslave-2.6 sshfs udftools zerofree
