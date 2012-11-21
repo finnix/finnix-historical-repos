@@ -1,4 +1,4 @@
-./grub-finnix
-./grub-finnix.debhelper.log
-./grub-finnix.substvars
-./files
+debian/files
+debian/grub-finnix
+debian/grub-finnix.debhelper.log
+debian/grub-finnix.substvars
