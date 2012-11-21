@@ -1,0 +1,192 @@
+diff -ruN busybox-1.19.4.orig/modutils/Config.src busybox-1.19.4/modutils/Config.src
+--- busybox-1.19.4.orig/modutils/Config.src	2012-02-04 11:24:55.000000000 -0800
++++ busybox-1.19.4/modutils/Config.src	2012-04-12 13:17:48.743730944 -0700
+@@ -90,6 +90,13 @@
+ 	  the format of module-init-tools for Linux kernel 2.6.
+ 	  Increases size somewhat.
+ 
++config SYSMODULES
++	bool "sysmodules"
++	default n
++	select PLATFORM_LINUX
++	help
++	  sysmodules compares sysfs devices to modaliases.
++
+ config MODPROBE
+ 	bool "modprobe"
+ 	default n
+diff -ruN busybox-1.19.4.orig/modutils/Kbuild.src busybox-1.19.4/modutils/Kbuild.src
+--- busybox-1.19.4.orig/modutils/Kbuild.src	2012-02-04 11:24:55.000000000 -0800
++++ busybox-1.19.4/modutils/Kbuild.src	2012-04-12 13:23:00.060738481 -0700
+@@ -11,6 +11,7 @@
+ lib-$(CONFIG_DEPMOD)              += depmod.o modutils.o
+ lib-$(CONFIG_INSMOD)              += insmod.o modutils.o
+ lib-$(CONFIG_LSMOD)               += lsmod.o modutils.o
++lib-$(CONFIG_SYSMODULES)          += sysmodules.o
+ lib-$(CONFIG_MODPROBE)            += modprobe.o modutils.o
+ lib-$(CONFIG_RMMOD)               += rmmod.o modutils.o
+ lib-$(CONFIG_FEATURE_2_4_MODULES) += modutils-24.o
+diff -ruN busybox-1.19.4.orig/modutils/sysmodules.c busybox-1.19.4/modutils/sysmodules.c
+--- busybox-1.19.4.orig/modutils/sysmodules.c	1969-12-31 16:00:00.000000000 -0800
++++ busybox-1.19.4/modutils/sysmodules.c	2012-04-12 13:36:42.567737375 -0700
+@@ -0,0 +1,153 @@
++/*
++ * sysmodules
++ *
++ * This software determines which modules can be loaded based on a copy
++ * of modules.alias, comparing to sysfs devies that publish a modalias.
++ *
++ * Usage: sysmodules < /lib/modules/`uname -r`/modules.alias
++ *
++ * This software contains code originally written by Neale Pickett, and
++ * included the following disclaimer of copyright:
++ *
++ *   This software has been authored by an employee or employees of Los
++ *   Alamos National Security, LLC, operator of the Los Alamos National
++ *   Laboratory (LANL) under Contract No. DE-AC52-06NA25396 with the
++ *   U.S.  Department of Energy.  The U.S. Government has rights to use,
++ *   reproduce, and distribute this software.  The public may copy,
++ *   distribute, prepare derivative works and publicly display this
++ *   software without charge, provided that this Notice and any
++ *   statement of authorship are reproduced on all copies.  Neither the
++ *   Government nor LANS makes any warranty, express or implied, or
++ *   assumes any liability or responsibility for the use of this
++ *   software.  If software is modified to produce derivative works,
++ *   such modified software should be clearly marked, so as not to
++ *   confuse it with the version available from LANL.
++ */
++
++//applet:IF_SYSMODULES(APPLET(sysmodules, BB_DIR_SBIN, BB_SUID_DROP))
++
++//usage:#define sysmodules_trivial_usage
++//usage:       ""
++//usage:#define sysmodules_full_usage "\n\n"
++//usage:       "Compares sysfs devices to modaliases"
++
++#include "libbb.h"
++#include "sysmodules.h"
++
++#include <stdio.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <unistd.h>
++#include <dirent.h>
++#include <stdlib.h>
++#include <string.h>
++#include <fnmatch.h>
++
++#define LISTLEN 1024
++
++char *mas[LISTLEN];
++int malen = 0;
++
++void sysmodules_cat(char *path)
++{
++    FILE *f = fopen(path, "r");
++    char line[512];
++
++    if (! f) {
++        return;
++    }
++    while (NULL != fgets(line, sizeof line, f)) {
++        char *p;
++
++        if (malen == LISTLEN) {
++            abort();
++        }
++        for (p = line; *p && (*p != '\n'); p += 1);
++        *p = 0;
++
++        mas[malen++] = strdup(line);
++    }
++    fclose(f);
++}
++
++void sysmodules_find(char *path)
++{
++    struct dirent *e;
++    DIR *d = opendir(path);
++
++    while ((e = readdir(d))) {
++        char fn[PATH_MAX];
++        struct stat st;
++
++        if (e->d_name[0] == '.') {
++            continue;
++        }
++
++        snprintf(fn, sizeof fn, "%s/%s", path, e->d_name);
++        if (lstat(fn, &st)) {
++            continue;
++        }
++
++        if (S_ISLNK(st.st_mode)) {
++            continue;
++        } else if (S_ISDIR(st.st_mode)) {
++            sysmodules_find(fn);
++        } else if (0 == strcmp(e->d_name, "modalias")) {
++            sysmodules_cat(fn);
++        }
++    }
++    closedir(d);
++}
++
++
++char *written[LISTLEN] = {0};
++void sysmodules_uwrite(char *s)
++{
++    int i;
++
++    for (i = 0; written[i]; i += 1) {
++        if (0 == strcmp(written[i], s)) {
++            return;
++        }
++    }
++    written[i++] = strdup(s);
++    printf("%s", s);
++}
++
++const char *syspath = "/sys/devices";
++int sysmodules_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
++int sysmodules_main(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
++{
++    char l[512];
++
++    sysmodules_find((char *)syspath);
++
++    while (NULL != fgets(l, sizeof l, stdin)) {
++        int i;
++        char *matcher;
++        char *module;
++        char *p;
++
++        if (0 != strncmp(l, "alias ", 6)) {
++            continue;
++        }
++
++        matcher = l + 6;
++        for (p = matcher; *p; p += 1) {
++            if (*p == ' ') {
++                *p++ = 0;
++                break;
++            }
++        }
++
++        module = p;
++
++        for (i = 0; i < malen; i += 1) {
++            if (0 == fnmatch(matcher, mas[i], FNM_NOESCAPE)) {
++                sysmodules_uwrite(module);
++            }
++        }
++    }
++
++    return 0;
++}
+diff -ruN busybox-1.19.4.orig/modutils/sysmodules.h busybox-1.19.4/modutils/sysmodules.h
+--- busybox-1.19.4.orig/modutils/sysmodules.h	1969-12-31 16:00:00.000000000 -0800
++++ busybox-1.19.4/modutils/sysmodules.h	2012-04-12 13:38:50.177238541 -0700
+@@ -0,0 +1,3 @@
++void sysmodules_cat(char *path);
++void sysmodules_find(char *path);
++void sysmodules_uwrite(char *s);

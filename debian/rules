@@ -18,13 +18,13 @@ override_dh_auto_install:
 	install -m 0755 -d $(CURDIR)/debian/neale-initrd/ramdisk
 	install -m 0755 -d $(CURDIR)/debian/neale-initrd/sys
 
-	install -m 0755 $(CURDIR)/debian/initrd-files/init $(CURDIR)/debian/neale-initrd/init
-	install -m 0644 $(CURDIR)/debian/initrd-files/passwd $(CURDIR)/debian/neale-initrd/etc/passwd
-	install -m 0644 $(CURDIR)/debian/initrd-files/group $(CURDIR)/debian/neale-initrd/etc/group
-	install -m 0644 $(CURDIR)/debian/initrd-files/resolv.conf $(CURDIR)/debian/neale-initrd/etc/resolv.conf
-	install -m 0755 $(CURDIR)/debian/initrd-files/finnix-colors.sh $(CURDIR)/debian/neale-initrd/bin/finnix-colors.sh
-	install -m 0755 $(CURDIR)/debian/initrd-files/udhcpc.script $(CURDIR)/debian/neale-initrd/bin/udhcpc.script
-	install -m 0755 $(CURDIR)/busybox/busybox-$(DEB_HOST_ARCH) $(CURDIR)/debian/neale-initrd/bin/busybox
+	install -m 0755 $(CURDIR)/init $(CURDIR)/debian/neale-initrd/init
+	install -m 0644 $(CURDIR)/passwd $(CURDIR)/debian/neale-initrd/etc/passwd
+	install -m 0644 $(CURDIR)/group $(CURDIR)/debian/neale-initrd/etc/group
+	install -m 0644 $(CURDIR)/resolv.conf $(CURDIR)/debian/neale-initrd/etc/resolv.conf
+	install -m 0755 $(CURDIR)/finnix-colors.sh $(CURDIR)/debian/neale-initrd/bin/finnix-colors.sh
+	install -m 0755 $(CURDIR)/udhcpc.script $(CURDIR)/debian/neale-initrd/bin/udhcpc.script
+	install -m 0755 $(CURDIR)/binaries/busybox/busybox.$(DEB_HOST_ARCH) $(CURDIR)/debian/neale-initrd/bin/busybox
 
 	(cd $(CURDIR)/debian/neale-initrd/bin && for i in `./busybox --list`; do ln -s busybox $$i; done)
 	mknod -m 0600 $(CURDIR)/debian/neale-initrd/dev/console c 5 1

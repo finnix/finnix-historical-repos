@@ -1,4 +1,6 @@
-./files
-./neale-initrd
-./neale-initrd.debhelper.log
-./neale-initrd.substvars
+sources/
+binaries/
+debian/files
+debian/neale-initrd
+debian/neale-initrd.debhelper.log
+debian/neale-initrd.substvars

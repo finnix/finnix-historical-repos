@@ -1,3 +1,10 @@
+neale-initrd (107~7) unstable; urgency=low
+
+  * Migrate native package to full bzr tracking
+  * Rename Vcs-*
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 21 Nov 2012 19:53:55 +0000
+
 neale-initrd (107~6) unstable; urgency=low
 
   * Add /etc/passwd and /etc/group (LP: #1081418)
