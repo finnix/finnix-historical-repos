@@ -1,3 +1,10 @@
+neale-stuff (107~4) unstable; urgency=low
+
+  * Fix Vcs-*
+  * Use DEB_BUILD_ARCH instead of DEB_HOST_ARCH
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 22 Nov 2012 11:18:51 +0000
+
 neale-stuff (107~3) unstable; urgency=low
 
   * Migrate native package to full bzr tracking
