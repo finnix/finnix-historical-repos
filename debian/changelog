@@ -1,3 +1,11 @@
+finnix-scripts (107~15) unstable; urgency=low
+
+  * More bashism fixes
+  * stage1: Fix syntax error introduced by last commit
+  * finnix-generate-entropy: Support twuewand 2.0
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 22 Nov 2012 02:11:45 +0000
+
 finnix-scripts (107~14) unstable; urgency=low
 
   * stage2 now handling all copying of syslinux/yaboot files to master

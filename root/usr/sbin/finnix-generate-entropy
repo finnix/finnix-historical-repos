@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # finnix-generate-entropy
 # Copyright (C) 2011 Ryan Finnie
@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+set -e
 
 for i in OS_NAME; do
   read "$i"
@@ -36,7 +38,7 @@ do_whiptail() {
   return ${DOUT}
 }
 
-POOLSIZE="$(cat /proc/sys/kernel/random/poolsize)"
+POOLSIZE="$(($(cat /proc/sys/kernel/random/poolsize)/8))"
 [ -z "$POOLSIZE" ] && POOLSIZE=4096
 while true; do
   do_whiptail --inputbox "This program generates cryptographic entropy normally missing due to the LiveCD environment.  It is recommended that you generate $POOLSIZE bytes of entropy (the size of an entropy pool on this system), though the process is slow; approximately 1 second per 32 bytes.\n\nHow many bytes of entropy would you like to generate?" 0 0 "$POOLSIZE"
@@ -46,7 +48,11 @@ while true; do
 done
 
 echo; echo; echo
-twuewand "$POOLSIZE" >/dev/urandom
+if which rndaddentropy >/dev/null 2>/dev/null; then
+  twuewand "$POOLSIZE" | rndaddentropy
+else
+  twuewand "$POOLSIZE" >/dev/random
+fi
 echo; echo
 sleep 3
 exit 0

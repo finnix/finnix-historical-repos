@@ -357,7 +357,7 @@ find "${FINNIX_SOURCE}/usr/share/man" -type f -not -wholename "${FINNIX_SOURCE}/
 find "${FINNIX_SOURCE}/usr/share/locale" -type f -delete
 find "${FINNIX_SOURCE}" -maxdepth 1 -name '.*' -delete
 find "${FINNIX_SOURCE}" -type f -name '*.pyc' -delete
-for i in "$(find ${FINNIX_SOURCE}/var/log -type f)"; do echo -n >$i; done
+for i in $(find ${FINNIX_SOURCE}/var/log -type f); do echo -n >$i; done
 echo "done."
 
 

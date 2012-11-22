@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # finnix-colors.sh
 # Copyright (C) 2011 Ryan Finnie

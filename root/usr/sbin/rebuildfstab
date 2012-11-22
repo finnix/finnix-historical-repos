@@ -1,6 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 # Based on code originally (C) Klaus Knopper
+
+set -e
 
 PATH="/bin:/sbin:/usr/bin:/usr/sbin"
 export PATH
@@ -13,7 +15,7 @@ DEVROOT="/dev"
 # Exit if script is already running
 [ -e /proc/partitions ] || exit
 if [ -e /var/run/rebuildfstab.pid ]; then
- if ps "$(</var/run/rebuildfstab.pid)" >/dev/null 2>/dev/null; then
+ if ps "$(cat /var/run/rebuildfstab.pid)" >/dev/null 2>/dev/null; then
   touch /var/run/rebuildfstab.rescan 2>/dev/null
   exit
  fi

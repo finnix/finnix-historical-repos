@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #zram_stat.sh
 # by John Moser <john.r.moser@gmail.com>
 #
