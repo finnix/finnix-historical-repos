@@ -1,7 +1,8 @@
-./files
-./neale-kernel
-./neale-kernel.debhelper.log
-./neale-kernel.substvars
-./neale-kernel.postinst.debhelper
-./neale-kernel.postrm.debhelper
-
+sources/
+build/
+debian/files
+debian/neale-kernel
+debian/neale-kernel.debhelper.log
+debian/neale-kernel.substvars
+debian/neale-kernel.postinst.debhelper
+debian/neale-kernel.postrm.debhelper

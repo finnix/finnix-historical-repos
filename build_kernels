@@ -1,0 +1,122 @@
+#!/bin/sh
+
+set -e
+set -x
+
+# Directory containing sources, patches, configs
+BASE_DIR="$1"
+# Installation root directory
+INSTALL_DIR="$2"
+# e.g. "3.6"
+# Specify no sublevel is 3.N; SUBLEVEL=0 will be forced everywhere
+VERSION="$3"
+# e.g. "-1", no arch or finnix tag
+EXTRAVERSION="$4"
+# i386/amd64/powerpc
+DEB_BUILD_ARCH="$5"
+
+# Hack to occasionally read in $J
+[ -e "/tmp/build_kernels-devconfig" ] && . /tmp/build_kernels-devconfig
+
+# Handle 3.N kernels
+case "${VERSION}" in
+3.*)
+  VERSION="${VERSION}.0"
+  MAKE_SUBLEVEL_DEF="SUBLEVEL=0"
+  ;;
+2.6.*)
+  MAKE_SUBLEVEL_DEF=""
+  ;;
+*)
+  echo "2.6.N or 3.N kernels only" >&2
+  exit 1
+  ;;
+esac
+
+build_arch() {
+  rm -rf "${BASE_DIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
+  mkdir -p "${BASE_DIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
+  cd "${BASE_DIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
+
+  # Extract sources
+  for i in `cat "${BASE_DIR}/sources/series"`; do
+    tar -ax --strip-components=1 -f "${BASE_DIR}/sources/$i"
+  done
+
+  # Apply patches
+  for i in `cat "${BASE_DIR}/patches/series"`; do
+    patch -p1 <"${BASE_DIR}/patches/$i"
+  done
+
+  # No concurrency by default
+  [ -z "$J" ] && J=1
+
+  # Move config in
+  cp "${BASE_DIR}/configs/config-${VERSION}${KERNEL_EXTRAVERSION}" .config
+  time make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" oldconfig
+
+  # Main make
+  time make -j$J ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}"
+
+  # Install modules
+  mkdir -p "${INSTALL_DIR}/lib/modules"
+  time make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" INSTALL_MOD_PATH="${INSTALL_DIR}" modules_install
+  find "${INSTALL_DIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}" -name '*.ko' -print0 | xargs -0 strip -x -R .note -R .comment
+  rm -f "${INSTALL_DIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/build"
+  rm -f "${INSTALL_DIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/source"
+
+  # Install kernel
+  mkdir -p "${INSTALL_DIR}/boot"
+  cp System.map "${INSTALL_DIR}/boot/System.map-${VERSION}${KERNEL_EXTRAVERSION}"
+  cp .config "${INSTALL_DIR}/boot/config-${VERSION}${KERNEL_EXTRAVERSION}"
+  case "${KERNEL_MAKE_ARCH}" in
+  i386|x86_64)
+    cp arch/x86/boot/bzImage "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
+    ;;
+  powerpc)
+    cp arch/powerpc/boot/vmlinux "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
+    strip "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
+    ;;
+  esac
+
+  # Clean up
+  cd "${BASE_DIR}"
+}
+
+case "${DEB_BUILD_ARCH}" in
+i386)
+  FINNIX_ARCH="amd64"
+  KERNEL_MAKE_ARCH="x86_64"
+  KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
+  build_arch
+  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux64"
+  FINNIX_ARCH="x86"
+  KERNEL_MAKE_ARCH="i386"
+  KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
+  build_arch
+  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux"
+  ;;
+amd64)
+  FINNIX_ARCH="amd64"
+  KERNEL_MAKE_ARCH="x86_64"
+  KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
+  build_arch
+  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux"
+  ;;
+powerpc)
+  FINNIX_ARCH="ppc64"
+  KERNEL_MAKE_ARCH="powerpc"
+  KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
+  build_arch
+  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux64"
+  FINNIX_ARCH="ppc"
+  KERNEL_MAKE_ARCH="powerpc"
+  KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
+  build_arch
+  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux"
+  ;;
+*)
+  echo "Unknown architecture ${DEB_BUILD_ARCH}" >&2
+  exit 1
+  ;;
+esac

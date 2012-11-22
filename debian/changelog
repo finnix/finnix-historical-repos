@@ -1,3 +1,13 @@
+neale-kernel (107~2) unstable; urgency=low
+
+  * Migrate native package to full bzr tracking
+  * Rename Vcs-*
+  * New kernel build system
+  * Use DEB_BUILD_ARCH instead of DEB_HOST_ARCH
+  * New kernel 3.6.0-1-*-finnix (LP: #1081970)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 22 Nov 2012 10:53:54 +0000
+
 neale-kernel (107~1) unstable; urgency=low
 
   * Bump standards to 3.9.3

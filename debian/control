@@ -4,8 +4,8 @@ Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
 Build-Depends: debhelper (>= 7.0.50~)
 Standards-Version: 3.9.3
-Vcs-Browser: https://code.launchpad.net/~fo0bar/finnix/neale-kernel-pkg-debian
-Vcs-Bzr: http://bazaar.launchpad.net/~fo0bar/finnix/neale-kernel-pkg-debian
+Vcs-Browser: https://code.launchpad.net/~finnix/finnix/neale-kernel-pkg
+Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/neale-kernel-pkg
 Homepage: http://www.finnix.org/
 
 Package: neale-kernel
