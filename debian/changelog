@@ -1,3 +1,10 @@
+neale-initrd (107~8) unstable; urgency=low
+
+  * Fix Vcs-*
+  * Use DEB_BUILD_ARCH instead of DEB_HOST_ARCH
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 22 Nov 2012 11:15:08 +0000
+
 neale-initrd (107~7) unstable; urgency=low
 
   * Migrate native package to full bzr tracking
