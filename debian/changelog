@@ -1,3 +1,10 @@
+neale-master (107~3) unstable; urgency=low
+
+  * Fix Vcs-*
+  * Use DEB_BUILD_ARCH instead of DEB_HOST_ARCH
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 22 Nov 2012 11:16:23 +0000
+
 neale-master (107~2) unstable; urgency=low
 
   * Migrate native package to full bzr tracking

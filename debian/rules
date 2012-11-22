@@ -4,12 +4,12 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-DEB_HOST_ARCH := $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_BUILD_ARCH := $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 
 %:
 	dh $@
 
-override_dh_auto_install: install-common install-$(DEB_HOST_ARCH)
+override_dh_auto_install: install-common install-$(DEB_BUILD_ARCH)
 
 install-common:
 	install -m 0755 -d $(CURDIR)/debian/neale-master
