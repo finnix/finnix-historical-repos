@@ -1,3 +1,9 @@
+finnix-scripts (107~16) unstable; urgency=low
+
+  * Remove /boot/System.map*
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 22 Nov 2012 09:29:10 +0000
+
 finnix-scripts (107~15) unstable; urgency=low
 
   * More bashism fixes

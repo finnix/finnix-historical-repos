@@ -329,6 +329,7 @@ rm -rf ${FINNIX_SOURCE}/etc/hotplug/net.*
 rm -f ${FINNIX_SOURCE}/lib/modules/*/build
 rm -f ${FINNIX_SOURCE}/lib/modules/*/source
 rm -f ${FINNIX_SOURCE}/boot/*.bmp
+rm -f ${FINNIX_SOURCE}/boot/System.map*
 rm -rf ${FINNIX_SOURCE}/var/backups/*
 rm -f ${FINNIX_SOURCE}/var/run/*.pid
 rm -rf ${FINNIX_SOURCE}/var/run/runit-*
