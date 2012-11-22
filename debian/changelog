@@ -1,3 +1,10 @@
+finnix-scripts (107~14) unstable; urgency=low
+
+  * stage2 now handling all copying of syslinux/yaboot files to master
+  * stage1/stage2: Remove bashisms, convert to /bin/sh
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 22 Nov 2012 01:40:13 +0000
+
 finnix-scripts (107~13) unstable; urgency=low
 
   * Migrate native package to full bzr tracking

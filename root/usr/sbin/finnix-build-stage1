@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh
 
 # finnix-build-stage1
 # Copyright (C) 2011 Ryan Finnie
@@ -24,6 +24,8 @@
 #   /finnix/build/stuff (optional stuff)
 #
 # For more information, see http://www.finnix.org/Remastering
+
+set -e
 
 ###
 # STAGE 1: Clean up, prepare, and make compressed filesystem
@@ -322,14 +324,10 @@ rm -rf ${FINNIX_SOURCE}/var/lib/dpkg/*-old
 rm -rf ${FINNIX_SOURCE}/usr/share/doc/*
 rm -rf ${FINNIX_SOURCE}/usr/share/doc-base/*
 rm -rf ${FINNIX_SOURCE}/usr/share/info/*
-rm -rf ${FINNIX_SOURCE}/root/*
-rm -rf ${FINNIX_SOURCE}/root/.{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,-,_}*
-rm -rf ${FINNIX_SOURCE}/home/finnix/*
-rm -rf ${FINNIX_SOURCE}/home/finnix/.{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,-,_}*
-rm -rf ${FINNIX_SOURCE}/.{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,-,_}*
 rm -rf ${FINNIX_SOURCE}/etc/ssh/ssh_host_*key*
 rm -rf ${FINNIX_SOURCE}/etc/hotplug/net.*
-rm -f ${FINNIX_SOURCE}/lib/modules/*/{build,source}
+rm -f ${FINNIX_SOURCE}/lib/modules/*/build
+rm -f ${FINNIX_SOURCE}/lib/modules/*/source
 rm -f ${FINNIX_SOURCE}/boot/*.bmp
 rm -rf ${FINNIX_SOURCE}/var/backups/*
 rm -f ${FINNIX_SOURCE}/var/run/*.pid
@@ -347,16 +345,19 @@ rm -f ${FINNIX_SOURCE}/var/lib/insserv/*.log
 rm -f ${FINNIX_SOURCE}/usr/share/menu/*
 rm -f ${FINNIX_SOURCE}/usr/share/applications/*.desktop
 rm -f ${FINNIX_SOURCE}/usr/share/lintian/overrides/*
-(cd ${FINNIX_SOURCE}; find etc -name '*.dpkg-*' -print0 | xargs -r -0 rm)
-(cd ${FINNIX_SOURCE}; find etc -name '*~' -print0 | xargs -r -0 rm)
-(cd ${FINNIX_SOURCE}/var/cache; find . -type f -print0 | xargs -r -0 rm)
-(cd ${FINNIX_SOURCE}/var/log; for i in `find . -type f`; do echo -n >$i; done)
 rm -f ${FINNIX_SOURCE}/var/lib/aptitude/pkgstates.old
-(cd ${FINNIX_SOURCE}/usr/share/man; find . -type f -not -wholename './man*/*.gz' -print0 | xargs -r -0 rm)
-(cd ${FINNIX_SOURCE}/usr/share/locale; find . -type f -print0 | xargs -r -0 rm)
-(cd ${FINNIX_SOURCE}; find . -type f -name '*.pyc' -print0 | xargs -r -0 rm)
 rm -f ${FINNIX_SOURCE}/var/lib/urandom/random-seed
 rm -f ${FINNIX_SOURCE}/var/run/motd.dynamic
+find "${FINNIX_SOURCE}/root" -not -wholename "${FINNIX_SOURCE}/root" -delete
+find "${FINNIX_SOURCE}/home/finnix" -not -wholename "${FINNIX_SOURCE}/home/finnix" -delete
+find "${FINNIX_SOURCE}/etc" -name '*.dpkg-*' -delete
+find "${FINNIX_SOURCE}/etc" -name '*~' -delete
+find "${FINNIX_SOURCE}/var/cache" -type f -delete
+find "${FINNIX_SOURCE}/usr/share/man" -type f -not -wholename "${FINNIX_SOURCE}/usr/share/man"'/man*/*.gz' -delete
+find "${FINNIX_SOURCE}/usr/share/locale" -type f -delete
+find "${FINNIX_SOURCE}" -maxdepth 1 -name '.*' -delete
+find "${FINNIX_SOURCE}" -type f -name '*.pyc' -delete
+for i in "$(find ${FINNIX_SOURCE}/var/log -type f)"; do echo -n >$i; done
 echo "done."
 
 

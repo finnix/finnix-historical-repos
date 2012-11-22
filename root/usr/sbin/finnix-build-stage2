@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh
 
 # finnix-build-stage2
 # Copyright (C) 2011 Ryan Finnie
@@ -24,6 +24,8 @@
 #   /finnix/build/stuff (optional stuff)
 #
 # For more information, see http://www.finnix.org/Remastering
+
+set -e
 
 ###
 # STAGE 2: Create initrd, splash screens, md5sums, and the iso itself
@@ -169,7 +171,7 @@ BASHEOM
 
 if [ -f "${FINNIX_STUFF}/devtag" ]; then
   DEVTAG=$(cat ${FINNIX_STUFF}/devtag)
-  let DEVTAG++
+  DEVTAG=$(($DEVTAG+1))
   echo ${DEVTAG} >${FINNIX_STUFF}/devtag
   FINNIXDATECLEAN="$(date)"
   FINNIXDATE="${FINNIXDATECLEAN} (Build ${DEVTAG})"
@@ -320,17 +322,17 @@ else
   fi
 fi
 
-rm -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/boot.cat"
-if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" ]; then
+if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
+  cp -a "${FINNIX_SOURCE}/usr/lib/yaboot/yaboot" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/yaboot"
+else
+  rm -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/boot.cat"
   cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" "${FINNIX_MASTER}/isolinux.bin"
-fi
-for com32 in hdt.c32 menu.c32 vesamenu.c32; do
-  if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/$com32" ]; then
+  cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/memdisk" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/memdisk"
+  for com32 in hdt.c32 menu.c32 vesamenu.c32; do
     cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/$com32" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$com32"
-  fi
-done
-if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" ]; then
+  done
   cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pxelinux/pxelinux.0"
+  gzip -9 -c <"${FINNIX_SOURCE}/usr/share/misc/pci.ids" >"${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pci.ids"
 fi
 
 ### copy os-release in
@@ -348,8 +350,7 @@ find ${FINNIX_MASTER} -type f -not -name md5sums \
 
 ### the iso itself
 rm -f ${FINNIX_ISO}
-ISOVOL32="${OS_NAME} ${OS_VERSION}"
-ISOVOL32="${ISOVOL32:0:32}" # bashism
+ISOVOL32="$(echo ${OS_NAME} ${OS_VERSION} | awk '{ print substr($0, 1, 32) }')"
 if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
   time genisoimage -hide-rr-moved -hfs -part -map ${FINNIX_MASTER}/boot/ppc/hfs.map -no-desktop \
     -hfs-volid "${OS_NAME_UNDERSCORE}_${OS_VERSION}" -hfs-bless ${FINNIX_BOOT} \
