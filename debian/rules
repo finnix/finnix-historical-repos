@@ -40,3 +40,6 @@ override_dh_auto_install:
 
 override_dh_md5sums:
 	dh_md5sums -x
+
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
