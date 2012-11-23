@@ -1,4 +1,6 @@
-sources/
+sources/*.gz
+sources/*.bz2
+sources/*.xz
 build/
 debian/files
 debian/neale-kernel

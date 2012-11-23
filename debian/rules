@@ -19,3 +19,6 @@ override_dh_auto_clean:
 override_dh_auto_install:
 	install -m 0755 -d $(CURDIR)/debian/neale-kernel
 	$(CURDIR)/build_kernels $(CURDIR) $(CURDIR)/debian/neale-kernel $(VERSION) $(EXTRAVERSION) $(DEB_BUILD_ARCH)
+
+override_dh_builddeb:
+	dh_builddeb -- -Zxz

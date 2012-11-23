@@ -1,3 +1,10 @@
+neale-kernel (107~3) unstable; urgency=low
+
+  * Migrate to xz packaging, add ignore options (LP: #1082283)
+  * Only ignore archives in sources/ (keep series)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 23 Nov 2012 09:16:56 +0000
+
 neale-kernel (107~2.1) unstable; urgency=low
 
   * Fix incorrect location of vmlinux on powerpc
