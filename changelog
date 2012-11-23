@@ -1,3 +1,10 @@
+vanityhash (1.1-0~1finnix2) unstable; urgency=low
+
+  * Migrate to xz packaging, add ignore options (LP: #1082283)
+  * Bump standards to 3.9.3
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 23 Nov 2012 10:52:18 +0000
+
 vanityhash (1.1-0~1finnix1) unstable; urgency=low
 
   * Initial release (Closes: #606927)
