@@ -41,3 +41,6 @@ install-powerpc:
 	install -m 0755 -d $(CURDIR)/debian/neale-master/boot/ppc
 	install -m 0644 ofboot.b $(CURDIR)/debian/neale-master/boot/ppc/ofboot.b
 	install -m 0644 hfs.map $(CURDIR)/debian/neale-master/boot/ppc/hfs.map
+
+override_dh_builddeb:
+	dh_builddeb -- -Zxz

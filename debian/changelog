@@ -1,3 +1,9 @@
+neale-master (107~4) unstable; urgency=low
+
+  * Migrate to xz packaging, add ignore options (LP: #1082283)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 23 Nov 2012 09:28:13 +0000
+
 neale-master (107~3) unstable; urgency=low
 
   * Fix Vcs-*
