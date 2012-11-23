@@ -1,3 +1,10 @@
+finnix-release (107~6) unstable; urgency=low
+
+  * Migrate to xz packaging, add ignore options (LP: #1082283)
+  * Add "dh_md5sums -x" to debian/rules
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 23 Nov 2012 09:39:40 +0000
+
 finnix-release (107~5) unstable; urgency=low
 
   * Migrate native package to full bzr tracking
