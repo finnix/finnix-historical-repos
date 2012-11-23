@@ -1,3 +1,9 @@
+neale-stuff (107~5) unstable; urgency=low
+
+  * Migrate to xz packaging, add ignore options (LP: #1082283)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 23 Nov 2012 09:29:59 +0000
+
 neale-stuff (107~4) unstable; urgency=low
 
   * Fix Vcs-*

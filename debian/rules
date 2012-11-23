@@ -13,3 +13,6 @@ override_dh_auto_install:
 	install -m 0755 -d $(CURDIR)/debian/neale-stuff
 	cp -a $(CURDIR)/stuff-files/common/* $(CURDIR)/debian/neale-stuff/
 	cp -a $(CURDIR)/stuff-files/$(DEB_BUILD_ARCH)/* $(CURDIR)/debian/neale-stuff/
+
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
