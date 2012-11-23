@@ -74,7 +74,7 @@ build_arch() {
     cp arch/x86/boot/bzImage "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
     ;;
   powerpc)
-    cp arch/powerpc/boot/vmlinux "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
+    cp vmlinux "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
     strip "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
     ;;
   esac

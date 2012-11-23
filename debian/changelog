@@ -1,3 +1,9 @@
+neale-kernel (107~2.1) unstable; urgency=low
+
+  * Fix incorrect location of vmlinux on powerpc
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 22 Nov 2012 18:54:03 +0000
+
 neale-kernel (107~2) unstable; urgency=low
 
   * Migrate native package to full bzr tracking
