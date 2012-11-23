@@ -15,3 +15,5 @@ LDFLAGS:=$(shell dpkg-buildflags --get LDFLAGS)
 override_dh_auto_install:
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/utmptty PREFIX=/usr
 
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
