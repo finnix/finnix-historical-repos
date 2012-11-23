@@ -1,3 +1,9 @@
+twuewand (2.0-0~1finnix2) unstable; urgency=low
+
+  * Migrate to xz packaging, add ignore options (LP: #1082283)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 23 Nov 2012 10:55:22 +0000
+
 twuewand (2.0-0~1finnix1) unstable; urgency=low
 
   * twuewand 2.0 (LP: #1078235)
