@@ -3,7 +3,7 @@ Section: games
 Priority: extra
 Maintainer: Ryan Finnie <ryan@finnie.org>
 Build-Depends: debhelper (>= 7.0.50~), autotools-dev, libncurses5-dev
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Homepage: http://zork.net/pub/
 
 Package: emad
