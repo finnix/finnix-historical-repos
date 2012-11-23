@@ -120,8 +120,3 @@ ENDTEXT
 LOCALBOOT 0x00
 
 MENU END
-
-LABEL emad
-MENU HIDE
-KERNEL boot/amd64/memdisk
-APPEND initrd=boot/amd64/emad.imz 
