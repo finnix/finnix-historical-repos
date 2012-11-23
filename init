@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 #
 # Finnix General Startup Script
 # (C) Ryan Finnie <ryan@finnie.org>
@@ -112,7 +112,7 @@ check_distid() {
   done <<EOM
 $(egrep -v '^#' "${CHECK_DISTIDFILE}")
 EOM
-  return 1  
+  return 1
 }
 
 # Run a shell if in debug mode
@@ -167,8 +167,8 @@ CMDLINE="$(cat /proc/cmdline)"
 # Clean input/output
 exec >/dev/console </dev/console 2>&1
 
-# 2010-10: Get around kernel bug. If a framebuffer mode is specified, 
-# the screen goes white, and is slowly replaced by white-on-black text.  
+# 2010-10: Get around kernel bug. If a framebuffer mode is specified,
+# the screen goes white, and is slowly replaced by white-on-black text.
 # A reset masks this.  We only want to do it if "quiet" though.
 VGAMODE="$(getbootparam vga)"
 [ "$VGAMODE" = "normal" ] && VGAMODE=""
@@ -324,7 +324,8 @@ if [ "$USE_ZRAM" = "yes" ]; then
       echo "${BLUEITEM} Enabling zram RAM compression"
     fi
     echo $(expr $FOUNDMEM \* 1024) >/sys/block/zram0/disksize
-    mknod /dev/zram0 b $(sed 's/:/ /' /sys/block/zram0/dev) 2>/dev/null >/dev/null
+    # Unneeded with devtmpfs
+    #mknod /dev/zram0 b $(sed 's/:/ /' /sys/block/zram0/dev) 2>/dev/null >/dev/null
     mkswap /dev/zram0 2>/dev/null >/dev/null
     swapon -p 100 /dev/zram0 2>/dev/null >/dev/null
   fi
@@ -364,7 +365,6 @@ echo -n "done${CRE}"
 
 # Hardware module loading
 if [ -n "${NODMA}" ]; then
-  #modprobe ide-core options="ide=nodma"
   modprobe libata dma=0
 fi
 if [ -z "${NOBOOTHWSETUP}" ]; then
@@ -397,45 +397,6 @@ fi
 if [ "${FINNIX_DEBUG}" = "yes" ]; then
   for dev in /proc/sys/dev/cdrom*/debug; do [ -f "$dev" ] && echo 1 > "$dev"; done
 fi
-
-# The kernel should do this, but it's not for some reason (as of 2.6.17).
-for i in /proc/ide/ide*/hd*; do
-  if [ -f "$i/model" ]; then
-    IDEBLACKLIST=""
-    case "$(cat "$i/model")" in
-      *"WDC AC11000H"*) IDEBLACKLIST="yes";;
-      *"WDC AC22100H"*) IDEBLACKLIST="yes";;
-      *"WDC AC32500H"*) IDEBLACKLIST="yes";;
-      *"WDC AC33100H"*) IDEBLACKLIST="yes";;
-      *"WDC AC31600H"*) IDEBLACKLIST="yes";;
-      *"WDC AC32100H"*) IDEBLACKLIST="yes";;
-      *"WDC AC23200L"*) IDEBLACKLIST="yes";;
-      *"Compaq CRD-8241B"*) IDEBLACKLIST="yes";;
-      *"CRD-8400B"*) IDEBLACKLIST="yes";;
-      *"CRD-8480B"*) IDEBLACKLIST="yes";;
-      *"CRD-8482B"*) IDEBLACKLIST="yes";;
-      *"CRD-84"*) IDEBLACKLIST="yes";;
-      *"SanDisk SDP3B"*) IDEBLACKLIST="yes";;
-      *"SanDisk SDP3B-64"*) IDEBLACKLIST="yes";;
-      *"SANYO CD-ROM CRD"*) IDEBLACKLIST="yes";;
-      *"HITACHI CDR-8"*) IDEBLACKLIST="yes";;
-      *"HITACHI CDR-8335"*) IDEBLACKLIST="yes";;
-      *"HITACHI CDR-8435"*) IDEBLACKLIST="yes";;
-      *"Toshiba CD-ROM XM-6202B"*) IDEBLACKLIST="yes";;
-      *"CD-532E-A"*) IDEBLACKLIST="yes";;
-      *"E-IDE CD-ROM CR-840"*) IDEBLACKLIST="yes";;
-      *"CD-ROM Drive/F5A"*) IDEBLACKLIST="yes";;
-      *"WPI CDD-820"*) IDEBLACKLIST="yes";;
-      *"SAMSUNG CD-ROM SC-148C"*) IDEBLACKLIST="yes";;
-      *"SAMSUNG CD-ROM SC"*) IDEBLACKLIST="yes";;
-      *"SanDisk SDP3B-64"*) IDEBLACKLIST="yes";;
-      *"ATAPI CD-ROM DRIVE 40X MAXIMUM"*) IDEBLACKLIST="yes";;
-      *"_NEC DV5800A"*) IDEBLACKLIST="yes";;
-      *"SAMSUNG CD-ROM SN-124"*) IDEBLACKLIST="yes";;
-    esac
-    [ -n "$IDEBLACKLIST" ] && echo "using_dma:0" > "$i/settings"
-  fi
-done
 
 # Let's begin looking for ourself!
 FOUND_FINNIX=""
@@ -556,7 +517,7 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
 # NFS ELSE
 else
   # Search for CD device
-  while test -z "$FOUND_FINNIX"; do  
+  while test -z "$FOUND_FINNIX"; do
    mountblindly
    if test -z "$FOUND_FINNIX"; then
      for try in 1 2 3; do
@@ -572,7 +533,7 @@ else
      echo "${CRE}${REDITEM} Cannot find ${OS_NAME} media.  You're on your own."
      echo "${REDITEM} Giving you a shell, hopefully you can mount the media to ${WHITE}${FINNIX_CDBASE}${NORMAL}."
      echo "${REDITEM} If you can, exit the shell and startup will proceed as normal."
-     rundebugshell  
+     rundebugshell
      if [ -e "${FINNIX_CDBASE}$CDDISTID" ] && check_distid "${FINNIX_CDBASE}$CDDISTID" "$INITDISTIDS"; then
        FOUND_FINNIX="yes"
      fi
@@ -632,14 +593,14 @@ if [ -n "$TORAM" -a -n "${FINNIX_CDBASE}" ]; then
       # Turn on autoeject of CD-Roms
       for dev in /proc/sys/dev/cdrom*/lock; do [ -f "$dev" ] && echo 0 > "$dev"; done
       for dev in /proc/sys/dev/cdrom*/autoeject; do [ -f "$dev" ] && echo 1 > "$dev"; done
-    fi  
+    fi
     # Unmount the device, triggering CD ejection
     umount ${FINNIX_CDBASE} 2>/dev/null >/dev/null
     if [ "${FINNIX_NOEJECT}" = "no" ]; then
       # Bring everything back to normal after ejection
       for dev in /proc/sys/dev/cdrom*/lock; do [ -f "$dev" ] && echo 1 > "$dev"; done
       for dev in /proc/sys/dev/cdrom*/autoeject; do [ -f "$dev" ] && echo 0 > "$dev"; done
-    fi  
+    fi
     # At this point /ramdisk/cdrom is empty and /ramdisk/cdrom_ramdisk is populated.  Fix that.
     rm -rf ${FINNIX_CDBASE}
     mv ${FINNIX_CDBASE}_ramdisk ${FINNIX_CDBASE}
@@ -857,8 +818,6 @@ umount -l /dev >/dev/null 2>&1
 PATH=/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 
 # To make cd ejection possible on shutdown, let's use a replacement (static) init
-#rm -f /ramdisk/UNIONFS/sbin/init
-#ln -s ../../busybin/init.debianstatic /ramdisk/UNIONFS/sbin/init
 rm -f /ramdisk/UNIONFS/sbin/runit
 cp -p /ramdisk/FINNIX/sbin/runit /ramdisk/busybin/runit.debianstatic
 ln -s ../../busybin/runit.debianstatic /ramdisk/UNIONFS/sbin/runit
