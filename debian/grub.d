@@ -64,9 +64,9 @@ process_finnix_iso() {
     return
   fi
   [ -d "${tempmount}/finnix" ] && is_finnix=1
-  [ -e "${tempmount}/boot/x86/linux" ] && kernel_x86_linux="${tempmount}/boot/x86/linux"
-  [ -e "${tempmount}/boot/x86/linux64" ] && kernel_x86_linux64="${tempmount}/boot/x86/linux64"
-  [ -e "${tempmount}/boot/amd64/linux" ] && kernel_amd64_linux="${tempmount}/boot/amd64/linux"
+  [ -e "${tempmount}/boot/x86/linux" ] && kernel_x86_linux="/boot/x86/linux"
+  [ -e "${tempmount}/boot/x86/linux64" ] && kernel_x86_linux64="/boot/x86/linux64"
+  [ -e "${tempmount}/boot/amd64/linux" ] && kernel_amd64_linux="/boot/amd64/linux"
 
   if [ -e "${tempmount}/boot/x86/initrd.xz" ]; then
     initrd_x86="/boot/x86/initrd.xz"
