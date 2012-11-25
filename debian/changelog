@@ -1,3 +1,9 @@
+finnix-standard-arch (107~6) unstable; urgency=low
+
+  * Fix Vcs-* URLs
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 25 Nov 2012 00:35:00 +0000
+
 finnix-standard-arch (107~5) unstable; urgency=low
 
   * Migrate to xz packaging, add ignore options (LP: #1082283)
