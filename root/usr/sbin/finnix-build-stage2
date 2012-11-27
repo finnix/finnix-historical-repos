@@ -18,10 +18,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 # Layout:
-#   /finnix/build/master (copy of CD layout)
-#   /finnix/build/source/FINNIX (squashroot extract)
-#   /finnix/build/initrd (initrd extract, optional)
-#   /finnix/build/stuff (optional stuff)
+#   /srv/finnix/build/master (copy of CD layout)
+#   /srv/finnix/build/source/FINNIX (squashroot extract)
+#   /srv/finnix/build/initrd (initrd extract, optional)
+#   /srv/finnix/build/stuff (optional stuff)
 #
 # For more information, see http://www.finnix.org/Remastering
 
@@ -45,7 +45,7 @@ if [ -z "$FINNIX_DISTARCH" ]; then
 fi
 
 ### variables
-[ -z "$FINNIX_BASE" ] && FINNIX_BASE=/finnix/build
+[ -z "$FINNIX_BASE" ] && FINNIX_BASE=/srv/finnix/build
 [ -z "$FINNIX_MASTER" ] && FINNIX_MASTER=${FINNIX_BASE}/master
 [ -z "$FINNIX_SOURCE" ] && FINNIX_SOURCE=${FINNIX_BASE}/source/FINNIX
 if [ -z "$FINNIX_ISO" ]; then

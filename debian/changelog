@@ -1,3 +1,10 @@
+finnix-scripts (107~19) unstable; urgency=low
+
+  * finnix-build-*: Use /srv/finnix/build, not /finnix/build
+    (LP: #1083471)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 27 Nov 2012 08:01:32 +0000
+
 finnix-scripts (107~18) unstable; urgency=low
 
   * Fix Vcs-* URLs
