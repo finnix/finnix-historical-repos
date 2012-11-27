@@ -71,7 +71,7 @@ class config_object(object):
       if hasattr(override, key):
         setattr(self, key, getattr(override, key))
 
-def trimlist(mylist):
+def trim_list(mylist):
   mylist.sort()
   if len(mylist) == 0:
     return
@@ -108,26 +108,26 @@ def main(argv, config):
     return(1)
 
   # 'accepted' 'blorpy' 'source-package' '1.2.3~4.1' '.../tempdir/source-package_1.2.3~4.1_i386.changes'
-  (action, codename, pkgsource, pkgversion, changesfile) = argv[1:6]
+  (reprepro_action, reprepro_codename, reprepro_pkg_source, reprepro_pkg_version, reprepro_changes_file) = argv[1:6]
 
   # Read in the .changes file
-  f = open(changesfile, 'r')
+  f = open(reprepro_changes_file, 'r')
   content = f.read()
   f.close()
 
   # Only process source uploads
-  archuploads = []
+  arch_uploads = []
   for l in re.findall('^Architecture: (.*?)$', content, re.MULTILINE):
-    archuploads.extend(l.split(' '))
-  if not 'source' in archuploads:
+    arch_uploads.extend(l.split(' '))
+  if not 'source' in arch_uploads:
     return
 
   # Parse for LP: bug numbers
-  changestext = ''
+  changes_text = ''
   for l in re.findall('^Changes:\s*^(.*?)^(?! )', content, re.DOTALL | re.MULTILINE):
-    changestext += l
-  bugnums = re.findall('LP:[ \n]*#([0-9]+)', changestext)
-  trimlist(bugnums)
+    changes_text += l
+  bugnums = re.findall('LP:[ \n]*#([0-9]+)', changes_text)
+  trim_list(bugnums)
   if len(bugnums) == 0:
     return
 
@@ -136,60 +136,72 @@ def main(argv, config):
   for bugnum in bugnums:
     try:
       bug = launchpad.bugs[bugnum]
-    except KeyError:
+    except KeyError, e:
       continue
+
     is_targeted_bug = False
     for task in bug.bug_tasks:
       # Only take interest if the bug target is an allowed target
       # (prevents spamming someone else's bug by mistake)
-      if task.target.name in config.allowed_targets:
-        is_targeted_bug = True
-        if config.milestone_status:
-          milestone = task.milestone
-          # If the reprepro codename matches the milestone name or codename,
-          # or overridden by match_milestone_name, update the bug status
-          if milestone:
-            if (not config.match_milestone_name) or (codename.lower() in (milestone.name.lower(), milestone.code_name.lower())):
-              task.status = config.milestone_status
-              task.lp_save()
+      target = task.target
+      if not target.name in config.allowed_targets: continue
+      is_targeted_bug = True
+
+      # If the reprepro codename matches the milestone name or codename,
+      # or overridden by match_milestone_name, update the bug status
+      if not config.milestone_status: continue
+      milestone = task.milestone
+      if not milestone: continue
+      if (config.match_milestone_name and not (reprepro_codename.lower() in (milestone.name.lower(), milestone.code_name.lower()))): continue
+      if task.status == config.milestone_status: continue
+      task.status = config.milestone_status
+      task.lp_save()
+
     # Only do bug-level actions if one of the targets matched
     # (or you like living dangerously)
-    if is_targeted_bug or config.unsafe_targetless_updates:
-      # Tag the bug if the tags don't already exist
-      tagmappings = {
-        'bug-number': bugnum,
-        'repo-codename': codename,
-        'pkg-source': pkgsource,
-        'pkg-version': pkgversion,
-      }
-      totags = []
-      for ctag in config.tags:
-        try:
-          ctagmapped = ctag % tagmappings
-          if not ctagmapped in bug.tags:
-            totags.append(ctagmapped)
-        except KeyError:
-          None
-      if len(totags) > 0:
-        bug.tags = bug.tags + totags
-        bug.lp_save()
-      # Add a comment
-      if config.comment_text:
-        commentmappings = {
-          'bug-number': bugnum,
-          'repo-codename': codename,
-          'pkg-source': pkgsource,
-          'pkg-version': pkgversion,
-          'changes': content,
-          'changes-text': changestext,
-        }
-        try:
-          if config.comment_subject:
-            bug.newMessage(content=config.comment_text % commentmappings, subject=config.comment_subject % commentmappings)
-          else:
-            bug.newMessage(content=config.comment_text % commentmappings)
-        except KeyError:
-          None
+    if not (is_targeted_bug or config.unsafe_targetless_updates):
+      continue
+
+    mappings = {
+      'bug-number': bugnum,
+      'repo-codename': reprepro_codename,
+      'pkg-source': reprepro_pkg_source,
+      'pkg-version': reprepro_pkg_version,
+      'changes': content,
+      'changes-text': changes_text,
+    }
+
+    # Tag the bug if the tags don't already exist
+    bug_tags = bug.tags
+    bug_add_tags = []
+    for tag in config.tags:
+      try:
+        tag_mapped = tag % mappings
+      except KeyError, e:
+        pass
+      else:
+        if not tag_mapped in bug_tags:
+          bug_add_tags.append(tag_mapped)
+    if len(bug_add_tags) > 0:
+      bug.tags = bug_tags + bug_add_tags
+      bug.lp_save()
+
+    # Add a comment
+    comment_text_mapped = None
+    comment_subject_mapped = None
+    if config.comment_text:
+      try:
+        comment_text_mapped = config.comment_text % mappings
+      except KeyError, e:
+        pass
+    if config.comment_subject:
+      try:
+        comment_subject_mapped = config.comment_subject % mappings
+      except KeyError, e:
+        pass
+    if comment_text_mapped:
+      bug.newMessage(content=comment_text_mapped, subject=comment_subject_mapped)
+
 
 if __name__ == '__main__':
   import config as config_user
