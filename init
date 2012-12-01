@@ -510,6 +510,7 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
 
   echo -n "${CRE}${BLUEITEM} Mounting NFS point ${WHITE}${NFSROOT}${NORMAL}... "
   _f12 modprobe nfs
+  _f12 modprobe nfsv${NFSVERS}
   if _f12 mount -t nfs -o ${ROOTWRITE},nfsvers=${NFSVERS},nolock ${NFSROOT} ${FINNIX_CDBASE}; then
     if [ -e "${FINNIX_CDBASE}$CDDISTID" ] && check_distid "${FINNIX_CDBASE}$CDDISTID" "$INITDISTIDS"; then
       echo -n "done${CRE}"
