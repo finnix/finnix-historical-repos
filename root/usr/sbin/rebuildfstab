@@ -9,7 +9,7 @@ export PATH
 umask 022
 
 TMP="/tmp/fstab.$$.tmp"
-ADDEDBY="# Added by Finnix"
+ADDEDBY="Added by Finnix"
 DEVROOT="/dev"
 
 # Exit if script is already running
@@ -70,12 +70,17 @@ for i in `blkid -o device`; do
       ;;
   esac
 
+  LABEL=""
   if [ -z "$FSTYPE" ]; then
-    LABEL=""
-    UUID=""
-    TYPE=""
-    SEC_TYPE=""
-    eval `blkid -o export "$i"`
+#    echo `blkid -o export "$i"` >&2
+    while read name val; do
+      case "$name" in
+        TYPE) FSTYPE="$val" ;;
+        LABEL) LABEL="$val" ;;
+      esac
+    done <<EOM
+$(blkid -o export "$i" | sed 's/^\([A-Z0-9_]*\)=/\1 /g')
+EOM
     FSTYPE="$TYPE"
   fi
   [ -z "$FSTYPE" ] && FSTYPE="auto"
@@ -92,7 +97,9 @@ for i in `blkid -o device`; do
   if [ "$MOUNTPOINT" != "none" ]; then
     mkdir -p "/media/$DEVNAME" 2>/dev/null >/dev/null
   fi
-  printf "%-15s %-15s %-8s %-20s %-s\n" "$i" "$MOUNTPOINT" "$FSTYPE" "$OPTIONS" "0 0 $ADDEDBY" >>/etc/fstab
+  LINEADDEDBY="$ADDEDBY"
+  [ -n "$LABEL" ] && LINEADDEDBY="($LABEL) $ADDEDBY"
+  printf "%-15s %-15s %-8s %-20s %-s\n" "$i" "$MOUNTPOINT" "$FSTYPE" "$OPTIONS" "0 0 # $LINEADDEDBY" >>/etc/fstab
   MASTERADDED="$MASTERADDED $i "
 done
 

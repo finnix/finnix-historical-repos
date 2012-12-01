@@ -1,3 +1,9 @@
+finnix-scripts (107~21) unstable; urgency=low
+
+  * Fix parsing blkid output (LP: #1085409)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 01 Dec 2012 13:54:43 +0000
+
 finnix-scripts (107~20) unstable; urgency=low
 
   * General cleanup of startup/shutdown, simplify shutdown
