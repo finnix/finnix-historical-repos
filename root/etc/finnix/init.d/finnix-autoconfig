@@ -20,8 +20,8 @@ export PATH
 umask 022
 
 # Mount /proc and /sys
-[ -f /proc/version ] || mount -t proc none /proc 2>/dev/null
-[ -d /sys/devices ] || mount -t sysfs none /sys 2>/dev/null
+[ -f /proc/version ] || mount -t proc none /proc >/dev/null 2>/dev/null
+[ -d /sys/devices ] || mount -t sysfs none /sys >/dev/null 2>/dev/null
 
 . /lib/finnix/finnix-rc-helper.sh
 
@@ -29,7 +29,7 @@ umask 022
 echo -n "${CRE}${ESC}[1A${CRE}"
 echo -n "${CRE}${ESC}[1A${CRE}"
 
-checkbootparam "strace" >/dev/null 2>&1 && STRACE="yes"
+checkbootparam "strace" && STRACE="yes"
 if [ -n "${STRACE}" ]; then
   # Don't be tempted to redirect to /dev/null
   # If /dev/null is open when udev is started, it'll never finish
@@ -49,7 +49,7 @@ fi
 if ! checkbootparam "nohwsetup"; then
   echo -n "${CRE}${BLUEITEM} Populating /dev and setting up devices... "
   mkdir -p /var/run/udev
-  invoke-rc.d udev start 2>/dev/null >/dev/null
+  _f12 invoke-rc.d udev start
   echo -n "done${CRE}"
 else
   # If udev is not started, at the very least,
@@ -61,8 +61,8 @@ else
   mknod -m 0600 /dev/tty4 c 4 4
 fi
 # /dev/pts and /dev/shm (needed right after udev)
-stringinfile "/dev/pts" /proc/mounts || mount -t devpts devpts /dev/pts 2>/dev/null
-stringinfile "/dev/shm" /proc/mounts || mount -t tmpfs devshm /dev/shm 2>/dev/null
+stringinfile "/dev/pts" /proc/mounts || _f12 mount -t devpts devpts /dev/pts
+stringinfile "/dev/shm" /proc/mounts || _f12 mount -t tmpfs devshm /dev/shm
 
 if [ "${FINNIX_XEN}" = "yes" ] || [ "${FINNIX_UML}" = "yes" ]; then
   # TLS doesn't play well with UML/Xen
@@ -102,7 +102,7 @@ if [ -n "$CONSOLES" ]; then
 fi
 
 # Get rid of the initrd
-umount /initrd 2>/dev/null
+_f12 umount /initrd
 # Clear utmp/wtmp
 :> /var/run/utmp
 :> /var/run/wtmp
@@ -111,7 +111,7 @@ umount /initrd 2>/dev/null
 if [ ! -h /etc/mtab ]; then
   cat /proc/mounts | egrep -v '^rootfs / ' >/etc/mtab
   if ! checkbootparam "nohwsetup"; then
-    invoke-rc.d udev-mtab start >/dev/null 2>/dev/null
+    _f12 invoke-rc.d udev-mtab start
   fi
 fi
 
@@ -183,7 +183,7 @@ KEYTABLE="us"
 TZ="UTC"
 
 # Allow keyboard override by boot commandline
-KKEYBOARD="$(getbootparam keyboard 2>/dev/null)"
+KKEYBOARD="$(getbootparam keyboard)"
 [ -n "$KKEYBOARD" ] && KEYTABLE="$KKEYBOARD"
 
 # Set hostname
@@ -191,16 +191,16 @@ hostname `cat /etc/hostname`
 
 # Set clock
 #UTC="-u "
-KTZ="$(getbootparam tz 2>/dev/null)"
+KTZ="$(getbootparam tz)"
 [ -f "/usr/share/zoneinfo/$KTZ" ] && TZ="$KTZ"
 # hwclock uses the TZ variable
 export TZ
 rm -f /etc/adjtime
 if checkbootparam "nohwclock"; then
   if [ "${FINNIX_XENU}" = "no" ] && [ "${FINNIX_UML}" = "no" ]; then
-    #modprobe rtc >/dev/null 2>/dev/null
-    #modprobe genrtc >/dev/null 2>/dev/null
-    hwclock $UTC -s >/dev/null 2>/dev/null
+    #_f12 modprobe rtc
+    #_f12 modprobe genrtc
+    _f12 hwclock $UTC -s
   fi
 fi
 rm -f /etc/localtime
@@ -218,12 +218,12 @@ ifconfig lo 127.0.0.1 up
 
 # Generate a small amount of entropy with twuewand.
 # This will take approximately 0.25s.
-SEEDBYTES="$(getbootparam seedbytes 2>/dev/null)"
+SEEDBYTES="$(getbootparam seedbytes)"
 if [ "$SEEDBYTES" = "pool" ]; then
   SEEDBYTES=$(($(cat /proc/sys/kernel/random/poolsize)/8))
 fi
 [ -z "$SEEDBYTES" ] && SEEDBYTES=8
-if [ $SEEDBYTES -gt 0 ] && which twuewand >/dev/null 2>/dev/null; then
+if [ $SEEDBYTES -gt 0 ] && _f12 which twuewand; then
   if [ $SEEDBYTES -gt 32 ]; then
     echo "${CRE}${BLUEITEM} Generating $SEEDBYTES random seed bytes..."
     TWOPTS=""
@@ -231,7 +231,7 @@ if [ $SEEDBYTES -gt 0 ] && which twuewand >/dev/null 2>/dev/null; then
     echo -n "${CRE}${BLUEITEM} Generating $SEEDBYTES random seed bytes... "
     TWOPTS="-q"
   fi
-  if which rndaddentropy >/dev/null 2>/dev/null; then
+  if _f12 which rndaddentropy; then
     # Actually inject entropy
     twuewand $TWOPTS "$SEEDBYTES" | rndaddentropy
   else
@@ -253,9 +253,9 @@ if [ -d /proc/acpi ]; then
       basename="${a##*/}"
       basename="${basename%%.*}"
       case "$basename" in *_acpi)
-        egrep -qi "${basename%%_acpi}" /proc/acpi/dsdt 2>/dev/null || continue ;;
+        _f12 egrep -i "${basename%%_acpi}" /proc/acpi/dsdt || continue ;;
       esac
-      modprobe $basename >/dev/null 2>&1 && echo -n "${CRE}${BLUEITEM} ACPI BIOS found, loading: ${WHITE}$basename${NORMAL}" && found="yes"
+      _f12 modprobe $basename && echo -n "${CRE}${BLUEITEM} ACPI BIOS found, loading: ${WHITE}$basename${NORMAL}" && found="yes"
     done
     if [ -n "$found" ]; then
       echo -n "${CRE}${BLUEITEM} ACPI BIOS found, modules loaded${CRE}"
@@ -268,24 +268,24 @@ else
   if checkbootparam "noapm"; then
     echo -n
   else
-    modprobe apm power_off=1 2>/dev/null >/dev/null && test -x /etc/init.d/apmd && invoke-rc.d apmd start 2>/dev/null >/dev/null && echo -n "${BLUEITEM} APM BIOS found, ${WHITE}apmd${NORMAL} started${CRE}"
+    _f12 modprobe apm power_off=1 && test -x /etc/init.d/apmd && _f12 invoke-rc.d apmd start && echo -n "${BLUEITEM} APM BIOS found, ${WHITE}apmd${NORMAL} started${CRE}"
   fi
 fi
 
 # Second: Search & configure supported hardware
 if checkbootparam "nohwsetup"; then
   echo "${BLUEITEM} Loading hardware profile"
-  invoke-rc.d modutils start >/dev/null 2>/dev/null
+  _f12 invoke-rc.d modutils start
 else
-  [ -e /sys/bus/usb ] && mount -t usbfs none /proc/bus/usb >/dev/null 2>/dev/null
+  [ -e /sys/bus/usb ] && _f12 mount -t usbfs none /proc/bus/usb
 fi
 
 # BEGIN UML SKIP
 if [ "${FINNIX_XENU}" = "no" ] && [ "${FINNIX_UML}" = "no" ]; then
 
 # Set default keyboard before interactive setup
-[ -n "$KEYTABLE" ] && loadkeys -q $KEYTABLE >/dev/null 2>/dev/null
-[ -n "$CONSOLEFONT" ] && consolechars -f $CONSOLEFONT >/dev/null 2>/dev/null || consolechars -d >/dev/null 2>/dev/null
+[ -n "$KEYTABLE" ] && _f12 loadkeys -q $KEYTABLE
+[ -n "$CONSOLEFONT" ] && _f12 consolechars -f $CONSOLEFONT || _f12 consolechars -d
 
 # END UML SKIP
 fi
@@ -305,9 +305,9 @@ else
   raidfound=""
   newraidfound=""
   mdadm --examine --scan | sed "s'/dev/md/'/dev/md'g" >/etc/mdadm/mdadm.conf
-  if grep -q ^ARRAY /etc/mdadm/mdadm.conf 2>/dev/null; then
-    for i in /lib/modules/`uname -r`/kernel/drivers/md/raid*.ko; do modprobe $(basename $i .ko) 2>/dev/null; done
-    mdadm --assemble --scan --auto=yes 2>/dev/null
+  if _f12 grep ^ARRAY /etc/mdadm/mdadm.conf; then
+    for i in /lib/modules/`uname -r`/kernel/drivers/md/raid*.ko; do _f12 modprobe $(basename $i .ko); done
+    _f12 mdadm --assemble --scan --auto=yes
     for i in /sys/block/md*; do
       raidfound="$raidfound $i"
       if ! stringinstring " $i " "randomstring $BLOCKLOOP_RAID randomstring"; then
@@ -332,8 +332,8 @@ else
   lvmpartitions=""
   echo -n "${BLUEITEM} Scanning for LVM volumes: "
   if [ -x /etc/init.d/lvm2 ]; then
-    invoke-rc.d lvm2 start 2>/dev/null >/dev/null
-    lvmpartitions="$(lvdisplay -c 2>/dev/null | awk -F: '{print $1}' | sed 's/\/dev\///g' | sed 's/\//-/g')"
+    _f12 invoke-rc.d lvm2 start
+    lvmpartitions="$(_f2 lvdisplay -c | awk -F: '{print $1}' | sed 's/\/dev\///g' | sed 's/\//-/g')"
     if ! [ "$lvmpartitions" = "$BLOCKLOOP_LVM" ]; then
       for p in $lvmpartitions; do
         if ! stringinstring " $p " "randomstring $BLOCKLOOP_LVM randomstring"; then
@@ -356,8 +356,8 @@ if checkbootparam "nocrypt" || [ "$FINNIX_FORENSIC" = "yes" ]; then
   echo -n
 else
   lukspartitions=""
-  if which luksformat >/dev/null 2>/dev/null; then
-  for i in `find /sys/block -follow -maxdepth 3 -name dev 2>/dev/null`; do
+  if _f12 which luksformat; then
+  for i in `_f2 find /sys/block -follow -maxdepth 3 -name dev`; do
     [ -e "$i" ] || continue
     DEVNAME="$(basename $(dirname $i) | sed 's/\!/\//g')"
     DEVMAJORMINOR="$(cat $i)"
@@ -378,13 +378,13 @@ EOT
         ;;
     esac
     echo -n "${CRE}${BLUEITEM} Scanning for LUKS volumes: ${WHITE}${DEVNAME}${NORMAL}"
-    if cryptsetup isLuks /dev/${DEVNAME} 2>/dev/null; then
+    if _f12 cryptsetup isLuks /dev/${DEVNAME}; then
       lukspartitions="$lukspartitions $DEVNAME"
       if ! stringinstring " $DEVNAME " "randomstring $BLOCKLOOP_LUKS randomstring"; then
-        modprobe dm-crypt 2>/dev/null >/dev/null
-        modprobe aes 2>/dev/null >/dev/null
-        modprobe sha1 2>/dev/null >/dev/null
-        modprobe sha256 2>/dev/null >/dev/null
+        _f12 modprobe dm-crypt
+        _f12 modprobe aes
+        _f12 modprobe sha1
+        _f12 modprobe sha256
         CRYPTNAME="crypt-$(basename ${DEVNAME})"
         echo "${CRE}${BLUEITEM} Please provide password for ${WHITE}${DEVNAME}${NORMAL}"
         if cryptsetup -t 30 luksOpen /dev/${DEVNAME} ${CRYPTNAME}; then
@@ -410,8 +410,8 @@ else
   echo -n "${BLUEITEM} Scanning for partitions and creating ${WHITE}/etc/fstab${NORMAL}... "
   # Next line shouldn't be needed if udev finnix.rules hasn't been loaded yet (see below).
   # Still, it doesn't hurt to leave it in.
-  while [ -f "/var/run/rebuildfstab.pid" -a -e "/proc/$(cat /var/run/rebuildfstab.pid 2>/dev/null)" ]; do sleep 1; done
-  rebuildfstab >/dev/null 2>&1
+  while [ -f "/var/run/rebuildfstab.pid" -a -e "/proc/$(_f2 cat /var/run/rebuildfstab.pid)" ]; do sleep 1; done
+  _f12 rebuildfstab
   # Now it's safe to load finnix.rules.
   ln -sf ../finnix.rules /etc/udev/rules.d/z90_finnix.rules
   if ! checkbootparam "nohwsetup"; then
@@ -439,7 +439,7 @@ EOT
   echo -n "${CRE}${BLUEITEM} Activating swap: "
   for p in $swappartitions; do
     echo -n "${WHITE}${p##*/dev/}${NORMAL} "
-    swapon $p 2>/dev/null
+    _f12 swapon $p
   done
   if [ -z "$swappartitions" ]; then
     echo -n "done${CRE}"
@@ -452,26 +452,26 @@ fi
 if [ "$FINNIX_NFSBOOT" = "yes" ] || [ "$FINNIX_FORENSIC" = "yes" ]; then
   echo -n
 else
-  IP_INT="$(getbootparam ip_int 2>/dev/null)"
+  IP_INT="$(getbootparam ip_int)"
   arr=$(echo "$IP_INT" | tr "," "\n")
   if [ "$arr" = "all" ] || [ -z "$arr" ]; then
-    arr="$(awk -F: '/eth.:|tr.:/{print $1}' /proc/net/dev 2>/dev/null)"
+    arr="$(_f2 awk -F: '/eth.:|tr.:/{print $1}' /proc/net/dev)"
   fi
   for i in $arr; do
-    IP_V4DHCP="$(getbootparam ip_${i}_v4dhcp 2>/dev/null)"
-    IP_V4ADDR="$(getbootparam ip_${i}_v4addr 2>/dev/null)"
-    IP_V4NETMASK="$(getbootparam ip_${i}_v4netmask 2>/dev/null)"
-    IP_V4GATEWAY="$(getbootparam ip_v4gateway 2>/dev/null)"
-    IP_V6ADDR="$(getbootparam ip_${i}_v6addr 2>/dev/null)"
-    IP_V6GATEWAY="$(getbootparam ip_v6gateway 2>/dev/null)"
-    IP_DNS="$(getbootparam ip_dns 2>/dev/null)"
-    IP_DOMAIN="$(getbootparam ip_domain 2>/dev/null)"
-    IP_SEARCH="$(getbootparam ip_search 2>/dev/null)"
+    IP_V4DHCP="$(getbootparam ip_${i}_v4dhcp)"
+    IP_V4ADDR="$(getbootparam ip_${i}_v4addr)"
+    IP_V4NETMASK="$(getbootparam ip_${i}_v4netmask)"
+    IP_V4GATEWAY="$(getbootparam ip_v4gateway)"
+    IP_V6ADDR="$(getbootparam ip_${i}_v6addr)"
+    IP_V6GATEWAY="$(getbootparam ip_v6gateway)"
+    IP_DNS="$(getbootparam ip_dns)"
+    IP_DOMAIN="$(getbootparam ip_domain)"
+    IP_SEARCH="$(getbootparam ip_search)"
     if [ "$IP_V4DHCP" = "yes" ] || [ -z "${IP_V4ADDR}${IP_V6ADDR}" ]; then
       if ! checkbootparam "nodhcp"; then
         echo -n "${BLUEITEM} Starting background DHCP request: "
         echo -n "${WHITE}$DEVICE${NORMAL} "
-        #ifconfig $DEVICE up >/dev/null 2>&1
+        #_f12 ifconfig $DEVICE up
         dhclient -v "${i}" >>/var/log/dhclient."${i}".log 2>&1 &
         echo -n "done${CRE}"
       fi

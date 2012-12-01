@@ -18,8 +18,6 @@ finnix:$ROOTPASS
 EOM
       fi
       invoke-rc.d ssh start
-      #ln -sf ../init.d/ssh /etc/rc0.d/K20ssh
-      #ln -sf ../init.d/ssh /etc/rc6.d/K20ssh
       if [ -n "${ROOTPASS}" ]; then
         echo "${BLUEITEM}   New root/finnix password: ${WHITE}${ROOTPASS}${NORMAL}"
       fi
@@ -29,8 +27,8 @@ EOM
     fi
     ;;
   stop)
-    if invoke-rc.d ssh status 2>/dev/null >/dev/null; then
-      /etc/init.d/ssh stop
+    if _f12 invoke-rc.d ssh status; then
+      invoke-rc.d ssh stop
     fi
     ;;
   *)

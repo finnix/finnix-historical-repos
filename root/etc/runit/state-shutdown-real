@@ -1,61 +1,15 @@
-#!/busybin/ash
+#!/bin/sh
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 . /lib/finnix/finnix-rc-helper.sh
 
-spinner() {
-  # This requires a high-precision sleep(1) command.
+waitdot() {
   local RUNFOR="$1"
-  local SPINAT="/"
-  if [ -n "${BASH}" ]; then
-    RUNFOR=$(($RUNFOR*16))
-  else
-    RUNFOR=$(($RUNFOR\*16))
-  fi
-  echo -n " "
   while [ ${RUNFOR} -gt 0 ]; do
-    echo -n "${ESC}[1D${SPINAT}"
-    case "${SPINAT}" in
-      "/") SPINAT="-" ;;
-      "-") SPINAT="\\" ;;
-      "\\") SPINAT="|" ;;
-      "|") SPINAT="/" ;;
-    esac
-    sleep .0625
+    echo -n "."
+    sleep 1
     RUNFOR=$(($RUNFOR-1))
-  done
-  echo -n "${ESC}[1D ${ESC}[1D"
-}
-
-copy_exec() {
-  # Usage: copy_exec /bin/ls /foo /sbin /lib
-  # Copies /bin/ls to /foo/sbin/ls, then copies
-  # all needed libraries to /foo/lib
-
-  # Originally from Debian's mkinitramfs, heavily modified
-
-  mkdir -p ${2}/${3}
-  cp -pRL ${1} ${2}/${3}/`basename ${1}`
-
-  # Copy the dependant libraries
-  for x in $(ldd ${1} 2>/dev/null | sed -e '
-    /\//!d;
-    /linux-gate/d;
-    /=>/ {s/.*=>[[:blank:]]*\([^[:blank:]]*\).*/\1/};
-    s/[[:blank:]]*\([^[:blank:]]*\) (.*)/\1/' 2>/dev/null); do
-
-    # Try to use non-optimised libraries where possible.
-    # We assume that all HWCAP libraries will be in tls.
-    nonoptlib=$(echo ${x} | sed -e 's#/lib/tls.*/\(lib.*\)#/lib/\1#')
-
-    if [ -e ${nonoptlib} ]; then
-      x=${nonoptlib}
-    fi
-
-    if [ ! -e ${2}/${4}/`basename ${x}` ]; then
-      copy_exec ${x} ${2} ${4} ${4}
-    fi
   done
 }
 
@@ -66,7 +20,7 @@ rundebugshell() {
   # Allow signals
   [ "${FINNIX_DEBUG}" = "no" ] && trap 1 2 3 15
   [ "${FINNIX_DEBUG}" = "no" ] && echo "6" > /proc/sys/kernel/printk
-  `which bash >/dev/null 2>/dev/null` && bash || ash
+  _f12 which bash && bash || sh
   # Don't allow interrupt signals
   [ "${FINNIX_DEBUG}" = "no" ] && echo "0" > /proc/sys/kernel/printk
   [ "${FINNIX_DEBUG}" = "no" ] && trap "" 1 2 3 15
@@ -105,8 +59,8 @@ cd /
 exec >/dev/console 2>&1 </dev/console
 
 # Stop runit services
-SVWAIT=2 sv force-stop /lib/finnix/service/running/* 2>/dev/null >/dev/null
-sv exit /lib/finnix/service/running/* 2>/dev/null >/dev/null
+SVWAIT=2 _f12 sv force-stop /lib/finnix/service/running/*
+_f12 sv exit /lib/finnix/service/running/*
 
 # Execute "normal" rc-level shutdown scripts, if any
 /etc/finnix/init.d/rc $RUNLEVEL
@@ -117,75 +71,29 @@ sv exit /lib/finnix/service/running/* 2>/dev/null >/dev/null
 FOUND_CDROM="$(awk '$2 == "/cdrom" { print $1 }' </proc/mounts)"
 if [ -n "$FOUND_CDROM" ]; then
   if (
-    eval `/lib/udev/cdrom_id $FOUND_CDROM 2>/dev/null`
+    eval `_f2 /lib/udev/cdrom_id $FOUND_CDROM`
     [ "$ID_CDROM" = "1" ] || exit 1
   ); then
-    /lib/udev/cdrom_id --unlock-media $FOUND_CDROM >/dev/null 2>/dev/null
+    _f12 /lib/udev/cdrom_id --unlock-media $FOUND_CDROM
   fi
 fi
 
-# We may kill our network connection here before unmounting NFS. Bad luck.
-# poweroff pcmcia devices
-#if pidof cardmgr >/dev/null 2>&1; then
-#  echo -n "${BLUEITEM} Shutting down PCMCIA devices... "
-#  cardctl eject >/dev/null 2>&1 && sleep 3
-#  killall cardmgr && sleep 3
-#  echo " done"
-#fi
-
 # Now kill them all
-echo -n "${BLUEITEM} Stopping remaining processes: ${WHITE}TERM${NORMAL} "
+echo -n "${BLUEITEM} Stopping remaining processes: ${WHITE}TERM${NORMAL}"
 killall5 -15
-spinner 4
+waitdot 4
 
-echo -n "${WHITE}KILL${NORMAL} "
+echo -n " ${WHITE}KILL${NORMAL}"
 killall5 -9
-spinner 4
+waitdot 4
 echo -n "done${CRE}"
 
-# Unmount network filesystems first before shutting down network
-NFSBUSY=""
-NETMOUNTS="$(gawk '{if($1~/:/){print $2}}' /proc/mounts 2>/dev/null)"
-if [ -n "$NETMOUNTS" ]; then
-  echo -n "${BLUEITEM} Unmounting network filesystems... "
-  # Preload programs we need later, in case we lose the network too early
-  swapoff --help >/dev/null 2>&1
-  losetup --help >/dev/null 2>&1
-  mount --help >/dev/null 2>&1
-  umount --help >/dev/null 2>&1
-  gawk --help >/dev/null 2>&1
-  tac --help >/dev/null 2>&1
-  # Umount NFS (if not busy)
-  umount -t nfs,smbfs -arv 2>/dev/null
-  # Warning: semi-broken, umount will return 0 if it remounted nfs ro
-  [ "$?" != "0" ] && NFSBUSY="yes"
-  echo -n "done${CRE}"
-fi
-
-# Shutdown network (if no active NFS mounts)
-#if [ -z "$NFSBUSY" ]; then
-#  NETDEVICES="$(gawk -F: '/eth.:/{print $1}' /proc/net/dev 2>/dev/null)"
-#  if [ -n "$NETDEVICES" ]; then
-#    DHCLIENTPIDS="$(pidof dhclient)"
-#    if [ -n "${DHCLIENTPIDS}" ]; then
-#      kill ${DHCLIENTPIDS} >/dev/null 2>&1
-#      sleep 2
-#    fi
-#    echo -n "${BLUEITEM} Shutting down network devices..."
-#    for n in $NETDEVICES; do
-#      echo -n " ${WHITE}$n${NORMAL} "
-#      ifconfig $n down
-#    done
-#    echo ""
-#  fi
-#fi
-
 # Umount devpts early (otherwise UNIONFS may stay busy)
-umount -t devpts -a 2>/dev/null
+_f12 umount -t devpts -a
 
 # turn off swap, then unmount file systems.
 echo -n "${BLUEITEM} Turning off swap... "
-swapoff -a >/dev/null 2>&1
+_f12 swapoff -a
 echo -n "done${CRE}"
 
 if [ "${FINNIX_NOEJECT}" = "no" ]; then
@@ -197,15 +105,7 @@ fi
 # Now umount everything but root
 echo -n "${BLUEITEM} Unmounting remaining file systems... "
 
-if [ -x /busybin/ash ]; then
-  #for i in /sbin/halt /sbin/rmmod /bin/umount /bin/mount /bin/sync; do
-  for i in /bin/umount /bin/mount; do
-    # copy_exec requires sed and stuff, fyi
-    copy_exec /FINNIX/${i} / /ftmpbin /ftmplib
-  done
-  #ln -s halt /ftmpbin/reboot
-
-
+if [ -x /busybin/sh ]; then
   # BusyBox can't supply everything, so let's leave some utils on the ramdisk
   PATH=/busybin
   hash -r
@@ -215,44 +115,27 @@ if [ -x /busybin/ash ]; then
     # We'll need a few dev entries...
     rm /dev
     mkdir -p /dev
-    cp \
-      /FINNIX/dev/console \
-      /FINNIX/dev/null \
-      /FINNIX/dev/loop* \
-      /dev/
-    #  /FINNIX/dev/initctl \
-    # init need to re-read /dev/initctl
-    #kill -USR1 1
-    # Clean input/output (again -- IMPORTANT)
+    mount -n -t devtmpfs none /dev
     exec >/dev/console 2>&1 </dev/console
   fi
 
   # Get rid of unionfs and its written files
-  # We'll need the space shortly
-  umount /UNIONFS >/dev/null 2>&1
-  rm -rf /tmp/UNIONFS 2>/dev/null
+  _f12 umount -drfl /UNIONFS
+  _f12 rm -rf /tmp/UNIONFS
 
-  # Now to copy those files
-  rm /lib /bin
-  mv /ftmpbin /bin
-  mv /ftmplib /lib
-
-  # At this point, the full CD is inconsistent and unreliable.
-  # Only trust things in /bin, /busybin, /lib and /dev.
-  # (and /proc and /sys of course)
-  PATH=/bin:/busybin
-  hash -r
+  # Get rid of the compressed root filesystem
+  _f12 umount -drfl /FINNIX
 fi
 
 # Remove remaining unused modules (Kernel 2.4)
-rmmod -a >/dev/null 2>&1
+_f12 rmmod -a
 # Now we should be able to umount the rest.
-umount -t notmpfs,nosysfs,noproc,nousbfs -adrvf >/dev/null 2>&1
-mount -n -o remount,ro / >/dev/null 2>/dev/null
+for mount in $(awk '$3 !~ "^(tmpfs|sysfs|proc)$" && $2 != "/" { print $2 }' /proc/mounts); do
+  _f12 umount -drfl "$mount"
+done
+_f12 mount -o remount,ro /
 
 echo -n "done${CRE}"
-
-# In case autoeject somehow failed, manually try to eject
 
 # Sync the buffers and disable CAD init handling in preparation for reboot countdown
 # (Yes, I'm old school and still sync twice)
@@ -264,7 +147,6 @@ echo "${CRE}${BLUEITEM} It is now safe to shut down/reboot."
 READCMD="wait"
 for i in 5 4 3 2 1; do
   echo -n "${CRE}${BLUEITEM} $message in $i (or press ENTER to $message2 immediately)..."
-  #sleep 1
   # Give the user an opportunity to press Enter to immediately shut
   # down/reboot, or "d" to get to the debug shell.
   read -t 2 READCMD

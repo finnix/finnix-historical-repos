@@ -13,7 +13,7 @@ EOM
 
 case "$1" in
   start)
-    STATINFO="$(stat -t -f /FINNIX 2>/dev/null)"
+    STATINFO="$(_f2 stat -t -f /FINNIX)"
     if [ -n "$STATINFO" ]; then
       while read SUNDEF1 SUNDEF2 SUNDEF3 SUNDEF4 SBLOCKSIZE SUNDEF5 SBLOCKS SUNDEF6; do
         CDSIZE="$(($SBLOCKSIZE * $SBLOCKS / 1048576))M"

@@ -62,4 +62,22 @@ checkbootparam(){
   return "$?"
 }
 
+# Filter stdout/stderr, unless debug mode is on
+_f12() {
+  if [ "${FINNIX_DEBUG}" = "yes" ]; then
+    "$@"
+  else
+    "$@" >/dev/null 2>/dev/null
+  fi
+}
+
+# Filter stderr, unless debug mode is on
+_f2() {
+  if [ "${FINNIX_DEBUG}" = "yes" ]; then
+    "$@" 
+  else
+    "$@" 2>/dev/null
+  fi
+}
+
 ### EOF utility functions

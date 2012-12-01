@@ -4,4 +4,4 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 cp /etc/runit/state-shutdown-real /busybin/
 cd /
-exec /busybin/ash /busybin/state-shutdown-real "$@"
+exec /busybin/sh /busybin/state-shutdown-real "$@"
