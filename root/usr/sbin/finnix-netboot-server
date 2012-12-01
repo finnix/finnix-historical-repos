@@ -142,11 +142,21 @@ setup_initrd() {
         NETMODS="$NETMODS$(basename $NETMODF .ko)"
       done
 
-      for MODFILE in $(findmods "$MODKERNEL" "/" loop unionfs aufs squashfs nfs ehci-hcd ohci-hcd uhci-hcd usbhid zram $NETMODS); do
+      for MODFILE in $(findmods "$MODKERNEL" "/" loop unionfs aufs squashfs nfs nfsv2 nfsv3 nfsv4 ehci-hcd ohci-hcd uhci-hcd usbhid zram $NETMODS); do
         MODFILEDIR="$(dirname $MODFILE)"
         [ -d "${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/$MODFILEDIR" ] || mkdir -p "${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/${MODFILEDIR}"
         cp -a "/lib/modules/${MODKERNEL}/${MODFILE}" "${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/${MODFILEDIR}/"
       done
+
+      if [ -e "/lib/modules/${MODKERNEL}/modules.order" ]; then
+        while read mod; do
+          [ -e "${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/$mod" ] && echo "$mod"
+        done <"/lib/modules/${MODKERNEL}/modules.order" >"${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/modules.order"
+      fi
+
+      if [ -e "/lib/modules/${MODKERNEL}/modules.builtin" ]; then
+        cp "/lib/modules/${MODKERNEL}/modules.builtin" "${INITRD_NET_DIR}/lib/modules/${MODKERNEL}/modules.builtin"
+      fi
 
       depmod -b ${INITRD_NET_DIR} ${MODKERNEL}
     done

@@ -1,3 +1,11 @@
+finnix-netboot (107~8) unstable; urgency=low
+
+  * Add new nfs kernel modules (LP: #1085356)
+  * Add special handling for modules.order and modules.builtin
+    (LP: #1085389)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 01 Dec 2012 12:58:30 +0000
+
 finnix-netboot (107~7) unstable; urgency=low
 
   * Fix Vcs-* URLs
