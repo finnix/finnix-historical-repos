@@ -6,11 +6,29 @@
 
 ### BEGIN FUNCTIONS ####
 
+# Filter stdout/stderr, unless debug mode is on
+_f12() {
+  if [ "${FINNIX_DEBUG}" = "yes" ]; then
+    "$@"
+  else
+    "$@" >/dev/null 2>/dev/null
+  fi
+}
+
+# Filter stderr, unless debug mode is on
+_f2() {
+  if [ "${FINNIX_DEBUG}" = "yes" ]; then
+    "$@"
+  else
+    "$@" 2>/dev/null
+  fi
+}
+
 # Loop through discovered block devices, look for a
 # Finnix signature
 mountblindly() {
   DEVICES="$USERROOT"
-  for i in $(find /sys/block -follow -maxdepth 3 -name dev 2>/dev/null); do
+  for i in $(_f2 find /sys/block -follow -maxdepth 3 -name dev); do
     dev="$(basename $(dirname $i) | sed 's/!/\//g')"
     case "$dev" in
       fd*) continue;;
@@ -49,10 +67,10 @@ finnix_testmount() {
     testmount_cdbase="${FINNIX_CDBASE}"
   fi
   [ -d "${testmount_cdbase}" ] || mkdir -p "${testmount_cdbase}"
-  if test -b $dev && mount -n -o ro $dev ${testmount_cdbase} >/dev/null 2>&1; then
+  if test -b $dev && _f12 mount -n -o ro $dev ${testmount_cdbase}; then
     if [ -n "${FINNIX_FINDISO}" ]; then
       if [ -f "${testmount_cdbase}${FINNIX_FINDISO}" ]; then
-        if ! mount -o ro,loop "${testmount_cdbase}${FINNIX_FINDISO}" "${FINNIX_CDBASE}" >/dev/null 2>&1; then
+        if ! _f12 mount -o ro,loop "${testmount_cdbase}${FINNIX_FINDISO}" "${FINNIX_CDBASE}"; then
           umount ${testmount_cdbase}
           return 1
         fi
@@ -122,7 +140,7 @@ rundebugshell() {
   # Allow signals
   [ "${FINNIX_DEBUG}" = "no" ] && trap 1 2 3 15
   [ "${FINNIX_DEBUG}" = "no" ] && echo "6" > /proc/sys/kernel/printk
-   `which bash >/dev/null 2>/dev/null` && bash || ash
+  _f12 which bash && bash || ash
   # Don't allow interrupt signals
   [ "${FINNIX_DEBUG}" = "no" ] && echo "0" > /proc/sys/kernel/printk
   [ "${FINNIX_DEBUG}" = "no" ] && trap "" 1 2 3 15
@@ -150,13 +168,13 @@ export PATH
 umask 022
 
 # Mount /proc
-mount -n -t proc none /proc >/dev/null 2>&1
+_f12 mount -n -t proc none /proc
 
 # Mount /sys
-mount -n -t sysfs none /sys >/dev/null 2>&1
+_f12 mount -n -t sysfs none /sys
 
 # Mount /dev
-mount -n -t devtmpfs none /dev >/dev/null 2>&1
+_f12 mount -n -t devtmpfs none /dev
 
 # Get arch
 ARCH="$(uname -m)"
@@ -234,19 +252,19 @@ FINNIX_XENU_OLD="no"
 FINNIX_XENU_NEW="no"
 FINNIX_UML="no"
 # We'll need to differentiate between UML and Xen (xenU)
-grep "User Mode Linux" /proc/cpuinfo 2>&1 >/dev/null && FINNIX_UML="yes"
+_f12 grep "User Mode Linux" /proc/cpuinfo && FINNIX_UML="yes"
 if [ -d /proc/xen ]; then
   FINNIX_XEN="yes"
   MOUNTED_XENFS="no"
-  modprobe xenfs >/dev/null 2>/dev/null
+  _f12 modprobe xenfs
   if grep -q xenfs /proc/filesystems; then
-    mount -t xenfs xenfs /proc/xen >/dev/null 2>/dev/null && MOUNTED_XENFS="yes"
+    _f12 mount -t xenfs xenfs /proc/xen && MOUNTED_XENFS="yes"
   fi
   if [ -e /proc/xen/capabilities ]; then
     grep -q "control_d" /proc/xen/capabilities || FINNIX_XENU="yes"
   fi
   [ "${FINNIX_XENU}" = "yes" ] && FINNIX_XENU_NEW="yes"
-  [ "$MOUNTED_XENFS" = "yes" ] && umount /proc/xen >/dev/null 2>/dev/null
+  [ "$MOUNTED_XENFS" = "yes" ] && _f12 umount /proc/xen
 fi
 
 # Line clearing screws up readability in debug mode
@@ -284,7 +302,7 @@ EOM
 if [ -n "${USBHID}" ]; then
   for modname in ohci-hcd uhci-hcd ehci-hcd usbhid; do
     echo -n "${CRE}${BLUEITEM} Loading emergency USB HID module: ${WHITE}$modname${NORMAL}"
-    modprobe $modname >/dev/null 2>&1
+    _f12 modprobe $modname
   done
   echo -n "${CRE}"
 fi
@@ -294,7 +312,7 @@ fi
 # Normally these are built into the Finnix kernel,
 # but it doesn't hurt to try anyway.
 for i in isofs nls_cp437 nls_utf8 vfat ext2 loop squashfs unionfs aufs; do
-  modprobe $i >/dev/null 2>&1
+  _f12 modprobe $i
 done
 
 # tmpfs with variable ramdisk size.
@@ -317,7 +335,7 @@ else
   fi
 fi
 if [ "$USE_ZRAM" = "yes" ]; then
-  if modprobe zram 2>/dev/null; then
+  if _f12 modprobe zram; then
     if [ $FOUNDMEM -lt 131072 ]; then
       echo "${BLUEITEM} Low memory system detected, enabling zram RAM compression"
     else
@@ -325,9 +343,9 @@ if [ "$USE_ZRAM" = "yes" ]; then
     fi
     echo $(expr $FOUNDMEM \* 1024) >/sys/block/zram0/disksize
     # Unneeded with devtmpfs
-    #mknod /dev/zram0 b $(sed 's/:/ /' /sys/block/zram0/dev) 2>/dev/null >/dev/null
-    mkswap /dev/zram0 2>/dev/null >/dev/null
-    swapon -p 100 /dev/zram0 2>/dev/null >/dev/null
+    #mknod /dev/zram0 b $(sed 's/:/ /' /sys/block/zram0/dev)
+    _f12 mkswap /dev/zram0
+    _f12 swapon -p 100 /dev/zram0
   fi
 fi
 
@@ -371,13 +389,13 @@ if [ -z "${NOBOOTHWSETUP}" ]; then
   echo -n "${CRE}${BLUEITEM} Loading probed module: "
 
   MODALIASES="/lib/modules/$(uname -r)/modules.alias"
-  LOADMODS="$(sysmodules <$MODALIASES 2>/dev/null) ide-generic generic"
+  LOADMODS="$(sysmodules <$MODALIASES) ide-generic generic"
   if [ "${FINNIX_XENU}" = "yes" ]; then
     LOADMODS="$LOADMODS xen-blkfront xen-netfront"
   fi
   for modname in $LOADMODS; do
     echo -n "${CRE}${BLUEITEM} Loading probed module: ${WHITE}$modname${NORMAL}"
-    modprobe $modname >/dev/null 2>&1
+    _f12 modprobe $modname
   done
 
   MOREMODS=""
@@ -388,7 +406,7 @@ if [ -z "${NOBOOTHWSETUP}" ]; then
 
   for modname in ${MOREMODS}; do
     echo -n "${CRE}${BLUEITEM} Loading probed module: ${WHITE}$modname${NORMAL}"
-    modprobe $modname >/dev/null 2>&1
+    _f12 modprobe $modname
   done
 
   echo -n "${CRE}"
@@ -428,31 +446,31 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
   if [ "${ARCH}" = "ppc" -o "${ARCH}" = "ppc64" -o "${ARCH}" = "powerpc" ]; then
     # For some reason, libpci doesn't report/detect sungem devices correctly until the module is loaded
     echo -n "${CRE}${BLUEITEM} Loading probed module: ${WHITE}sungem${NORMAL}"
-    modprobe sungem >/dev/null 2>/dev/null
+    _f12 modprobe sungem
     echo -n "${CRE}"
   fi
 
   ifconfig lo 127.0.0.1 up
-  IP_INT="$(getbootparam ip_int 2>/dev/null)"
+  IP_INT="$(getbootparam ip_int)"
   arr=$(echo "$IP_INT" | tr "," "\n")
   if [ "$arr" = "all" ] || [ -z "$arr" ]; then
-    arr="$(awk -F: '/eth.:|tr.:/{print $1}' /proc/net/dev 2>/dev/null)"
+    arr="$(awk -F: '/eth.:|tr.:/{print $1}' /proc/net/dev)"
   fi
   for i in $arr; do
     ifconfig "${i}" up
-    IP_V4DHCP="$(getbootparam ip_${i}_v4dhcp 2>/dev/null)"
-    IP_V4ADDR="$(getbootparam ip_${i}_v4addr 2>/dev/null)"
-    IP_V4NETMASK="$(getbootparam ip_${i}_v4netmask 2>/dev/null)"
-    IP_V4GATEWAY="$(getbootparam ip_v4gateway 2>/dev/null)"
-    IP_V6ADDR="$(getbootparam ip_${i}_v6addr 2>/dev/null)"
-    IP_V6GATEWAY="$(getbootparam ip_v6gateway 2>/dev/null)"
-    IP_DNS="$(getbootparam ip_dns 2>/dev/null)"
-    IP_DOMAIN="$(getbootparam ip_domain 2>/dev/null)"
-    IP_SEARCH="$(getbootparam ip_search 2>/dev/null)"
+    IP_V4DHCP="$(getbootparam ip_${i}_v4dhcp)"
+    IP_V4ADDR="$(getbootparam ip_${i}_v4addr)"
+    IP_V4NETMASK="$(getbootparam ip_${i}_v4netmask)"
+    IP_V4GATEWAY="$(getbootparam ip_v4gateway)"
+    IP_V6ADDR="$(getbootparam ip_${i}_v6addr)"
+    IP_V6GATEWAY="$(getbootparam ip_v6gateway)"
+    IP_DNS="$(getbootparam ip_dns)"
+    IP_DOMAIN="$(getbootparam ip_domain)"
+    IP_SEARCH="$(getbootparam ip_search)"
     if [ "$IP_V4DHCP" = "yes" ] || [ -z "${IP_V4ADDR}${IP_V6ADDR}" ]; then
       if ! checkbootparam "nodhcp"; then
         echo -n "${CRE}${BLUEITEM} Attempting DHCP on ${WHITE}${i}${NORMAL}... "
-        if udhcpc -q -n -s /bin/udhcpc.script -i $i 2>/dev/null >/dev/null; then
+        if _f12 udhcpc -q -n -s /bin/udhcpc.script -i $i; then
           echo -n "done${CRE}"
         else
           echo -n "failed${CRE}"
@@ -491,14 +509,14 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
   fi
 
   echo -n "${CRE}${BLUEITEM} Mounting NFS point ${WHITE}${NFSROOT}${NORMAL}... "
-  modprobe nfs 2>/dev/null >/dev/null
-  if mount -t nfs -o ${ROOTWRITE},nfsvers=${NFSVERS},nolock ${NFSROOT} ${FINNIX_CDBASE} 2>/dev/null >/dev/null; then
+  _f12 modprobe nfs
+  if _f12 mount -t nfs -o ${ROOTWRITE},nfsvers=${NFSVERS},nolock ${NFSROOT} ${FINNIX_CDBASE}; then
     if [ -e "${FINNIX_CDBASE}$CDDISTID" ] && check_distid "${FINNIX_CDBASE}$CDDISTID" "$INITDISTIDS"; then
       echo -n "done${CRE}"
       FOUND_FINNIX="yes"
     else
       echo "${RED}failed${NORMAL}"
-      umount ${FINNIX_CDBASE} 2>/dev/null >/dev/null
+      _f12 umount ${FINNIX_CDBASE}
     fi
   else
     echo "${RED}failed${NORMAL}"
@@ -572,14 +590,14 @@ fi
 if [ -n "$TORAM" -a -n "${FINNIX_CDBASE}" ]; then
   echo "${BLUEITEM} Copying ${OS_NAME} image to ramdisk, please be patient... "
   TORAM_FAILED=""
-  mkdir -p ${FINNIX_CDBASE}_ramdisk 2>/dev/null >/dev/null || TORAM_FAILED="yes"
+  _f12 mkdir -p ${FINNIX_CDBASE}_ramdisk || TORAM_FAILED="yes"
   for i in `awk '{print $2}' ${FINNIX_CDBASE}/md5sums`; do
     echo -n "${CRE}${BLUEITEM}   ${WHITE}$i${NORMAL}"
-    mkdir -p "${FINNIX_CDBASE}_ramdisk/$(dirname "$i")" 2>/dev/null >/dev/null || TORAM_FAILED="yes"
-    cp -af "${FINNIX_CDBASE}/$i" "${FINNIX_CDBASE}_ramdisk/$i" 2>/dev/null >/dev/null || TORAM_FAILED="yes"
+    _f12 mkdir -p "${FINNIX_CDBASE}_ramdisk/$(dirname "$i")" || TORAM_FAILED="yes"
+    _f12 cp -af "${FINNIX_CDBASE}/$i" "${FINNIX_CDBASE}_ramdisk/$i" || TORAM_FAILED="yes"
   done
-  mkdir -p ${FINNIX_CDBASE}_ramdisk${FINNIX_DIR} 2>/dev/null >/dev/null || TORAM_FAILED="yes"
-  cp -af ${FINNIX_CDBASE}/md5sums ${FINNIX_CDBASE}_ramdisk/md5sums 2>/dev/null >/dev/null || TORAM_FAILED="yes"
+  _f12 mkdir -p ${FINNIX_CDBASE}_ramdisk${FINNIX_DIR} || TORAM_FAILED="yes"
+  _f12 cp -af ${FINNIX_CDBASE}/md5sums ${FINNIX_CDBASE}_ramdisk/md5sums || TORAM_FAILED="yes"
   echo -n "${CRE}${ESC}[1A"
 
   if [ -n "$TORAM_FAILED" ]; then
@@ -595,7 +613,7 @@ if [ -n "$TORAM" -a -n "${FINNIX_CDBASE}" ]; then
       for dev in /proc/sys/dev/cdrom*/autoeject; do [ -f "$dev" ] && echo 1 > "$dev"; done
     fi
     # Unmount the device, triggering CD ejection
-    umount ${FINNIX_CDBASE} 2>/dev/null >/dev/null
+    _f12 umount ${FINNIX_CDBASE}
     if [ "${FINNIX_NOEJECT}" = "no" ]; then
       # Bring everything back to normal after ejection
       for dev in /proc/sys/dev/cdrom*/lock; do [ -f "$dev" ] && echo 1 > "$dev"; done
@@ -668,7 +686,7 @@ fi
 
 # When udev is used, only a few files are needed to begin with
 # /ramdisk/dev may or may not exist at this point
-mkdir -p /ramdisk/dev 2>/dev/null >/dev/null
+_f12 mkdir -p /ramdisk/dev
 mknod -m 0666 /ramdisk/dev/null c 1 3
 mknod -m 0600 /ramdisk/dev/console c 5 1
 
@@ -810,9 +828,9 @@ echo "0x100" > /proc/sys/kernel/real-root-dev
 
 [ "${FINNIX_DEBUG}" = "yes" ] && rundebugshell
 
-umount -l /sys >/dev/null 2>&1
-umount -l /proc >/dev/null 2>&1
-umount -l /dev >/dev/null 2>&1
+_f12 umount -l /sys
+_f12 umount -l /proc
+_f12 umount -l /dev
 
 # Give control to the init process.
 PATH=/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
