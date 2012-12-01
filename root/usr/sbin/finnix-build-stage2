@@ -243,6 +243,16 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
       rm -f ${FINNIX_INITRD}/lib/modules/${MODKERNEL}/kernel/drivers/ata/pata_pcmcia.ko
     fi
 
+    if [ -e "${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/modules.order" ]; then
+      while read mod; do
+        [ -e "${FINNIX_INITRD}/lib/modules/${MODKERNEL}/$mod" ] && echo "$mod"
+      done <"${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/modules.order" >"${FINNIX_INITRD}/lib/modules/${MODKERNEL}/modules.order"
+    fi
+
+    if [ -e "${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/modules.builtin" ]; then
+      cp "${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/modules.builtin" "${FINNIX_INITRD}/lib/modules/${MODKERNEL}/modules.builtin"
+    fi
+
     depmod -b ${FINNIX_INITRD} ${MODKERNEL}
   done
 

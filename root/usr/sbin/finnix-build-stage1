@@ -261,15 +261,6 @@ if [ "$FINNIX_CROSS_COMPILE" = "no" ]; then
   echo -n "Running apt-get clean... "
   chroot ${FINNIX_SOURCE} /bin/bash -c "apt-get clean"
   echo "done."
-  echo -n "Stripping modules... "
-  for i in ${FINNIX_SOURCE}/lib/modules/*; do
-    find $i -name '*.ko' -print0 | xargs -0 strip -x -R .note -R .comment
-    MODKERNEL="$(basename $i)"
-    echo -n "$MODKERNEL "
-    rm -f $i/modules.*
-    chroot ${FINNIX_SOURCE} depmod ${MODKERNEL}
-  done
-  echo "done."
 
   echo -n "Setting alternatives... "
   chroot ${FINNIX_SOURCE} update-alternatives --set editor /bin/nano
