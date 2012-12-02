@@ -79,6 +79,14 @@ ENDTEXT
 KERNEL boot/x86/memdisk
 APPEND initrd=boot/x86/sbm.imz 
 
+LABEL ipxe
+MENU LABEL Run iPXE
+TEXT HELP
+Run iPXE, a PXE bootloader.
+ENDTEXT
+KERNEL boot/x86/ipxe
+APPEND initrd= 
+
 MENU SEPARATOR
 
 MENU BEGIN submenu1
