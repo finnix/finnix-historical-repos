@@ -1,6 +1,5 @@
-dos.imz
-memtest
-sbm.imz
+binaries/
+build/
 sources/
 debian/files
 debian/neale-master
