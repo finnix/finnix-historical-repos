@@ -1,3 +1,9 @@
+neale-kernel (107~4) UNRELEASED; urgency=low
+
+  * time is not builtin on dash, do not use
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 03 Dec 2012 08:23:02 +0000
+
 neale-kernel (107~3) unstable; urgency=low
 
   * Migrate to xz packaging, add ignore options (LP: #1082283)

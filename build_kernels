@@ -53,14 +53,14 @@ build_arch() {
 
   # Move config in
   cp "${BASE_DIR}/configs/config-${VERSION}${KERNEL_EXTRAVERSION}" .config
-  time make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" oldconfig
+  make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" oldconfig
 
   # Main make
-  time make -j$J ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}"
+  make -j$J ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}"
 
   # Install modules
   mkdir -p "${INSTALL_DIR}/lib/modules"
-  time make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" INSTALL_MOD_PATH="${INSTALL_DIR}" modules_install
+  make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" INSTALL_MOD_PATH="${INSTALL_DIR}" modules_install
   find "${INSTALL_DIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}" -name '*.ko' -print0 | xargs -0 strip -x -R .note -R .comment
   rm -f "${INSTALL_DIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/build"
   rm -f "${INSTALL_DIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/source"
