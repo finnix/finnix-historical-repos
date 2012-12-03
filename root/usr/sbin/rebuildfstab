@@ -72,7 +72,6 @@ for i in `blkid -o device`; do
 
   LABEL=""
   if [ -z "$FSTYPE" ]; then
-#    echo `blkid -o export "$i"` >&2
     while read name val; do
       case "$name" in
         TYPE) FSTYPE="$val" ;;
@@ -81,7 +80,6 @@ for i in `blkid -o device`; do
     done <<EOM
 $(blkid -o export "$i" | sed 's/^\([A-Z0-9_]*\)=/\1 /g')
 EOM
-    FSTYPE="$TYPE"
   fi
   [ -z "$FSTYPE" ] && FSTYPE="auto"
   case "$FSTYPE" in

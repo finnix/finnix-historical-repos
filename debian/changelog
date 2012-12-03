@@ -1,3 +1,10 @@
+finnix-scripts (107~22) unstable; urgency=low
+
+  * rebuildfstab: filesystem detection fix
+  * fstype: filesystem detection fix
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 03 Dec 2012 21:22:23 +0000
+
 finnix-scripts (107~21) unstable; urgency=low
 
   * Fix parsing blkid output (LP: #1085409)
