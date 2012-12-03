@@ -1,6 +1,9 @@
-neale-kernel (107~4) UNRELEASED; urgency=low
+neale-kernel (107~4) unstable; urgency=low
 
   * time is not builtin on dash, do not use
+  * Debian 3.6.8-1~experimental.1
+  * Include original Debian configs
+  * Read VERSION and EXTRAVERSION from configs/build_kernels.config
 
  -- Ryan Finnie <ryan@finnie.org>  Mon, 03 Dec 2012 08:23:02 +0000
 

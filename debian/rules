@@ -4,9 +4,6 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-VERSION := 3.6
-EXTRAVERSION := -1
-
 DEB_BUILD_ARCH := $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 
 %:
@@ -18,7 +15,7 @@ override_dh_auto_clean:
 
 override_dh_auto_install:
 	install -m 0755 -d $(CURDIR)/debian/neale-kernel
-	$(CURDIR)/build_kernels $(CURDIR) $(CURDIR)/debian/neale-kernel $(VERSION) $(EXTRAVERSION) $(DEB_BUILD_ARCH)
+	$(CURDIR)/build_kernels $(CURDIR) $(CURDIR)/debian/neale-kernel $(DEB_BUILD_ARCH)
 
 override_dh_builddeb:
 	dh_builddeb -- -Zxz
