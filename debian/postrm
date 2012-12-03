@@ -1,9 +1,13 @@
 #!/bin/sh
 set -e
 
-if ([ "$1" = remove ] || [ "$1" = purge ]) && \
-   test -e /boot/grub/grub.cfg && which update-grub2 > /dev/null ; then
-    update-grub2
+# grub-finnix is just a grub.d hook, so we don't want to call
+# update-grub2 on remove (the grub.d file would still be around), just
+# purge.
+if [ "$1" = purge ]; then
+    if [ -e /boot/grub/grub.cfg ] && which update-grub2 >/dev/null; then
+        update-grub2
+    fi
 fi
 
 #DEBHELPER#
