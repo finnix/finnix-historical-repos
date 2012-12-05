@@ -1,0 +1,54 @@
+=head1 NAME
+
+shell-login - A simple getty/login replacement
+
+=head1 SYNOPSIS
+
+B<shell-login> I<ttyN>
+
+=head1 DESCRIPTION
+
+B<shell-login> is a simple getty/login replacement program, designed to 
+be run from /etc/inittab on LiveCDs.  It prepares the TTY, sets 
+environment variables expected of a login program, and executes the 
+user's shell.  The user is determined by the UID variable.
+
+=head1 OPTIONS
+
+A single argument is specified, the name of the TTY to be used.
+
+B<shell-login> will check for and source /etc/default/shell-login if it 
+exists, and will use the following variables if set:
+
+=over
+
+=item B<SHELL_PATH>
+
+The default path to be given to the shell (variable PATH).  Defaults to 
+"/bin:/usr/bin:/sbin:/usr/sbin:/usr/games".
+
+=item B<SHELL_TERM>
+
+The default terminal type to be given to the shell (variable TERM).  
+Defaults to "linux".
+
+=item B<SHELL_MAILDIR>
+
+The default mail directory to construct the variable MAIL.  Defaults to 
+"/var/mail", meaning the MAIL variable will become "/var/mail/$USER".
+
+=back
+
+Additionally, /etc/environment and /etc/default/locale are sourced and 
+exported to the shell, if they exist.
+
+=head1 BUGS
+
+None known, many assumed.
+
+=head1 AUTHOR
+
+B<shell-login> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

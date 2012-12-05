@@ -1,0 +1,77 @@
+#!/bin/bash
+# Bashisms needed: "exec -c", "exec -a"
+
+# shell-login, a simple getty/login replacement
+# Copyright (C) 2012 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+set -e
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 tty"
+  exit 1
+fi
+if [ ! -c "/dev/$1" ]; then
+  echo "Error: /dev/$1 does not exist or is not a character device."
+  exit 1
+fi
+
+# Read configuration variables
+# (None strictly needed for default operation)
+[ -f /etc/default/shell-login ] && . /etc/default/shell-login
+
+# Initialize a clean environment on the proper TTY
+exec -c >/dev/$1 2>&1 </dev/$1
+
+# UID should be already set and read-only, but if not, assume root
+[ -z "$UID" ] && UID=0
+
+# Read from getent
+for i in USER PASSWD UID2 GID GECOS HOME SHELL; do
+  read "$i"
+done <<EOM
+$(getent passwd "$UID" | sed 's/:/\n/g')
+EOM
+
+# Unknown user?
+if [ -z "$USER" ]; then
+  echo "Unknown user for UID $UID."
+  exit 1
+fi
+
+# Values not taken from getent may be specified in /etc/default/shell-login
+[ -z "$SHELL_PATH" ] && SHELL_PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/games"
+[ -z "$SHELL_MAILDIR" ] && SHELL_MAILDIR="/var/mail"
+[ -z "$SHELL_TERM" ] && SHELL_TERM="linux"
+
+# Export user variables
+export USER
+export HOME
+export SHELL
+export LOGNAME="${USER}"
+export MAIL="${SHELL_MAILDIR}/${USER}"
+export PATH="${SHELL_PATH}"
+export TERM="${SHELL_TERM}"
+export SHLVL=0
+
+# Read environment files, automatically exporting to the subsequent shell
+set -a
+[ -f /etc/environment ] && . /etc/environment
+[ -f /etc/default/locale ] && . /etc/default/locale
+
+# Exec the user's shell
+cd "${HOME}"
+exec -a "-$(basename "${SHELL}")" "${SHELL}"

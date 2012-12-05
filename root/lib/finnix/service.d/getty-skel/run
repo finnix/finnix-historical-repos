@@ -6,4 +6,4 @@
 if [ -x /usr/sbin/utmptty ]; then
   /usr/sbin/utmptty add </dev/$TTY 2>/dev/null
 fi
-exec chpst -P /sbin/bashlogin $TTY
+exec chpst -P /sbin/shell-login $TTY
