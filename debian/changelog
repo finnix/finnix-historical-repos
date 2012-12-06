@@ -1,3 +1,9 @@
+finnix-scripts (107~24) unstable; urgency=low
+
+  * finnix-hwsubmit tweaks
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 06 Dec 2012 00:18:48 +0000
+
 finnix-scripts (107~23) unstable; urgency=low
 
   * bashlogin: Rename to shell-login, add new functionality

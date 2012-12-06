@@ -71,6 +71,13 @@ if [ "$INCLUDE_DMESG" = "yes" ]; then
   dmesg >"$DMESG_TMP"
 fi
 
+do_whiptail --defaultno --yesno "Would you like this report to be made public?  If so, it will be publicly displayed on the report web site.  If not, only ${OS_NAME} developers and you will be given the direct report URL." 0 0
+if [ $? -eq 0 ]; then
+  PUBLIC="yes"
+else
+  PUBLIC="no"
+fi
+
 echo "Collecting system information..."
 LSHW_TMP="$(mktemp)"
 lshw -xml $SANITIZE -numeric >"$LSHW_TMP"
@@ -83,23 +90,31 @@ while true; do
     MESSAGEID="$(uuidgen)"
     DATE="$(date -R)"
 
+    ua="${OS_ID}-hwsubmit"
+    if [ -n "$OS_VERSION" ]; then
+      ua="$ua (${OS_NAME} ${OS_VERSION})"
+    else
+      ua="$ua (${OS_NAME})"
+    fi
     echo -n >"$REPORT_TMP"
     echo "Date: $DATE" >>"$REPORT_TMP"
     echo "From: $ADDRESS_FROM" >>"$REPORT_TMP"
     echo "To: $ADDRESS_TO" >>"$REPORT_TMP"
     echo "Subject: ${OS_NAME} hardware submission" >>"$REPORT_TMP"
     echo "Message-ID: <$MESSAGEID@hwsubmit>" >>"$REPORT_TMP"
-    echo "User-Agent: ${OS_ID}-hwsubmit (${OS_NAME} ${OS_VERSION})" >>"$REPORT_TMP"
+    echo "User-Agent: $ua" >>"$REPORT_TMP"
     echo "X-Hwsubmit-Format: 2" >>"$REPORT_TMP"
     echo "X-OS-Name: $OS_NAME" >>"$REPORT_TMP"
     echo "X-OS-ID: $OS_ID" >>"$REPORT_TMP"
-    echo "X-OS-Version: $OS_VERSION" >>"$REPORT_TMP"
-    echo "X-OS-Version-ID: $OS_VERSION_ID" >>"$REPORT_TMP"
+    [ -n "$OS_VERSION" ] && echo "X-OS-Version: $OS_VERSION" >>"$REPORT_TMP"
+    [ -n "$OS_VERSION_ID" ] && echo "X-OS-Version-ID: $OS_VERSION_ID" >>"$REPORT_TMP"
     echo "X-Boot-Kernel: $(uname -r)" >>"$REPORT_TMP"
     echo "X-Boot-Arch: $(uname -m)" >>"$REPORT_TMP"
     if [ -x /usr/bin/dpkg ]; then
       echo "X-Userland-Arch: $(dpkg --print-architecture)" >>"$REPORT_TMP"
     fi
+    echo "X-Report-Public: $PUBLIC" >>"$REPORT_TMP"
+    [ -n "$TAGS" ] && echo "X-Report-Tags: $TAGS" >>"$REPORT_TMP"
     echo "MIME-Version: 1.0" >>"$REPORT_TMP"
     echo "Content-Type: multipart/mixed; boundary=$BOUNDARY" >>"$REPORT_TMP"
     echo "" >>"$REPORT_TMP"
@@ -151,6 +166,7 @@ while true; do
   do_whiptail --menu "Ready to send report to ${OS_NAME}." 0 0 0 \
     NOTE "Add note to report" \
     REVIEW "Review report" \
+    TAGS "Add tags to report" \
     SEND "Send report to ${OS_NAME}" \
     SAVE "Save report locally, do not send" \
     || break
@@ -160,18 +176,15 @@ while true; do
       [ -z "$NOTE_TMP2" ] && NOTE_TMP2="$(mktemp)"
       echo "" >"$NOTE_TMP1"
       echo "" >>"$NOTE_TMP1"
-      echo "#HWSUBMIT Please type your note above.  A copy of the gathered system" >>"$NOTE_TMP1"
-      echo "#HWSUBMIT information is below.  Please don't edit it, as it's just" >>"$NOTE_TMP1"
-      echo "#HWSUBMIT being included below for your reference.  It will be placed" >>"$NOTE_TMP1"
-      echo "#HWSUBMIT in a machine-readable format for submission." >>"$NOTE_TMP1"
-      echo "#HWSUBMIT" >>"$NOTE_TMP1"
-      echo "#HWSUBMIT (Any line beginning with \"#HWSUBMIT\" will be stripped.)" >>"$NOTE_TMP1"
-      echo "#HWSUBMIT" >>"$NOTE_TMP1"
-      echo "#HWSUBMIT" >>"$NOTE_TMP1"
-      awk '{ print "#HWSUBMIT "$0 }' <"$REPORT_TMP" >>"$NOTE_TMP1"
+      echo "#HWSUBMIT Please type your note above.  Any lines beginning with" >>"$NOTE_TMP1"
+      echo "#HWSUBMIT \"#HWSUBMIT\" will be stripped from the comments." >>"$NOTE_TMP1"
     fi
     editor "$NOTE_TMP1"
     grep -v '^#HWSUBMIT' "$NOTE_TMP1" >"$NOTE_TMP2"
+    BUILD_REPORT="yes"
+  elif [ "${DVAL}" = "TAGS" ]; then
+    do_whiptail --inputbox "Please enter a list of tags to identify this submission, separated by spaces or commas." 0 0 "$TAGS"
+    TAGS="$(echo -n "${DVAL}" | perl -pe '$_ = lc($_); s/[\s,]+/ /g; s/[^a-z0-9- ]+//g; s/(^\s+|\s+$)//g;')"
     BUILD_REPORT="yes"
   elif [ "${DVAL}" = "REVIEW" ]; then
     pager "$REPORT_TMP"
@@ -180,12 +193,6 @@ while true; do
     cp "$REPORT_TMP" "${HWFILE}"
     do_whiptail --msgbox "The report has been saved locally as ${HWFILE}" 0 0
   elif [ "${DVAL}" = "SEND" ]; then
-    do_whiptail --defaultno --yesno "Would you like this report to be made public?  If so, the server will give you a URL of the report.  If not, only ${OS_NAME} developers will be able to read it." 0 0
-    if [ $? -eq 0 ]; then
-      PUBLIC="yes"
-    else
-      PUBLIC="no"
-    fi
     do_whiptail --infobox "Please wait, your submission is being uploaded...\n\n\n" 0 0
     if ! [ "$REPORT_COMPRESSED" = "yes" ]; then
       if gzip -9 "${REPORT_TMP}"; then
@@ -193,7 +200,7 @@ while true; do
         REPORT_COMPRESSED="yes"
       fi
     fi
-    RESP="$(curl -s -S -F report_public="$PUBLIC" -F reportdata=@"${REPORT_TMP}" $HWSUBMIT_API 2>&1)"
+    RESP="$(curl -s -S -F reportdata=@"${REPORT_TMP}" $HWSUBMIT_API 2>&1)"
     do_whiptail --msgbox "The server replied:\n${RESP}\n\n\n" 0 0
     break
   fi
