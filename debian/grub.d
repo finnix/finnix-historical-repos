@@ -25,7 +25,7 @@ if [ -f /usr/lib/grub/grub-mkconfig_lib ]; then
   . /usr/lib/grub/grub-mkconfig_lib
 else
   # no grub file, so we notify and exit gracefully
-  echo "Cannot find grub config file" >&2
+  echo "${PROGNAME}: Cannot find grub config file" >&2
   exit 0
 fi
 
@@ -41,7 +41,7 @@ fi
 
 # On the other hand, if set but doesn't exist...
 if ! [ -e "${FINNIX_ISO}" ]; then
-  echo "Cannot find ${FINNIX_ISO}" >&2
+  echo "${PROGNAME}: Cannot find ${FINNIX_ISO}" >&2
   exit 0
 fi
 

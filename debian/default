@@ -7,7 +7,7 @@
 # filesystem, etc).  Please see the package's README.Debian file for 
 # details.
 #
-FINNIX_ISO=
+FINNIX_ISO="/boot/finnix"
 
 # Extra options may be passed to Finnix here.
 EXTRA_OPTS="quiet"

@@ -2,39 +2,7 @@
 set -e
 
 if [ "$1" = configure ]; then
-    # If it's a new install, take some educated guesses.
-    if [ -z "$2" ]; then
-        if [ -e /etc/default/grub-finnix ]; then
-            . /etc/default/grub-finnix
-        fi
-        if [ -z "$FINNIX_ISO" ]; then
-            # Check for /boot/finnix containing ISOs.
-            if [ -n "$(ls /boot/finnix/finnix-*.iso 2>/dev/null || true)" ]; then
-                guess_iso="/boot/finnix"
-            fi
-            # Or the most recent /boot/finnix-*.iso.
-            if [ -z "$guess_iso" ]; then
-                guess_iso="$(ls -t /boot/finnix-*.iso 2>/dev/null || true)"
-            fi
-            # If we found any, modify the default file.
-            if [ -n "$guess_iso" ]; then
-                sed -i 's!^FINNIX_ISO=$!FINNIX_ISO="'"$guess_iso"'"!' /etc/default/grub-finnix
-                . /etc/default/grub-finnix
-            fi
-        fi
-        # If there's still no FINNIX_ISO, give a usage message.
-        if [ -z "$FINNIX_ISO" ]; then
-            echo
-            echo "Notice: grub-finnix must be configured before use.  Please edit"
-            echo "/etc/default/grub-finnix, specify the location of the Finnix ISO(s),"
-            echo "then run 'update-grub2'."
-            echo
-        fi
-    fi
-
-    # Regardless of whether FINNIX_ISO is set, re-run update-grub2 to
-    # build a consistent grub config.
-    if [ -e /boot/grub/grub.cfg ] && [ -x "`which update-grub2 2>/dev/null`" ] ; then
+    if [ -e /boot/grub/grub.cfg ] && which update-grub2 >/dev/null; then
 	update-grub2
     fi
 fi
