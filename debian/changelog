@@ -1,3 +1,9 @@
+finnix-scripts (107~25) unstable; urgency=low
+
+  * Use chain.c32 for x86 bootloader handoffs (LP: #1090235)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 14 Dec 2012 06:23:20 +0000
+
 finnix-scripts (107~24) unstable; urgency=low
 
   * finnix-hwsubmit tweaks

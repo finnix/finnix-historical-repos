@@ -338,7 +338,7 @@ else
   rm -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/boot.cat"
   cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" "${FINNIX_MASTER}/isolinux.bin"
   cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/memdisk" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/memdisk"
-  for com32 in hdt.c32 menu.c32 vesamenu.c32; do
+  for com32 in hdt.c32 menu.c32 vesamenu.c32 chain.c32; do
     cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/$com32" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$com32"
   done
   cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pxelinux/pxelinux.0"
