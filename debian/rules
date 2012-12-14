@@ -9,9 +9,30 @@ DEB_BUILD_ARCH := $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 %:
 	dh $@
 
-override_dh_auto_install:
+override_dh_auto_install: install-common install-$(DEB_BUILD_ARCH)
+
+install-common:
 	install -m 0755 -d $(CURDIR)/debian/neale-stuff
 	cp -a $(CURDIR)/stuff-files/common/* $(CURDIR)/debian/neale-stuff/
+
+install-i386:
+	install -m 0755 -d $(CURDIR)/debian/neale-stuff
+	cp -a $(CURDIR)/stuff-files/$(DEB_BUILD_ARCH)/* $(CURDIR)/debian/neale-stuff/
+	install -m 0644 $(CURDIR)/debian/neale-stuff/linuxtemplate.cfg.content $(CURDIR)/debian/neale-stuff/pxelinux.cfg.content
+	sed 's/ _NETOPTS_//g' $(CURDIR)/debian/neale-stuff/linuxtemplate.cfg.content >$(CURDIR)/debian/neale-stuff/isolinux.cfg.content
+	sed 's/ _NETOPTS_//g' $(CURDIR)/debian/neale-stuff/linuxtemplate.cfg.content >$(CURDIR)/debian/neale-stuff/syslinux.cfg.content
+	$(RM) $(CURDIR)/debian/neale-stuff/linuxtemplate.cfg.content
+
+install-amd64:
+	install -m 0755 -d $(CURDIR)/debian/neale-stuff
+	cp -a $(CURDIR)/stuff-files/$(DEB_BUILD_ARCH)/* $(CURDIR)/debian/neale-stuff/
+	install -m 0644 $(CURDIR)/debian/neale-stuff/linuxtemplate.cfg.content $(CURDIR)/debian/neale-stuff/pxelinux.cfg.content
+	sed 's/ _NETOPTS_//g' $(CURDIR)/debian/neale-stuff/linuxtemplate.cfg.content >$(CURDIR)/debian/neale-stuff/isolinux.cfg.content
+	sed 's/ _NETOPTS_//g' $(CURDIR)/debian/neale-stuff/linuxtemplate.cfg.content >$(CURDIR)/debian/neale-stuff/syslinux.cfg.content
+	$(RM) $(CURDIR)/debian/neale-stuff/linuxtemplate.cfg.content
+
+install-powerpc:
+	install -m 0755 -d $(CURDIR)/debian/neale-stuff
 	cp -a $(CURDIR)/stuff-files/$(DEB_BUILD_ARCH)/* $(CURDIR)/debian/neale-stuff/
 
 override_dh_builddeb:
