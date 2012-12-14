@@ -2,7 +2,7 @@ DEFAULT menu
 DISPLAY boot/x86/boot.msg
 PROMPT 0
 TIMEOUT 600
-ONTIMEOUT c
+ONTIMEOUT nextboot
 F1 boot/x86/f1
 F2 boot/x86/f2
 
@@ -140,18 +140,11 @@ ENDTEXT
 KERNEL boot/x86/linux
 APPEND initrd=boot/x86/FINNIX-INITRD vga=normal noapic noacpi pnpbios=off acpi=off nofstab nodma noapm nodhcp nolvm nomouse noeject 
 
-LABEL c
-MENU LABEL Boot hard drive
+LABEL nextboot
+MENU LABEL Boot next device
 TEXT HELP
-Boot the first bootable hard drive reported by your BIOS.
+Try the next boot device as reported by your BIOS.
 ENDTEXT
-LOCALBOOT 0x80
-
-LABEL a
-MENU LABEL Boot floppy drive
-TEXT HELP
-Boot the first floppy drive reported by your BIOS.
-ENDTEXT
-LOCALBOOT 0x00
+KERNEL boot/x86/chain.c32
 
 MENU END

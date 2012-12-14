@@ -1,3 +1,9 @@
+neale-stuff (107~8) unstable; urgency=low
+
+  * Use chain.c32 for x86 bootloader handoffs (LP: #1090235)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 14 Dec 2012 06:20:46 +0000
+
 neale-stuff (107~7) unstable; urgency=low
 
   * Add iPXE boot (LP: #1085574)
