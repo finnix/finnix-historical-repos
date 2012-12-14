@@ -1,3 +1,9 @@
+neale-initrd (107~13) unstable; urgency=low
+
+  * Whitelist only certain filesystems when in forensic mode
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 13 Dec 2012 15:44:17 +0000
+
 neale-initrd (107~12) unstable; urgency=low
 
   * Include missed busybox-1.20.2.tar.bz2

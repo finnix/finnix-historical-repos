@@ -58,8 +58,13 @@ mountblindly() {
 finnix_testmount() {
   # Usage: finnix_testmount dev
   dev="$1"
-  if [ "$FINNIX_FORENSIC" = "yes" ] && [ `blockdev --getro $dev` = "0" ]; then
-    blockdev --setro $dev
+  if [ "$FINNIX_FORENSIC" = "yes" ]; then
+    mounttypes="-t ext2,iso9660,vfat,squashfs"
+    if [ "$(blockdev --getro $dev)" = "0" ]; then
+      blockdev --setro $dev
+    fi
+  else
+    mounttypes=""
   fi
   if [ -n "${FINNIX_FINDISO}" ]; then
     testmount_cdbase="${FINNIX_CDBASE}_findisobacking"
@@ -67,10 +72,10 @@ finnix_testmount() {
     testmount_cdbase="${FINNIX_CDBASE}"
   fi
   [ -d "${testmount_cdbase}" ] || mkdir -p "${testmount_cdbase}"
-  if test -b $dev && _f12 mount -n -o ro $dev ${testmount_cdbase}; then
+  if test -b $dev && _f12 mount -n $mounttypes -o ro $dev ${testmount_cdbase}; then
     if [ -n "${FINNIX_FINDISO}" ]; then
       if [ -f "${testmount_cdbase}${FINNIX_FINDISO}" ]; then
-        if ! _f12 mount -o ro,loop "${testmount_cdbase}${FINNIX_FINDISO}" "${FINNIX_CDBASE}"; then
+        if ! _f12 mount $mounttypes -o ro,loop "${testmount_cdbase}${FINNIX_FINDISO}" "${FINNIX_CDBASE}"; then
           umount ${testmount_cdbase}
           return 1
         fi
@@ -563,17 +568,20 @@ else
 
   # If dist.id file exists, the user mounted it during emergency debug; don't try again.
   if [ ! -f "${FINNIX_CDBASE}${CDDISTID}" ]; then
-    if [ "$FINNIX_FORENSIC" = "yes" ] && [ `blockdev --getro "$FINNIX_DEV"` = "0" ]; then
-      blockdev --setro "$FINNIX_DEV"
+    if [ "$FINNIX_FORENSIC" = "yes" ]; then
+      mounttypes="-t ext2,iso9660,vfat,squashfs"
+      if [ "$(blockdev --getro "$FINNIX_DEV")" = "0" ]; then
+        blockdev --setro "$FINNIX_DEV"
+      fi
     fi
     if [ -n "${FINNIX_FINDISO}" ]; then
       dispdev="$(basename "$FINNIX_DEV")"
       [ -d "/ramdisk/media/$dispdev" ] || mkdir -p "/ramdisk/media/$dispdev"
-      mount -o $ROOTWRITE "$FINNIX_DEV" "/ramdisk/media/$dispdev"
-      mount -o ro,loop "/ramdisk/media/$dispdev${FINNIX_FINDISO}" "${FINNIX_CDBASE}"
+      mount $mounttypes -o $ROOTWRITE "$FINNIX_DEV" "/ramdisk/media/$dispdev"
+      mount $mounttypes -o ro,loop "/ramdisk/media/$dispdev${FINNIX_FINDISO}" "${FINNIX_CDBASE}"
       [ -d "${FINNIX_CDBASE}_findisobacking" ] && rmdir "${FINNIX_CDBASE}_findisobacking"
     else
-      mount -o $ROOTWRITE "$FINNIX_DEV" "${FINNIX_CDBASE}"
+      mount $mounttypes -o $ROOTWRITE "$FINNIX_DEV" "${FINNIX_CDBASE}"
     fi
   fi
 
