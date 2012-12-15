@@ -1,0 +1,16 @@
+Source: finnix-utmp
+Section: misc
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+Vcs-Browser: https://code.launchpad.net/~finnix/finnix/finnix-utmp-pkg
+Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/finnix-utmp-pkg
+Homepage: http://www.finnix.org/
+
+Package: finnix-utmp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Update utmp/wtmp entries
+ This package contains finnix-utmp, a utility to perform several
+ manipulation functions of the utmp/wtmp databases.

@@ -1,3 +1,9 @@
+finnix-utmp (107~1) unstable; urgency=low
+
+  * Total rewrite, renamed to finnix-utmp, native package.
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 14 Dec 2012 10:47:46 +0000
+
 utmptty (1.0-0~1finnix2) unstable; urgency=low
 
   * Migrate to xz packaging, add ignore options (LP: #1082283)

@@ -1,0 +1,31 @@
+=head1 NAME
+
+finnix-utmp - Update utmp/wtmp entries
+
+=head1 SYNOPSIS
+
+B<finnix-utmp> add I<line> I<user> [I<host>]
+
+B<finnix-utmp> del I<line> [I<user>] [I<host>]
+
+B<finnix-utmp> boot
+
+B<finnix-utmp> runlevel I<runlevel> [I<previous>]
+
+=head1 DESCRIPTION
+
+B<finnix-utmp> is a utility to add or remove utmp/wtmp entries.
+
+=head1 OPTIONS
+
+See above.
+
+=head1 BUGS
+
+None known, many assumed.
+
+=head1 AUTHOR
+
+B<finnix-utmp> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut

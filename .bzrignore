@@ -1,4 +1,5 @@
-./files
-./utmptty
-./utmptty.debhelper.log
-./utmptty.substvars
+debian/files
+debian/finnix-utmp
+debian/finnix-utmp.debhelper.log
+debian/finnix-utmp.substvars
+finnix-utmp

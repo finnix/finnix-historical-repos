@@ -12,8 +12,11 @@ LDFLAGS:=$(shell dpkg-buildflags --get LDFLAGS)
 %:
 	dh $@ 
 
+override_dh_auto_build:
+	$(MAKE) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
+
 override_dh_auto_install:
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/utmptty PREFIX=/usr
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/finnix-utmp PREFIX=/usr
 
 override_dh_builddeb:
 	dh_builddeb -- -Zxz
