@@ -1,0 +1,29 @@
+=head1 NAME
+
+finnix-strace-init - Run strace on process 1
+
+=head1 SYNOPSIS
+
+B<finnix-strace-init> /sbin/init 2
+
+=head1 DESCRIPTION
+
+B<finnix-strace-init> is a script designed to be run from the Finnix 
+initrd.  It starts an strace on itself, then execs its command line 
+arguments (usually /sbin/init).  This allows performance data to be 
+gathered from the very beginning of process 1.
+
+=head1 OPTIONS
+
+None.
+
+=head1 BUGS
+
+None known.
+
+=head1 AUTHOR
+
+B<finnix-strace-init> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

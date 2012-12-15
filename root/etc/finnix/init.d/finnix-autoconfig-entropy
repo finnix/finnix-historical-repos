@@ -1,0 +1,50 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          finnix-autoconfig-entropy
+# Required-Start:    $local_fs
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Shoft-Description: Generates a small amount of entropy
+### END INIT INFO
+
+# finnix-autoconfig-entropy
+# Copyright (C) 2012 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+
+PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+export PATH
+
+umask 022
+
+case "$1" in
+  start) ;;
+  stop|restart|force-reload) exit 0 ;;
+  *) echo "Usage: $0 {start|stop|restart|force-reload}" >&2; exit 1 ;;
+esac
+
+. /lib/finnix/finnix-rc-helper.sh
+
+# Generate a small amount of entropy with twuewand.
+SEEDBYTES="$(getbootparam seedbytes)"
+if [ "$SEEDBYTES" = "pool" ]; then
+  SEEDBYTES=$(($(cat /proc/sys/kernel/random/poolsize)/8))
+fi
+[ -z "$SEEDBYTES" ] && SEEDBYTES=128
+if [ $SEEDBYTES -gt 0 ] && _f12 which twuewand; then
+  echo -n "${CRE}${BLUEITEM} Generating $SEEDBYTES random seed bytes... "
+  if _f12 which rndaddentropy; then
+    # Actually inject entropy
+    twuewand -q "$SEEDBYTES" | rndaddentropy &
+  else
+    # Merely stirring the pot
+    twuewand -q "$SEEDBYTES" >/dev/random &
+  fi
+  echo -n "backgrounded${CRE}"
+fi
+

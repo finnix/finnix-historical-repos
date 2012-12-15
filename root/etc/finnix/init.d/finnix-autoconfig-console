@@ -1,0 +1,71 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          finnix-autoconfig-console
+# Required-Start:    $local_fs
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Shoft-Description: Set up consoles
+### END INIT INFO
+
+# finnix-autoconfig-console
+# Copyright (C) 2012 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+
+PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+export PATH
+
+umask 022
+
+case "$1" in
+  start) ;;
+  stop|restart|force-reload) exit 0 ;;
+  *) echo "Usage: $0 {start|stop|restart|force-reload}" >&2; exit 1 ;;
+esac
+
+. /lib/finnix/finnix-rc-helper.sh
+
+# Clear utmp/wtmp
+:> /var/run/utmp
+:> /var/run/wtmp
+
+# Add boot record to utmp/wtmp
+if [ -x /usr/sbin/finnix-utmp ]; then
+  /usr/sbin/finnix-utmp boot
+fi
+
+CONSOLES=""
+if stringinstring " console=" "randomstring $CMDLINE randomstring"; then
+  # If the user specified one or more specific consoles, use them.
+  for USERCONSOLE in $(getbootparammulti console "$CMDLINE"); do
+    USERCONSOLE="$(echo $USERCONSOLE | sed 's/,.*//')"
+    CONSOLES="$CONSOLES $USERCONSOLE"
+  done
+elif [ "${FINNIX_UML}" = "yes" ]; then
+  CONSOLES="tty0"
+elif [ "${FINNIX_XENU_OLD}" = "yes" ]; then
+  CONSOLES="tty1"
+elif [ "${FINNIX_XENU_NEW}" = "yes" ]; then
+  CONSOLES="hvc0"
+else
+  CONSOLES="tty1 tty2 tty3 tty4"
+fi
+
+if [ -n "$CONSOLES" ]; then
+  rm -f /lib/finnix/service/running/getty-*
+  for TTY in $CONSOLES; do
+    if ! [ -d /lib/finnix/service.d/getty-$TTY ]; then
+      mkdir -p /lib/finnix/service.d/getty-$TTY
+      cp -a /lib/finnix/service.d/getty-skel/run /lib/finnix/service.d/getty-$TTY/
+      cp -a /lib/finnix/service.d/getty-skel/finish /lib/finnix/service.d/getty-$TTY/
+      echo TTY=$TTY >/lib/finnix/service.d/getty-$TTY/config
+      ln -s /var/run/sv.getty-$TTY /lib/finnix/service.d/getty-$TTY/supervise
+    fi
+    ln -s ../../service.d/getty-$TTY /lib/finnix/service/running/getty-$TTY
+  done
+fi

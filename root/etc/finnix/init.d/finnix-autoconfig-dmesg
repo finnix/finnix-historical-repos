@@ -1,0 +1,33 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          finnix-autoconfig-dmesg
+# Required-Start:    $local_fs
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Shoft-Description: Dump dmesg
+### END INIT INFO
+
+# finnix-autoconfig-dmesg
+# Copyright (C) 2012 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+
+PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+export PATH
+
+umask 022
+
+case "$1" in
+  start) ;;
+  stop|restart|force-reload) exit 0 ;;
+  *) echo "Usage: $0 {start|stop|restart|force-reload}" >&2; exit 1 ;;
+esac
+
+. /lib/finnix/finnix-rc-helper.sh
+
+dmesg | gzip >/var/log/dmesg.gz

@@ -1,0 +1,61 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          finnix-autoconfig-locale
+# Required-Start:    $local_fs
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Shoft-Description: Set up console fonts, time zone, etc
+### END INIT INFO
+
+# finnix-autoconfig-locale
+# Copyright (C) 2012 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+
+PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+export PATH
+
+umask 022
+
+case "$1" in
+  start) ;;
+  stop|restart|force-reload) exit 0 ;;
+  *) echo "Usage: $0 {start|stop|restart|force-reload}" >&2; exit 1 ;;
+esac
+
+. /lib/finnix/finnix-rc-helper.sh
+
+# Nice default US-centric config
+KEYTABLE="us"
+TZ="UTC"
+
+# Allow keyboard override by boot commandline
+KKEYBOARD="$(getbootparam keyboard)"
+[ -n "$KKEYBOARD" ] && KEYTABLE="$KKEYBOARD"
+
+# Set clock
+#UTC="-u "
+KTZ="$(getbootparam tz)"
+[ -f "/usr/share/zoneinfo/$KTZ" ] && TZ="$KTZ"
+# hwclock uses the TZ variable
+export TZ
+rm -f /etc/adjtime
+if checkbootparam "nohwclock"; then
+  if [ "${FINNIX_XENU}" = "no" ] && [ "${FINNIX_UML}" = "no" ]; then
+    _f12 hwclock $UTC -s
+  fi
+fi
+rm -f /etc/localtime
+cp "/usr/share/zoneinfo/$TZ" /etc/localtime
+
+if [ "${FINNIX_XENU}" = "no" ] && [ "${FINNIX_UML}" = "no" ]; then
+  # Set default keyboard before interactive setup
+  [ -n "$KEYTABLE" ] && _f12 loadkeys -q $KEYTABLE
+  [ -n "$CONSOLEFONT" ] && _f12 consolechars -f $CONSOLEFONT || _f12 consolechars -d
+fi
+

@@ -3,7 +3,7 @@
 [ -f ./config ] && . ./config
 [ -n "$TTY" ] || exit 1
 
-if [ -x /usr/sbin/utmptty ]; then
-  /usr/sbin/utmptty add </dev/$TTY 2>/dev/null
+if [ -x /usr/sbin/finnix-utmp ]; then
+  /usr/sbin/finnix-utmp add $TTY root
 fi
 exec chpst -P /sbin/shell-login $TTY

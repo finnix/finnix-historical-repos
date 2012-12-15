@@ -1,0 +1,141 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          finnix-autoconfig-blockloop
+# Required-Start:    $local_fs
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Shoft-Description: Configures RAID, LUKS and LVM
+### END INIT INFO
+
+# finnix-autoconfig-blockloop
+# Copyright (C) 2012 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+
+PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+export PATH
+
+umask 022
+
+case "$1" in
+  start) ;;
+  stop|restart|force-reload) exit 0 ;;
+  *) echo "Usage: $0 {start|stop|restart|force-reload}" >&2; exit 1 ;;
+esac
+
+. /lib/finnix/finnix-rc-helper.sh
+
+if [ "$FINNIX_FORENSIC" = "yes" ]; then
+  exit 0
+fi
+
+BLOCKLOOP_RAID=""
+BLOCKLOOP_LUKS=""
+BLOCKLOOP_LVM=""
+BLOCKLOOP=1
+
+# BEGIN BLOCK LOOP
+while [ $BLOCKLOOP = 1 ]; do
+BLOCKLOOP=0
+
+if ! checkbootparam "noraid"; then
+  echo -n "${BLUEITEM} Scanning for RAID volumes: "
+  raidfound=""
+  newraidfound=""
+  mdadm --examine --scan | sed "s'/dev/md/'/dev/md'g" >/etc/mdadm/mdadm.conf
+  if _f12 grep ^ARRAY /etc/mdadm/mdadm.conf; then
+    for i in /lib/modules/`uname -r`/kernel/drivers/md/raid*.ko; do _f12 modprobe $(basename $i .ko); done
+    _f12 mdadm --assemble --scan --auto=yes
+    for i in /sys/block/md*; do
+      raidfound="$raidfound $i"
+      if ! stringinstring " $i " "randomstring $BLOCKLOOP_RAID randomstring"; then
+        newraidfound="yes"
+        echo -n "${WHITE}$(basename $i)${NORMAL} ($(cat $i/md/level), $(cat $i/md/raid_disks) disks) "
+        BLOCKLOOP=1
+      fi
+    done
+  fi
+  if [ -z "$newraidfound" ]; then
+    echo -n "done${CRE}"
+  else
+    echo
+  fi
+  BLOCKLOOP_RAID="$raidfound"
+fi
+
+if ! checkbootparam "nolvm"; then
+  lvmfound=""
+  lvmpartitions=""
+  echo -n "${BLUEITEM} Scanning for LVM volumes: "
+  if [ -x /etc/init.d/lvm2 ]; then
+    _f12 invoke-rc.d lvm2 start
+    lvmpartitions="$(_f2 lvdisplay -c | awk -F: '{print $1}' | sed 's/\/dev\///g' | sed 's/\//-/g')"
+    if ! [ "$lvmpartitions" = "$BLOCKLOOP_LVM" ]; then
+      for p in $lvmpartitions; do
+        if ! stringinstring " $p " "randomstring $BLOCKLOOP_LVM randomstring"; then
+          echo -n "${WHITE}${p}${NORMAL} "
+          lvmfound="yes"
+          BLOCKLOOP=1
+        fi
+      done
+    fi
+  fi
+  if [ -z "$lvmfound" ]; then
+    echo -n "done${CRE}"
+  else
+    echo
+  fi
+  BLOCKLOOP_LVM="$lvmpartitions"
+fi
+
+if ! checkbootparam "nocrypt"; then
+  lukspartitions=""
+  for i in `_f2 find /sys/block -follow -maxdepth 3 -name dev`; do
+    [ -e "$i" ] || continue
+    DEVNAME="$(basename $(dirname $i) | sed 's/\!/\//g')"
+    DEVMAJORMINOR="$(cat $i)"
+
+    case "$DEVNAME" in
+      loop*|ram*|nbd*|fd*)
+        continue
+        ;;
+      dm-*)
+        while read name majorminor; do
+          if [ "$majorminor" = "$DEVMAJORMINOR" ]; then
+            DEVNAME="mapper/$name"
+          fi
+        done <<EOT
+$(dmsetup ls | sed -e "s/\([^\t]\+\)\t(\([^,]\+\), \([^)]\+\))$/\1 \2:\3/")
+EOT
+        ;;
+    esac
+    echo -n "${CRE}${BLUEITEM} Scanning for LUKS volumes: ${WHITE}${DEVNAME}${NORMAL}"
+    if _f12 cryptsetup isLuks /dev/${DEVNAME}; then
+      lukspartitions="$lukspartitions $DEVNAME"
+      if ! stringinstring " $DEVNAME " "randomstring $BLOCKLOOP_LUKS randomstring"; then
+        _f12 modprobe dm-crypt
+        _f12 modprobe aes
+        _f12 modprobe sha1
+        _f12 modprobe sha256
+        CRYPTNAME="crypt-$(basename ${DEVNAME})"
+        echo "${CRE}${BLUEITEM} Please provide password for ${WHITE}${DEVNAME}${NORMAL}"
+        if cryptsetup -t 30 luksOpen /dev/${DEVNAME} ${CRYPTNAME}; then
+          echo "${BLUEITEM} LUKS volume ${WHITE}${DEVNAME}${NORMAL} opened as ${WHITE}${CRYPTNAME}${NORMAL}"
+        else
+          echo "${REDITEM} Bad password for LUKS volume ${WHITE}${DEVNAME}${NORMAL}"
+        fi
+        BLOCKLOOP=1
+      fi
+    fi
+  done
+  echo -n "${CRE}"
+  BLOCKLOOP_LUKS="$lukspartitions"
+fi
+
+# END BLOCK LOOP
+done

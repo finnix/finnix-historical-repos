@@ -3,6 +3,6 @@
 [ -f ./config ] && . ./config
 [ -n "$TTY" ] || exit 1
 
-if [ -x /usr/sbin/utmptty ]; then
-  /usr/sbin/utmptty del </dev/$TTY 2>/dev/null
+if [ -x /usr/sbin/finnix-utmp ]; then
+  /usr/sbin/finnix-utmp del $TTY
 fi

@@ -1,4 +1,4 @@
-finnix-scripts (107~26) UNRELEASED; urgency=low
+finnix-scripts (107~26) unstable; urgency=low
 
   * finnix-autoconfig:
     * Background twuewand generation, increase default to 128 (LP: #1090513)
@@ -8,8 +8,12 @@ finnix-scripts (107~26) UNRELEASED; urgency=low
     * Replace CPU info block with a call to finnix-pretty-cpu
     * Remove swap auto-activation (LP: #1090743)
     * General cleanup
+  * Add manpage for finnix-pretty-cpu
+  * Split out finnix-autoconfig into components
+  * Redo strace procedure, created finnix-strace-init
+  * Replace utmptty with finnix-utmp, remove runlevel diversion
 
- -- Ryan Finnie <ryan@finnie.org>  Sat, 15 Dec 2012 16:31:32 +0000
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 15 Dec 2012 23:47:43 +0000
 
 finnix-scripts (107~25) unstable; urgency=low
 

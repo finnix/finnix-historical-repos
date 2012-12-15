@@ -1,0 +1,29 @@
+=head1 NAME
+
+finnix-pretty-cpu - Output a one-line summary of cpuinfo
+
+=head1 SYNOPSIS
+
+B<finnix-pretty-cpu>
+
+=head1 DESCRIPTION
+
+B<finnix-pretty-cpu> will parse /proc/cpuinfo and build a one-line 
+summary of it.  It currently has support for understanding x86, PPC and 
+User Mode Linux systems.  If it does not recognize the running 
+architecture, it will output the value of "uname -a".
+
+=head1 OPTIONS
+
+None.
+
+=head1 BUGS
+
+None known.
+
+=head1 AUTHOR
+
+B<finnix-pretty-cpu> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

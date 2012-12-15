@@ -1,0 +1,48 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          finnix-autoconfig-udev
+# Required-Start:    $local_fs
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Shoft-Description: Set up udev
+### END INIT INFO
+
+# finnix-autoconfig-udev
+# Copyright (C) 2012 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+
+PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+export PATH
+
+umask 022
+
+case "$1" in
+  start) ;;
+  stop|restart|force-reload) exit 0 ;;
+  *) echo "Usage: $0 {start|stop|restart|force-reload}" >&2; exit 1 ;;
+esac
+
+. /lib/finnix/finnix-rc-helper.sh
+
+# Start udev
+echo -n "${CRE}${BLUEITEM} Populating /dev and setting up devices... "
+mkdir -p /var/run/udev
+_f12 invoke-rc.d udev start
+echo -n "done${CRE}"
+
+# /dev/pts and /dev/shm (needed right after udev)
+stringinfile "/dev/pts" /proc/mounts || _f12 mount -t devpts devpts /dev/pts
+stringinfile "/dev/shm" /proc/mounts || _f12 mount -t tmpfs devshm /dev/shm
+
+# If mtab is a regular file, futz around with it
+# If it's a symlink, leave it alone
+if [ ! -h /etc/mtab ]; then
+  cat /proc/mounts | egrep -v '^rootfs / ' >/etc/mtab
+  _f12 invoke-rc.d udev-mtab start
+fi
