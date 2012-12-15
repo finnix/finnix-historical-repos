@@ -1,23 +1,28 @@
-#!/bin/bash
+#!/bin/sh
 
 ### BEGIN INIT INFO
-# Description:       Finnix configuration and hardware setup
 # Provides:          finnix-autoconfig
-# Required-Start:
+# Required-Start:    $local_fs
 # Required-Stop:
-# Default-Start:
+# Default-Start:     S
 # Default-Stop:
+# Shoft-Description: Finnix configuration and hardware setup
 ### END INIT INFO
 
 # /etc/finnix/init.d/finnix-autoconfig
 # Basic system configuration and hardware setup
 # (C) Ryan Finnie <ryan@finnie.org>
-# Based on code (C) 2005 Klaus Knopper <knopper@knopper.net>
 
 PATH="/bin:/sbin:/usr/bin:/usr/sbin"
 export PATH
 
 umask 022
+
+case "$1" in
+  start) ;;
+  stop|restart|force-reload) exit 0 ;;
+  *) echo "Usage: $0 {start|stop|restart|force-reload}" >&2; exit 1 ;;
+esac
 
 # Mount /proc and /sys
 [ -f /proc/version ] || mount -t proc none /proc >/dev/null 2>/dev/null
@@ -35,47 +40,28 @@ if [ -n "${STRACE}" ]; then
   # If /dev/null is open when udev is started, it'll never finish
   strace -q -p $$ -f -eopen,execve -o /tmp/thestrace &
   sleep 3
+
+  # Re-run the commands above to let strace see them
+  mount --help >/dev/null 2>/dev/null
+  . /lib/finnix/finnix-rc-helper.sh
+  checkbootparam "strace"
 fi
-
-# Ignore these signals: INT, TERM, SEGV
-[ "${FINNIX_DEBUG}" = "no" ] && trap "" 2 3 11
-
-# No kernel messages while probing modules
-[ "${FINNIX_DEBUG}" = "no" ] && echo "0" > /proc/sys/kernel/printk
 
 # Start udev
-# WARNING: / rw may not be available yet
-# udev itself
-if ! checkbootparam "nohwsetup"; then
-  echo -n "${CRE}${BLUEITEM} Populating /dev and setting up devices... "
-  mkdir -p /var/run/udev
-  _f12 invoke-rc.d udev start
-  echo -n "done${CRE}"
-else
-  # If udev is not started, at the very least,
-  # we need a few TTYs.
-  mknod -m 0600 /dev/tty0 c 4 0
-  mknod -m 0600 /dev/tty1 c 4 1
-  mknod -m 0600 /dev/tty2 c 4 2
-  mknod -m 0600 /dev/tty3 c 4 3
-  mknod -m 0600 /dev/tty4 c 4 4
-fi
+echo -n "${CRE}${BLUEITEM} Populating /dev and setting up devices... "
+mkdir -p /var/run/udev
+_f12 invoke-rc.d udev start
+echo -n "done${CRE}"
+
 # /dev/pts and /dev/shm (needed right after udev)
 stringinfile "/dev/pts" /proc/mounts || _f12 mount -t devpts devpts /dev/pts
 stringinfile "/dev/shm" /proc/mounts || _f12 mount -t tmpfs devshm /dev/shm
 
-if [ "${FINNIX_XEN}" = "yes" ] || [ "${FINNIX_UML}" = "yes" ]; then
-  # TLS doesn't play well with UML/Xen
-  rm -rf /lib/tls /usr/lib/tls
-fi
-
 CONSOLES=""
 if stringinstring " console=" "randomstring $CMDLINE randomstring"; then
   # If the user specified one or more specific consoles, use them.
-  coni=0
   for USERCONSOLE in $(getbootparammulti console "$CMDLINE"); do
-    USERCONSOLE="${USERCONSOLE/,*}"
-    coni=$((coni+1))
+    USERCONSOLE="$(echo $USERCONSOLE | sed 's/,.*//')"
     CONSOLES="$CONSOLES $USERCONSOLE"
   done
 elif [ "${FINNIX_UML}" = "yes" ]; then
@@ -93,7 +79,8 @@ if [ -n "$CONSOLES" ]; then
   for TTY in $CONSOLES; do
     if ! [ -d /lib/finnix/service.d/getty-$TTY ]; then
       mkdir -p /lib/finnix/service.d/getty-$TTY
-      cp -a /lib/finnix/service.d/getty-skel/{run,finish} /lib/finnix/service.d/getty-$TTY/
+      cp -a /lib/finnix/service.d/getty-skel/run /lib/finnix/service.d/getty-$TTY/
+      cp -a /lib/finnix/service.d/getty-skel/finish /lib/finnix/service.d/getty-$TTY/
       echo TTY=$TTY >/lib/finnix/service.d/getty-$TTY/config
       ln -s /var/run/sv.getty-$TTY /lib/finnix/service.d/getty-$TTY/supervise
     fi
@@ -110,73 +97,15 @@ _f12 umount /initrd
 # If it's a symlink, leave it alone
 if [ ! -h /etc/mtab ]; then
   cat /proc/mounts | egrep -v '^rootfs / ' >/etc/mtab
-  if ! checkbootparam "nohwsetup"; then
-    _f12 invoke-rc.d udev-mtab start
-  fi
+  _f12 invoke-rc.d udev-mtab start
 fi
-
-KERNEL="$(uname -r)"
-echo "${BLUEITEM} Running Linux kernel ${WHITE}$KERNEL${NORMAL} on ${WHITE}$ARCH${NORMAL}"
 
 # Print CPU info
-# PPC's /proc/cpuinfo output is vastly different than x86
-if [ "${FINNIX_UML}" = "yes" ]; then
-  echo "${BLUEITEM} Host: $(egrep '^host.*: ' /proc/cpuinfo | sed 's/^host.*: //')"
-else
-  if [ "${ARCH}" = "ppc" -o "${ARCH}" = "ppc64" -o "${ARCH}" = "powerpc" ]; then
-    while read cpu; do
-      echo "${BLUEITEM} $cpu"
-    done <<EOT
-$(perl -e '
-foreach $block (split(/\n\n/, `cat /proc/cpuinfo`)) {
-  if($block =~ /^processor\s+:\s+\d/) {
-    push(@cpublocks, $block);
-  } else {
-    $sharedinfo .= "$block\n";
-  }
-}
-chop $sharedinfo;
-foreach $block (@cpublocks) {
-  if($sharedinfo) { $block .= "\n$sharedinfo"; }
-  %v = ();
-  foreach $line (split(/\n/, $block)) {
-    ($name, $val) = split(/\s+:\s+/, $line, 2);
-    $v{$name} = $val;
-  }
-  print "Processor $v{processor}: $v{clock}";
-  $v{"detected as"} =~ /\d+ \((.*?)\)/ && print " $1";
-  ($x = $v{cpu}) =~ s/, .*$//; print ", $x CPU";
-  ($x = $v{"L2 cache"}) =~ s/\s+.*$//; print ", $x cache";
-  print "\n";
-}
-')
-EOT
-  else
-    echo "${BLUEITEM} Processor: $(perl -e '
-  foreach $line (split/\n/, `cat /proc/cpuinfo`) {
-    ($name, $val) = split(/\s+:\s+/, $line, 2);
-    $val =~ s/\s+/ /g;
-    $name = lc($name);
-    $cpuinfo{$name} = $val;
-  }
-  $cpu = $cpuinfo{"model name"};
-  unless($cpu =~ /\d+\whz/i) {
-    if($cpuinfo{"cpu mhz"}) {
-      $cpu .= " \@ " . int($cpuinfo{"cpu mhz"}) . "MHz";
-    }
-  }
+echo "${BLUEITEM} System: ${WHITE}$(finnix-pretty-cpu)${NORMAL}"
 
-  $cpu =~ s/\(R\)//g;
-  $cpu =~ s/\(TM\)//g;
-  $cpu =~ s/ CPU//g;
-  $cpu =~ s/ \@ / /g;
-  $cpu =~ s/Core(\d)/Core $1/g;
-
-  if($cpuinfo{"processor"} > 0) { $cpu = "$cpu (" . ($cpuinfo{"processor"} + 1) . ")"; }
-  print "$cpu\n";
-')"
-  fi
-fi
+SYSNAME="$(uname -s)"
+KERNEL="$(uname -r)"
+echo "${BLUEITEM} Running $SYSNAME kernel ${WHITE}$KERNEL${NORMAL} on ${WHITE}$ARCH${NORMAL}"
 
 # Nice default US-centric config
 KEYTABLE="us"
@@ -198,8 +127,6 @@ export TZ
 rm -f /etc/adjtime
 if checkbootparam "nohwclock"; then
   if [ "${FINNIX_XENU}" = "no" ] && [ "${FINNIX_UML}" = "no" ]; then
-    #_f12 modprobe rtc
-    #_f12 modprobe genrtc
     _f12 hwclock $UTC -s
   fi
 fi
@@ -214,80 +141,28 @@ echo 'RUNLEVEL=`runlevel`' >>/etc/environment
 # Bring up loopback interface now
 ifconfig lo 127.0.0.1 up
 
-# Finnix autoconfig
-
 # Generate a small amount of entropy with twuewand.
-# This will take approximately 0.25s.
 SEEDBYTES="$(getbootparam seedbytes)"
 if [ "$SEEDBYTES" = "pool" ]; then
   SEEDBYTES=$(($(cat /proc/sys/kernel/random/poolsize)/8))
 fi
-[ -z "$SEEDBYTES" ] && SEEDBYTES=8
+[ -z "$SEEDBYTES" ] && SEEDBYTES=128
 if [ $SEEDBYTES -gt 0 ] && _f12 which twuewand; then
-  if [ $SEEDBYTES -gt 32 ]; then
-    echo "${CRE}${BLUEITEM} Generating $SEEDBYTES random seed bytes..."
-    TWOPTS=""
-  else
-    echo -n "${CRE}${BLUEITEM} Generating $SEEDBYTES random seed bytes... "
-    TWOPTS="-q"
-  fi
+  echo -n "${CRE}${BLUEITEM} Generating $SEEDBYTES random seed bytes... "
   if _f12 which rndaddentropy; then
     # Actually inject entropy
-    twuewand $TWOPTS "$SEEDBYTES" | rndaddentropy
+    twuewand -q "$SEEDBYTES" | rndaddentropy &
   else
     # Merely stirring the pot
-    twuewand $TWOPTS "$SEEDBYTES" >/dev/random
+    twuewand -q "$SEEDBYTES" >/dev/random &
   fi
-  if ! [ $SEEDBYTES -gt 32 ]; then
-    echo -n "done${CRE}"
-  fi
+  echo -n "backgrounded${CRE}"
 fi
 
-if [ -d /proc/acpi ]; then
- # ACPI
-  if checkbootparam "noacpi" || checkbootparam "acpi=off"; then
-    echo -n
-  else
-    found=""
-    for a in /lib/modules/$KERNEL/kernel/drivers/acpi/*; do
-      basename="${a##*/}"
-      basename="${basename%%.*}"
-      case "$basename" in *_acpi)
-        _f12 egrep -i "${basename%%_acpi}" /proc/acpi/dsdt || continue ;;
-      esac
-      _f12 modprobe $basename && echo -n "${CRE}${BLUEITEM} ACPI BIOS found, loading: ${WHITE}$basename${NORMAL}" && found="yes"
-    done
-    if [ -n "$found" ]; then
-      echo -n "${CRE}${BLUEITEM} ACPI BIOS found, modules loaded${CRE}"
-    else
-      echo -n "${CRE}${BLUEITEM} ACPI BIOS found, no modules loaded${CRE}"
-    fi
-  fi
-else
-  # APM
-  if checkbootparam "noapm"; then
-    echo -n
-  else
-    _f12 modprobe apm power_off=1 && test -x /etc/init.d/apmd && _f12 invoke-rc.d apmd start && echo -n "${BLUEITEM} APM BIOS found, ${WHITE}apmd${NORMAL} started${CRE}"
-  fi
-fi
-
-# Second: Search & configure supported hardware
-if checkbootparam "nohwsetup"; then
-  echo "${BLUEITEM} Loading hardware profile"
-  _f12 invoke-rc.d modutils start
-else
-  [ -e /sys/bus/usb ] && _f12 mount -t usbfs none /proc/bus/usb
-fi
-
-# BEGIN UML SKIP
 if [ "${FINNIX_XENU}" = "no" ] && [ "${FINNIX_UML}" = "no" ]; then
-
-# Set default keyboard before interactive setup
-[ -n "$KEYTABLE" ] && _f12 loadkeys -q $KEYTABLE
-[ -n "$CONSOLEFONT" ] && _f12 consolechars -f $CONSOLEFONT || _f12 consolechars -d
-
-# END UML SKIP
+  # Set default keyboard before interactive setup
+  [ -n "$KEYTABLE" ] && _f12 loadkeys -q $KEYTABLE
+  [ -n "$CONSOLEFONT" ] && _f12 consolechars -f $CONSOLEFONT || _f12 consolechars -d
 fi
 
 BLOCKLOOP_RAID=""
@@ -374,7 +249,6 @@ else
         done <<EOT
 $(dmsetup ls | sed -e "s/\([^\t]\+\)\t(\([^,]\+\), \([^)]\+\))$/\1 \2:\3/")
 EOT
-#$(dmsetup ls | perl -ne '/^(.*?)\t\((\d+), (\d+)\)$/ && print "$1 $2:$3\n"')
         ;;
     esac
     echo -n "${CRE}${BLUEITEM} Scanning for LUKS volumes: ${WHITE}${DEVNAME}${NORMAL}"
@@ -404,9 +278,7 @@ fi
 # END BLOCK LOOP
 done
 
-if checkbootparam "nofstab"; then
-  echo -n
-else
+if ! checkbootparam "nofstab"; then
   echo -n "${BLUEITEM} Scanning for partitions and creating ${WHITE}/etc/fstab${NORMAL}... "
   # Next line shouldn't be needed if udev finnix.rules hasn't been loaded yet (see below).
   # Still, it doesn't hurt to leave it in.
@@ -418,34 +290,6 @@ else
     udevadm control --reload-rules
   fi
   echo -n "done${CRE}"
-fi
-
-# Scan for swap
-if checkbootparam noswap  || [ "$FINNIX_FORENSIC" = "yes" ]; then
-  echo -n
-else
-  swappartitions=""
-  echo -n "${BLUEITEM} Scanning swap... "
-  while read p m f relax; do
-    case "$p" in *fd0*|*proc*|*sys*|*\#*) continue;; esac
-    case "$f" in swap)
-      swappartitions="$swappartitions $p"
-      continue
-      ;;
-    esac
-  done <<EOT
-$(cat /etc/fstab)
-EOT
-  echo -n "${CRE}${BLUEITEM} Activating swap: "
-  for p in $swappartitions; do
-    echo -n "${WHITE}${p##*/dev/}${NORMAL} "
-    _f12 swapon $p
-  done
-  if [ -z "$swappartitions" ]; then
-    echo -n "done${CRE}"
-  else
-    echo
-  fi
 fi
 
 # Configure interfaces (static or DHCP)
@@ -510,8 +354,5 @@ fi
 
 # Dump dmesg
 dmesg >/var/log/dmesg
-
-# Re-enable signals
-[ "${FINNIX_DEBUG}" = "no" ] && trap 2 3 11
 
 exit 0

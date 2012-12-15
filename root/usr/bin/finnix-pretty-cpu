@@ -1,0 +1,98 @@
+#!/usr/bin/perl
+
+# finnix-pretty-cpu
+# Copyright (C) 2012 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+use strict;
+use warnings;
+use POSIX;
+
+my($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
+
+my($cpuinfo) = "";
+if(-e "/proc/cpuinfo") {
+  open(FILE, "/proc/cpuinfo");
+  $cpuinfo .= $_ while(<FILE>);
+  close(FILE);
+}
+
+my $out = "";
+if($cpuinfo =~ /User Mode Linux/) {
+  $out = "UML";
+  if($cpuinfo =~ /host\s+:\s+(.*?)$/m) {
+    $out .= ", host: $1";
+  }
+} elsif(($machine eq "x86_64") || ($machine =~ /^i\d86$/)) {
+  my %cpuinfo = ();
+  foreach my $line (split/\n/, $cpuinfo) {
+    my($name, $val) = split(/\s+:\s+/, $line, 2);
+    next unless ($name && $val);
+    $val =~ s/\s+/ /g;
+    $name = lc($name);
+    $cpuinfo{$name} = $val;
+  }
+  $out = $cpuinfo{"model name"};
+  unless($out =~ /\d+\whz/i) {
+    if($cpuinfo{"cpu mhz"}) {
+      $out .= " \@ " . int($cpuinfo{"cpu mhz"}) . "MHz";
+    }
+  }
+
+  $out =~ s/\(R\)//g;
+  $out =~ s/\(TM\)//g;
+  $out =~ s/ CPU//g;
+  $out =~ s/ \@ / /g;
+  $out =~ s/Core(\d)/Core $1/g;
+
+  if($cpuinfo{"processor"} > 0) { $out = "$out (" . ($cpuinfo{"processor"} + 1) . ")"; }
+} elsif(($machine eq "ppc") || ($machine eq "ppc64")) {
+  my @cpublocks = ();
+  my $sharedinfo = "";
+  foreach my $block (split(/\n\n/, $cpuinfo)) {
+    if($block =~ /^processor\s+:\s+\d/) {
+      push(@cpublocks, $block);
+    } else {
+      $sharedinfo .= "$block\n";
+    }
+  }
+  chop $sharedinfo;
+  my $proccount = 0;
+  foreach my $block (@cpublocks) {
+    if($sharedinfo) { $block .= "\n$sharedinfo"; }
+    my %v = ();
+    foreach my $line (split(/\n/, $block)) {
+      my($name, $val) = split(/\s+:\s+/, $line, 2);
+      $v{$name} = $val;
+    }
+    $proccount++;
+    my $x;
+    ($x = $v{clock}) =~ s/\.\d+//; $x =~ s/(\d)([MG]Hz)/$1 $2/; $out = "$x";
+    if($v{"detected as"} =~ /\d+ \((.*?)\)/) { $out .= " $1"; }
+    ($x = $v{cpu}) =~ s/, .*$//; $out .= ", $x CPU";
+    ($x = $v{"L2 cache"}) =~ s/\s+.*$//; $out .= ", $x cache";
+  }
+  if($proccount > 1) {
+    $out .= " ($proccount)";
+  }
+
+}
+
+if($out) {
+  print "$out\n";
+} else {
+  print "$sysname $nodename $release $version $machine\n";
+}
