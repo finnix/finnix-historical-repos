@@ -1,3 +1,10 @@
+finnix-scripts (107~27) unstable; urgency=low
+
+  * Move runlevel handling to /etc/runit/state-running
+  * Change twuewand byte default to 64; nice execution
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 16 Dec 2012 00:48:05 +0000
+
 finnix-scripts (107~26) unstable; urgency=low
 
   * finnix-autoconfig:

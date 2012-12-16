@@ -35,15 +35,15 @@ SEEDBYTES="$(getbootparam seedbytes)"
 if [ "$SEEDBYTES" = "pool" ]; then
   SEEDBYTES=$(($(cat /proc/sys/kernel/random/poolsize)/8))
 fi
-[ -z "$SEEDBYTES" ] && SEEDBYTES=128
+[ -z "$SEEDBYTES" ] && SEEDBYTES=64
 if [ $SEEDBYTES -gt 0 ] && _f12 which twuewand; then
   echo -n "${CRE}${BLUEITEM} Generating $SEEDBYTES random seed bytes... "
   if _f12 which rndaddentropy; then
     # Actually inject entropy
-    twuewand -q "$SEEDBYTES" | rndaddentropy &
+    nice twuewand -q "$SEEDBYTES" | rndaddentropy &
   else
     # Merely stirring the pot
-    twuewand -q "$SEEDBYTES" >/dev/random &
+    nice twuewand -q "$SEEDBYTES" >/dev/random &
   fi
   echo -n "backgrounded${CRE}"
 fi

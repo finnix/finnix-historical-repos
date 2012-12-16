@@ -8,7 +8,21 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin
 echo -n "${CRE}${ESC}[1A${CRE}"
 echo -n "${CRE}${ESC}[1A${CRE}"
 
-export RUNLEVEL=2
+RUNLEVEL="$(getbootparam runlevel)"
+checkbootparam 0 && RUNLEVEL=0
+checkbootparam 1 && RUNLEVEL=1
+checkbootparam 2 && RUNLEVEL=2
+checkbootparam 3 && RUNLEVEL=3
+checkbootparam 4 && RUNLEVEL=4
+checkbootparam 5 && RUNLEVEL=5
+checkbootparam 6 && RUNLEVEL=6
+checkbootparam single && RUNLEVEL=S
+[ -z "$RUNLEVEL" ] && RUNLEVEL=2
+
+if [ "$RUNLEVEL" = "S" ]; then
+  exec /sbin/shell-login console
+fi
+
 if [ -x /usr/sbin/finnix-utmp ]; then
   /usr/sbin/finnix-utmp runlevel $RUNLEVEL
 fi
