@@ -236,16 +236,8 @@ checkbootparam forensics && FINNIX_FORENSIC="yes"
 [ "$FINNIX_FORENSIC" = "yes" ] && ROOTWRITE="ro"
 UNIONMOD=$(getbootparam unionmod)
 INIT="$(getbootparam init)"
-[ -z $INIT ] && INIT=/sbin/runit-init
-INIT_RUNLEVEL="$(getbootparam runlevel)"
-checkbootparam 0 && INIT_RUNLEVEL=0
-checkbootparam 1 && INIT_RUNLEVEL=1
-checkbootparam 2 && INIT_RUNLEVEL=2
-checkbootparam 3 && INIT_RUNLEVEL=3
-checkbootparam 4 && INIT_RUNLEVEL=4
-checkbootparam 5 && INIT_RUNLEVEL=5
-checkbootparam 6 && INIT_RUNLEVEL=6
-checkbootparam single && INIT_RUNLEVEL=S
+[ -z $INIT ] && INIT=/sbin/init
+checkbootparam strace && FINNIX_STRACE="yes"
 
 if [ "$FINNIX_FORENSIC" = "yes" ]; then
   echo "${BLUEITEM} ${WHITE}Forensic mode${NORMAL} is active"
@@ -844,10 +836,10 @@ _f12 umount -l /dev
 # Give control to the init process.
 PATH=/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 
-# To make cd ejection possible on shutdown, let's use a replacement (static) init
+# To make cd ejection possible on shutdown, copy runit to the ramdisk
 rm -f /ramdisk/UNIONFS/sbin/runit
-cp -p /ramdisk/FINNIX/sbin/runit /ramdisk/busybin/runit.debianstatic
-ln -s ../../busybin/runit.debianstatic /ramdisk/UNIONFS/sbin/runit
+cp -p /ramdisk/FINNIX/sbin/runit /ramdisk/.init
+ln -s /.init /ramdisk/UNIONFS/sbin/runit
 
 # If the user really wants SELinux, let them.
 # Otherwise, prevent init from trying to start it.
@@ -883,7 +875,9 @@ EOM
 # Let's go!
 cd /
 if [ -n "${BOOTCHART}" ]; then
-  exec switch_root /ramdisk /sbin/bootchartd </dev/console >/dev/console 2>&1
+  exec switch_root /ramdisk /sbin/bootchartd bootchart_init=$INIT </dev/console >/dev/console 2>&1
+elif [ "${FINNIX_STRACE}" = "yes" ]; then
+  exec switch_root /ramdisk /sbin/finnix-strace-init $INIT </dev/console >/dev/console 2>&1
 else
-  exec switch_root /ramdisk $INIT $INIT_RUNLEVEL </dev/console >/dev/console 2>&1
+  exec switch_root /ramdisk $INIT </dev/console >/dev/console 2>&1
 fi
