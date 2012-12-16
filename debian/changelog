@@ -1,3 +1,10 @@
+finnix-scripts (107~29) unstable; urgency=low
+
+  * finnix-pretty-cpu: fix warning on x86 1-proc system, plus further
+    code fixes to avoid warnings
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 16 Dec 2012 04:15:11 +0000
+
 finnix-scripts (107~28) unstable; urgency=low
 
   * runit runlevel handling adjustments

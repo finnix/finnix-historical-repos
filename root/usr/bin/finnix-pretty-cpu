@@ -37,18 +37,20 @@ if($cpuinfo =~ /User Mode Linux/) {
     $out .= ", host: $1";
   }
 } elsif(($machine eq "x86_64") || ($machine =~ /^i\d86$/)) {
-  my %cpuinfo = ();
+  my %cpuarray = ();
   foreach my $line (split/\n/, $cpuinfo) {
     my($name, $val) = split(/\s+:\s+/, $line, 2);
     next unless ($name && $val);
     $val =~ s/\s+/ /g;
     $name = lc($name);
-    $cpuinfo{$name} = $val;
+    $cpuarray{$name} = $val;
   }
-  $out = $cpuinfo{"model name"};
+  if($cpuarray{"model name"}) {
+    $out = $cpuarray{"model name"};
+  }
   unless($out =~ /\d+\whz/i) {
-    if($cpuinfo{"cpu mhz"}) {
-      $out .= " \@ " . int($cpuinfo{"cpu mhz"}) . "MHz";
+    if($cpuarray{"cpu mhz"}) {
+      $out .= " \@ " . int($cpuarray{"cpu mhz"}) . "MHz";
     }
   }
 
@@ -58,7 +60,9 @@ if($cpuinfo =~ /User Mode Linux/) {
   $out =~ s/ \@ / /g;
   $out =~ s/Core(\d)/Core $1/g;
 
-  if($cpuinfo{"processor"} > 0) { $out = "$out (" . ($cpuinfo{"processor"} + 1) . ")"; }
+  if($cpuarray{"processor"} && ($cpuarray{"processor"} > 0)) {
+    $out = "$out (" . ($cpuarray{"processor"} + 1) . ")";
+  }
 } elsif(($machine eq "ppc") || ($machine eq "ppc64")) {
   my @cpublocks = ();
   my $sharedinfo = "";
@@ -76,14 +80,25 @@ if($cpuinfo =~ /User Mode Linux/) {
     my %v = ();
     foreach my $line (split(/\n/, $block)) {
       my($name, $val) = split(/\s+:\s+/, $line, 2);
+      $name = lc($name);
       $v{$name} = $val;
     }
     $proccount++;
     my $x;
-    ($x = $v{clock}) =~ s/\.\d+//; $x =~ s/(\d)([MG]Hz)/$1 $2/; $out = "$x";
-    if($v{"detected as"} =~ /\d+ \((.*?)\)/) { $out .= " $1"; }
-    ($x = $v{cpu}) =~ s/, .*$//; $out .= ", $x CPU";
-    ($x = $v{"L2 cache"}) =~ s/\s+.*$//; $out .= ", $x cache";
+    if($v{"clock"}) {
+      ($x = $v{"clock"}) =~ s/\.\d+//; $x =~ s/(\d)([MG]Hz)/$1 $2/; $out = "$x";
+    }
+    if($v{"detected as"}) {
+      if($v{"detected as"} =~ /\d+ \((.*?)\)/) {
+        $out .= " $1";
+      }
+    }
+    if($v{"cpu"}) {
+      ($x = $v{"cpu"}) =~ s/, .*$//; $out .= ", $x CPU";
+    }
+    if($v{"l2 cache"}) {
+      ($x = $v{"l2 cache"}) =~ s/\s+.*$//; $out .= ", $x cache";
+    }
   }
   if($proccount > 1) {
     $out .= " ($proccount)";
