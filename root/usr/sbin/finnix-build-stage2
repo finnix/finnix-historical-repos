@@ -362,11 +362,11 @@ find ${FINNIX_MASTER} -type f -not -name md5sums \
 rm -f ${FINNIX_ISO}
 ISOVOL32="$(echo ${OS_NAME} ${OS_VERSION} | awk '{ print substr($0, 1, 32) }')"
 if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
-  time genisoimage -hide-rr-moved -hfs -part -map ${FINNIX_MASTER}/boot/ppc/hfs.map -no-desktop \
+  genisoimage -hide-rr-moved -hfs -part -map ${FINNIX_MASTER}/boot/ppc/hfs.map -no-desktop \
     -hfs-volid "${OS_NAME_UNDERSCORE}_${OS_VERSION}" -hfs-bless ${FINNIX_BOOT} \
     -pad -l -r -J -v -V "${ISOVOL32}" -o ${FINNIX_ISO} ${FINNIX_MASTER}
 else
-  time genisoimage -pad -l -r -J -v -V "${ISOVOL32}" -no-emul-boot -boot-load-size 4 \
+  genisoimage -pad -l -r -J -v -V "${ISOVOL32}" -no-emul-boot -boot-load-size 4 \
      -boot-info-table -b isolinux.bin -c boot/${FINNIX_DISTARCH}/boot.cat \
      -hide-rr-moved -o ${FINNIX_ISO} ${FINNIX_MASTER}
 fi

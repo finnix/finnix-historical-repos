@@ -9,23 +9,18 @@ echo -n "${CRE}${ESC}[1A${CRE}"
 echo -n "${CRE}${ESC}[1A${CRE}"
 
 RUNLEVEL="$(getbootparam runlevel)"
-checkbootparam 0 && RUNLEVEL=0
-checkbootparam 1 && RUNLEVEL=1
-checkbootparam 2 && RUNLEVEL=2
-checkbootparam 3 && RUNLEVEL=3
-checkbootparam 4 && RUNLEVEL=4
-checkbootparam 5 && RUNLEVEL=5
-checkbootparam 6 && RUNLEVEL=6
-checkbootparam single && RUNLEVEL=S
 [ -z "$RUNLEVEL" ] && RUNLEVEL=2
 
-if [ "$RUNLEVEL" = "S" ]; then
-  exec /sbin/shell-login console
+if checkbootparam single; then
+  echo "${BLUEITEM} Starting single-user shell."
+  echo "${BLUEITEM} Type \"exit\" to continue to runlevel $RUNLEVEL."
+  /bin/sh >/dev/console 2>&1 </dev/console
 fi
 
 if [ -x /usr/sbin/finnix-utmp ]; then
   /usr/sbin/finnix-utmp runlevel $RUNLEVEL
 fi
+
 /etc/finnix/init.d/rc $RUNLEVEL
 
 exec env - PATH=$PATH \

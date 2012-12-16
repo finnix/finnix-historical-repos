@@ -437,5 +437,5 @@ if [ -f "${FINNIX_STUFF}/finnix.order" ]; then
 fi
 rm -f ${FINNIX_MASTER}/finnix/arch/$FINNIX_DISTARCH/root.img
 echo "Running: mksquashfs ${FINNIX_SOURCE} ${FINNIX_MASTER}/finnix/arch/$FINNIX_DISTARCH/root.img ${SQUASHFS_OPTS}"
-time mksquashfs ${FINNIX_SOURCE} ${FINNIX_MASTER}/finnix/arch/$FINNIX_DISTARCH/root.img ${SQUASHFS_OPTS}
+mksquashfs ${FINNIX_SOURCE} ${FINNIX_MASTER}/finnix/arch/$FINNIX_DISTARCH/root.img ${SQUASHFS_OPTS}
 chmod 0644 ${FINNIX_MASTER}/finnix/arch/$FINNIX_DISTARCH/root.img

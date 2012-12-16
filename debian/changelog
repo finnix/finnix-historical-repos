@@ -1,3 +1,11 @@
+finnix-scripts (107~28) unstable; urgency=low
+
+  * runit runlevel handling adjustments
+  * Speed up shutdown
+  * finnix-build-stage*: do not use "time"
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 16 Dec 2012 03:26:50 +0000
+
 finnix-scripts (107~27) unstable; urgency=low
 
   * Move runlevel handling to /etc/runit/state-running

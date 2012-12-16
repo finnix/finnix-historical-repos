@@ -17,13 +17,7 @@ waitdot() {
 rundebugshell() {
   echo "${BLUEITEM} Starting debug shell."
   echo "${BLUEITEM} Type \"exit\" to continue."
-  # Allow signals
-  [ "${FINNIX_DEBUG}" = "no" ] && trap 1 2 3 15
-  [ "${FINNIX_DEBUG}" = "no" ] && echo "6" > /proc/sys/kernel/printk
   _f12 which bash && bash || sh
-  # Don't allow interrupt signals
-  [ "${FINNIX_DEBUG}" = "no" ] && echo "0" > /proc/sys/kernel/printk
-  [ "${FINNIX_DEBUG}" = "no" ] && trap "" 1 2 3 15
 }
 
 # Let's see if we can get rid of that "INIT:" message
@@ -58,9 +52,17 @@ cd /
 # Clean input/output
 exec >/dev/console 2>&1 </dev/console
 
-# Stop runit services
-SVWAIT=2 _f12 sv force-stop /lib/finnix/service/running/*
-_f12 sv exit /lib/finnix/service/running/*
+echo -n "${BLUEITEM} Stopping supervised services..."
+
+# Interactive shells ignore most signals except HUP, so handle
+# them specially
+_f12 sv down /lib/finnix/service/running/getty-*
+_f12 sv hup /lib/finnix/service/running/getty-*
+
+# Stop remaining runit services
+_f12 sv shutdown /lib/finnix/service/running/*
+
+echo -n " done${CRE}"
 
 # Execute "normal" rc-level shutdown scripts, if any
 /etc/finnix/init.d/rc $RUNLEVEL
@@ -79,14 +81,12 @@ if [ -n "$FOUND_CDROM" ]; then
 fi
 
 # Now kill them all
-echo -n "${BLUEITEM} Stopping remaining processes: ${WHITE}TERM${NORMAL}"
+echo -n "${BLUEITEM} Stopping remaining processes"
 killall5 -15
 waitdot 4
-
-echo -n " ${WHITE}KILL${NORMAL}"
 killall5 -9
-waitdot 4
-echo -n "done${CRE}"
+waitdot 1
+echo -n " done${CRE}"
 
 # Umount devpts early (otherwise UNIONFS may stay busy)
 _f12 umount -t devpts -a
