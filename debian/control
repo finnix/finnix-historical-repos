@@ -3,7 +3,7 @@ Section: admin
 Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
 Build-Depends: debhelper (>= 7.0.50~)
-Standards-Version: 3.9.3
+Standards-Version: 3.9.4
 Vcs-Browser: https://code.launchpad.net/~finnix/finnix/grub-finnix-pkg
 Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/grub-finnix-pkg
 
