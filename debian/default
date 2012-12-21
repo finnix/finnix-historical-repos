@@ -1,6 +1,6 @@
-# To build GRUB 2 menu entries Finnix ISO, specify the location here.  
-# This can either be a single ISO, or a directory containing multiple 
-# Finnix ISOs.
+# To build GRUB 2 menu entries for Finnix ISOs, specify the location 
+# here.  This can either be a single ISO, or a directory containing 
+# multiple Finnix ISOs.
 #
 # Note that there are several restrictions, both from GRUB 2 and Finnix, 
 # regarding where the ISO may be booted from (type of partition, 
