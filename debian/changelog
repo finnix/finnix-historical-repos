@@ -1,3 +1,9 @@
+finnix-standard (107~9) unstable; urgency=low
+
+  * Include testdisk (LP: #1091174)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 22 Dec 2012 04:02:59 +0000
+
 finnix-standard (107~8) unstable; urgency=low
 
   * Include arping bridge-utils (LP: #1090958)
