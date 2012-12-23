@@ -1,3 +1,9 @@
+neale-master (107) unstable; urgency=low
+
+  * Finnix 107
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 23 Dec 2012 03:00:10 +0000
+
 neale-master (107~5) unstable; urgency=low
 
   * Add iPXE boot (LP: #1085574)
