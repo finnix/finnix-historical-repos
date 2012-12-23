@@ -1,3 +1,9 @@
+finnix-utmp (107) unstable; urgency=low
+
+  * Finnix 107
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 23 Dec 2012 02:55:14 +0000
+
 finnix-utmp (107~1) unstable; urgency=low
 
   * Total rewrite, renamed to finnix-utmp, native package.
