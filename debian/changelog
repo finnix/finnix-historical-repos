@@ -1,3 +1,9 @@
+finnix-standard (107) unstable; urgency=low
+
+  * Finnix 107
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 23 Dec 2012 02:53:55 +0000
+
 finnix-standard (107~9) unstable; urgency=low
 
   * Include testdisk (LP: #1091174)
