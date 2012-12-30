@@ -6,8 +6,16 @@
 
 DEB_BUILD_ARCH := $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 
+NUMJOBS=1
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+endif
+
 %:
 	dh $@
+
+override_dh_auto_build:
+	$(MAKE) -j$(NUMJOBS)
 
 override_dh_auto_install: install-common install-$(DEB_BUILD_ARCH)
 
