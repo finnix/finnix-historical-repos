@@ -6,6 +6,12 @@
 
 DEB_BUILD_ARCH := $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 
+KERNEL_JOBS=1
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+KERNEL_JOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+endif
+export KERNEL_JOBS
+
 %:
 	dh $@
 

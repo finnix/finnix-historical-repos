@@ -13,9 +13,6 @@ DEB_BUILD_ARCH="$3"
 # Read VERSION and EXTRAVERSION
 . "${BASE_DIR}/configs/build_kernels.config"
 
-# Hack to occasionally read in $J
-[ -e "/tmp/build_kernels-devconfig" ] && . /tmp/build_kernels-devconfig
-
 # Handle 3.N kernels
 case "${VERSION}" in
 3.*)
@@ -47,14 +44,14 @@ build_arch() {
   done
 
   # No concurrency by default
-  [ -z "$J" ] && J=1
+  [ -z "$KERNEL_JOBS" ] && KERNEL_JOBS=1
 
   # Move config in
   cp "${BASE_DIR}/configs/config-${VERSION}${KERNEL_EXTRAVERSION}" .config
   make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" oldconfig
 
   # Main make
-  make -j$J ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}"
+  make -j${KERNEL_JOBS} ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}"
 
   # Install modules
   mkdir -p "${INSTALL_DIR}/lib/modules"
