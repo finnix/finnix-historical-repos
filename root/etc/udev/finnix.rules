@@ -1,2 +1,0 @@
-ACTION=="add",    SUBSYSTEM=="block", RUN+="/bin/sh -c '/usr/sbin/rebuildfstab &'"
-ACTION=="remove", SUBSYSTEM=="block", RUN+="/bin/sh -c '/usr/sbin/rebuildfstab &'"

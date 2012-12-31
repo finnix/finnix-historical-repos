@@ -1,3 +1,17 @@
+finnix-scripts (20121231.0) unstable; urgency=low
+
+  * Optimize rebuildfstab, make udev-safe from the start
+  * finnix-build-stage2:
+    * Remove old devtag support
+    * Clean up module loading
+    * Only try isohybrid on x86
+    * GPGUSER -> FINNIX_GPGUSER, VANITYHASH -> FINNIX_VANITYHASH
+    * General cleanup
+  * Lintian overrides cleanup
+  * debian/rules cleanup
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 31 Dec 2012 00:39:44 -0800
+
 finnix-scripts (20121229.0) unstable; urgency=low
 
   * Give the finnix user a bash shell (LP: #1094122)

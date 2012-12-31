@@ -169,26 +169,11 @@ BASHEOM
 }
 # End functions
 
-if [ -f "${FINNIX_STUFF}/devtag" ]; then
-  DEVTAG=$(cat ${FINNIX_STUFF}/devtag)
-  DEVTAG=$(($DEVTAG+1))
-  echo ${DEVTAG} >${FINNIX_STUFF}/devtag
-  FINNIXDATECLEAN="$(date)"
-  FINNIXDATE="${FINNIXDATECLEAN} (Build ${DEVTAG})"
-else
-  FINNIXDATECLEAN="$(date)"
-  FINNIXDATE="${FINNIXDATECLEAN}"
-fi
-
+FINNIXDATECLEAN="$(date)"
+FINNIXDATE="${FINNIXDATECLEAN}"
 OS_NAME_UNDERSCORE="$(echo ${OS_NAME} | sed 's/ /_/g')"
-[ -z "$OS_VERSION_FMT" ] && OS_VERSION_FMT="$(printf '%-20s' "${OS_VERSION}")"
-
-if [ "$OS_VERSION_ID" = "dev" ] && [ -n "$DEVTAG" ]; then
-  FVTITLE="${OS_VERSION} (Build ${DEVTAG})"
-else
-  FVTITLE="${OS_VERSION}"
-fi
-
+OS_VERSION_FMT="$(printf '%-20s' "${OS_VERSION}")"
+FVTITLE="${OS_VERSION}"
 
 ### make sure required binaries are present
 BAD_BINARIES=""
@@ -200,25 +185,22 @@ if [ -n "${BAD_BINARIES}" ]; then
   exit 1
 fi
 
-### generate modules
+### initrd tasks
 if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
+  ### generate modules
 
   # USB/Firewire
-  IMODS="ehci-hcd ohci-hcd uhci-hcd ohci1394 usb-storage usbhid firewire-sbp2 firewire-ohci sg"
+  IMODS="ehci-hcd ohci-hcd uhci-hcd usb-storage usbhid firewire-sbp2 firewire-ohci sg"
   # Common SCSI
   IMODS="${IMODS} aic7xxx BusLogic sym53c8xx"
   # Slightly less common SCSI
-  IMODS="${IMODS} 3w-xxxx 3w-9xxx 3w-sas"
+  IMODS="${IMODS} mptspi 3w-xxxx 3w-9xxx 3w-sas"
   # x86-only SCSI
   if [ "${FINNIX_DISTARCH}" != "ppc" ]; then
-    IMODS="${IMODS} gdth mptspi"
+    IMODS="${IMODS} gdth"
   fi
   # Common USB/Firewire/SCSI
   IMODS="${IMODS} sr_mod sd_mod"
-  # IDE
-  IMODS="${IMODS} ide-disk ide-cd ide-cd_mod ide-generic"
-  # SATA/etc
-  IMODS="${IMODS} libata"
   # Block devices
   IMODS="${IMODS} floppy loop"
   # Filesystems
@@ -229,20 +211,26 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   IMODS="${IMODS} zram"
 
   for i in ${FINNIX_SOURCE}/lib/modules/*; do
+    [ -d "$i" ] || continue
     MODKERNEL="$(basename $i)"
-    for MODFILE in $(findmods "$MODKERNEL" "$FINNIX_SOURCE" $IMODS); do
+    KMODS=""
+
+    # All ATA drivers
+    for k in ${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/kernel/drivers/ata/*.ko; do
+      [ -e "$k" ] || continue
+      kmod="$(basename "$k" .ko)"
+      [ "$kmod" = "pata_pcmcia" ] && continue
+      KMODS="$KMODS $kmod"
+    done
+
+    # Process found modules
+    for MODFILE in $(findmods "$MODKERNEL" "$FINNIX_SOURCE" $IMODS $KMODS); do
       MODFILEDIR="$(dirname $MODFILE)"
       [ -d "${FINNIX_INITRD}/lib/modules/$MODKERNEL/$MODFILEDIR" ] || mkdir -p "${FINNIX_INITRD}/lib/modules/$MODKERNEL/$MODFILEDIR"
       cp -a "${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/${MODFILE}" "${FINNIX_INITRD}/lib/modules/${MODKERNEL}/${MODFILEDIR}/"
     done
 
-    # All ATA drivers
-    if [ "${FINNIX_DISTARCH}" != "ppc" ]; then
-      mkdir -p ${FINNIX_INITRD}/lib/modules/${MODKERNEL}/kernel/drivers/ata/
-      cp -a ${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/kernel/drivers/ata/*.ko ${FINNIX_INITRD}/lib/modules/${MODKERNEL}/kernel/drivers/ata/
-      rm -f ${FINNIX_INITRD}/lib/modules/${MODKERNEL}/kernel/drivers/ata/pata_pcmcia.ko
-    fi
-
+    # Generate modules.order
     if [ -e "${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/modules.order" ]; then
       while read mod; do
         [ -e "${FINNIX_INITRD}/lib/modules/${MODKERNEL}/$mod" ] && echo "$mod"
@@ -353,10 +341,12 @@ if [ -f "${RELEASE_FILE}" ]; then
 fi
 
 ### calculate md5sums
+(
 cd "${FINNIX_MASTER}"
 find ${FINNIX_MASTER} -type f -not -name md5sums \
   -not -name boot.cat -not -name isolinux.bin \
   -printf '%P\0' | xargs -0 md5sum > ${FINNIX_MASTER}/md5sums
+)
 
 ### the iso itself
 rm -f ${FINNIX_ISO}
@@ -369,14 +359,16 @@ else
   genisoimage -pad -l -r -J -v -V "${ISOVOL32}" -no-emul-boot -boot-load-size 4 \
      -boot-info-table -b isolinux.bin -c boot/${FINNIX_DISTARCH}/boot.cat \
      -hide-rr-moved -o ${FINNIX_ISO} ${FINNIX_MASTER}
+  which isohybrid 2>/dev/null >/dev/null && isohybrid ${FINNIX_ISO}
 fi
 
-which isohybrid 2>/dev/null >/dev/null && isohybrid ${FINNIX_ISO}
 which implantisomd5 2>/dev/null >/dev/null && implantisomd5 ${FINNIX_ISO}
 
-if [ -n "$VANITYHASH" ]; then
-  (dd if=${FINNIX_ISO} bs=512 count=$(($(($(stat -c %s ${FINNIX_ISO}) / 512)) - 1)); dd if=/dev/zero bs=1 count=508) | vanityhash -a -b 32 -w 2 "$VANITYHASH" > ${FINNIX_ISO}.vanity
-  if [ $(($(stat -c %s ${FINNIX_ISO}.vanity) % 512)) -eq 0 ]; then
+if [ -n "$FINNIX_VANITYHASH" ]; then
+  # Note: this assumes -pad, which guarantees the last 512 bytes we chop
+  # off and modify will be all null.
+  (dd if=${FINNIX_ISO} bs=512 count=$(($(($(stat -c %s ${FINNIX_ISO}) / 512)) - 1)); dd if=/dev/zero bs=1 count=508) | vanityhash -a -b 32 -w 2 "$FINNIX_VANITYHASH" > ${FINNIX_ISO}.vanity
+  if [ -s "${FINNIX_ISO}.vanity" -a $(($(stat -c %s ${FINNIX_ISO}.vanity) % 512)) -eq 0 ]; then
     mv ${FINNIX_ISO}.vanity ${FINNIX_ISO}
   else
     echo "vanityhash apparently did not find a match!"
@@ -384,17 +376,12 @@ if [ -n "$VANITYHASH" ]; then
   fi
 fi
 
-if [ -n "${DEVTAG}" -a $(ls ${FINNIX_ISO}-LATEST_IS_* 2>/dev/null | wc -l) -gt 0 ]; then
-  rm -f ${FINNIX_ISO}-LATEST_IS_*
-  touch ${FINNIX_ISO}-LATEST_IS_${DEVTAG}
-fi
-
 rm -f ${FINNIX_ISO}.gpg
-if [ -n "$GPGUSER" ] && [ ! "$QUICK" = "yes" ]; then
-  gpg --sign --local-user "$GPGUSER" -ba -o ${FINNIX_ISO}.gpg ${FINNIX_ISO}
+if [ -n "$FINNIX_GPGUSER" ] && [ ! "$QUICK" = "yes" ]; then
+  gpg --sign --local-user "$FINNIX_GPGUSER" -ba -o ${FINNIX_ISO}.gpg ${FINNIX_ISO}
 fi
 
 echo ""
 echo "Version: ${OS_VERSION}"
 echo "Build: ${FINNIXDATE}"
-echo "$(($(($(stat -c %s ${FINNIX_ISO}) * 100)) / 193986560))% of 185 MiB Mini-CD"
+echo "Size: $(($(stat -c %s ${FINNIX_ISO}) / 1048576)) MiB ($(($(($(stat -c %s ${FINNIX_ISO}) * 100)) / 193986560))% of 185 MiB Mini-CD)"

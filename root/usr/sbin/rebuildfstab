@@ -1,6 +1,21 @@
 #!/bin/sh
 
-# Based on code originally (C) Klaus Knopper
+# finnix-hwsubmit
+# Copyright (C) 2012 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 set -e
 
@@ -8,20 +23,26 @@ PATH="/bin:/sbin:/usr/bin:/usr/sbin"
 export PATH
 umask 022
 
-TMP="/tmp/fstab.$$.tmp"
+FSTABFILE="/etc/fstab"
+PIDFILE="/var/run/rebuildfstab.pid"
+RESCANFILE="/var/run/rebuildfstab.rescan"
 ADDEDBY="Added by Finnix"
 DEVROOT="/dev"
 
-# Exit if script is already running
 [ -e /proc/partitions ] || exit
-if [ -e /var/run/rebuildfstab.pid ]; then
- if ps "$(cat /var/run/rebuildfstab.pid)" >/dev/null 2>/dev/null; then
-  touch /var/run/rebuildfstab.rescan 2>/dev/null
-  exit
- fi
- rm -f /var/run/rebuildfstab.pid
+
+# Wait a random amount of time
+sleep $(awk '{ srand($1); print rand() }' /proc/sys/kernel/random/uuid)
+
+# Exit if script is already running
+if [ -e "$PIDFILE" ]; then
+  RUNNINGPID="$(cat "$PIDFILE")"
+  if [ -n "$RUNNINGPID" -a -d "/proc/$RUNNINGPID" ]; then
+    touch "$RESCANFILE" 2>/dev/null
+    exit
+  fi
+  rm -f "$PIDFILE"
 fi
-echo "$$" >/var/run/rebuildfstab.pid
 
 if [ -f /etc/finnix/initrd.env ]; then
   . /etc/finnix/initrd.env
@@ -29,44 +50,39 @@ fi
 
 if [ "$FINNIX_FORENSIC" = "yes" ]; then
   FORENSICMSG="# fstab creation disabled in forensic mode"
-  if ! grep -q "$FORENSICMSG" /etc/fstab; then
-    echo "$FORENSICMSG" >>/etc/fstab
+  if ! grep -q "$FORENSICMSG" "$FSTABFILE"; then
+    echo "$FORENSICMSG" >>"$FSTABFILE"
   fi
   exit 0
 fi
 
+echo "$$" >"$PIDFILE"
+
 # Go through fstab and grab a list of previous entries
+TMP="$(mktemp)"
+: >"$TMP"
 PREVADDED=""
 while read line; do
-  if echo "$line" | grep -q "$ADDEDBY"'$'; then
-    PREVADDED="$PREVADDED $(echo "$line" | awk '{print $1}') "
+  if ! echo "$line" | grep -q "$ADDEDBY"'$'; then
+    echo "$line" >>"$TMP"
   fi
-done <"/etc/fstab"
+done <"$FSTABFILE"
 
 # Flush cache
 blkid -g -p
 
-# Loop through block devices, look for new entries
-MASTERADDED=""
+# Loop through block devices
 for i in `blkid -o device`; do
   FSTYPE=""
   DEVNAME="${i#/dev/}"
   MOUNTPOINT="/media/$DEVNAME"
-  #OPTIONS="noauto,users,exec"
   OPTIONS="noauto"
   case "$i" in
-    /dev/loop*|/dev/ram*|/dev/nbd*)
+    /dev/.*|/dev/loop*|/dev/ram*|/dev/nbd*)
       continue
       ;;
     /dev/fd*)
       FSTYPE="auto"
-      ;;
-  esac
-
-  case "$PREVADDED" in
-    *" $i "*)
-      MASTERADDED="$MASTERADDED $i "
-      continue
       ;;
   esac
 
@@ -92,39 +108,25 @@ EOM
     crypto_LUKS) continue ;;
     LVM2_member) continue ;;
   esac
-  if [ "$MOUNTPOINT" != "none" ]; then
+  if [ "$MOUNTPOINT" != "none" ] && [ ! -d "/media/$DEVNAME" ]; then
     mkdir -p "/media/$DEVNAME" 2>/dev/null >/dev/null
   fi
   LINEADDEDBY="$ADDEDBY"
   [ -n "$LABEL" ] && LINEADDEDBY="($LABEL) $ADDEDBY"
-  printf "%-15s %-15s %-8s %-20s %-s\n" "$i" "$MOUNTPOINT" "$FSTYPE" "$OPTIONS" "0 0 # $LINEADDEDBY" >>/etc/fstab
-  MASTERADDED="$MASTERADDED $i "
+  printf "%-15s %-15s %-8s %-20s %-s\n" "$i" "$MOUNTPOINT" "$FSTYPE" "$OPTIONS" "0 0 # $LINEADDEDBY" >>"$TMP"
 done
 
-# Weed out unused entries
-while read line; do
-  if echo "$line" | grep -q "$ADDEDBY"'$'; then
-    DEVENTRY="$(echo "$line" | awk '{print $1}')"
-    MOUNTPOINT="$(echo "$line" | awk '{print $2}')"
-    case "$MASTERADDED" in
-      *" $DEVENTRY "*)
-        echo "$line" >>"$TMP"
-        ;;
-      *)
-        rmdir "$MOUNTPOINT" 2>/dev/null >/dev/null || true
-        ;;
-    esac
-  else
-    echo "$line" >>"$TMP"
-  fi
-done <"/etc/fstab"
-mv -f "$TMP" "/etc/fstab"
+cat "$TMP" >"$FSTABFILE"
+rm -f "$TMP"
+
+# Prevent too many rebuilds from happening in succession
+sleep 3
 
 # Clean up
-rm -f /var/run/rebuildfstab.pid
+rm -f "$PIDFILE"
 
 # If another copy tried to run while we were running, rescan.
-if [ -e /var/run/rebuildfstab.rescan ]; then
-  rm -f /var/run/rebuildfstab.rescan
+if [ -e "$RESCANFILE" ]; then
+  rm -f "$RESCANFILE"
   exec $0 "$@"
 fi

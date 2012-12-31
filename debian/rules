@@ -15,10 +15,6 @@ override_dh_auto_install:
 	# Install broken (by design) symlinks
 	ln -sf /var/run/runit-control-reboot $(CURDIR)/debian/finnix-scripts/etc/runit/reboot
 	ln -sf /var/run/runit-control-stopit $(CURDIR)/debian/finnix-scripts/etc/runit/stopit
-	#ln -sf /var/run/sv.getty-tty1 $(CURDIR)/debian/finnix-scripts/lib/finnix/service.d/getty-tty1/supervise
-	#ln -sf /var/run/sv.getty-tty2 $(CURDIR)/debian/finnix-scripts/lib/finnix/service.d/getty-tty2/supervise
-	#ln -sf /var/run/sv.getty-tty3 $(CURDIR)/debian/finnix-scripts/lib/finnix/service.d/getty-tty3/supervise
-	#ln -sf /var/run/sv.getty-tty4 $(CURDIR)/debian/finnix-scripts/lib/finnix/service.d/getty-tty4/supervise
 	ln -sf runit-init $(CURDIR)/debian/finnix-scripts/sbin/init.finnix
 	ln -sf runit-init $(CURDIR)/debian/finnix-scripts/sbin/telinit.finnix
 
