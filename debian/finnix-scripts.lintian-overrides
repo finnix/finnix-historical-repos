@@ -1,9 +1,3 @@
 # Symlinks to runit
 finnix-scripts binary: binary-without-manpage sbin/init.finnix
 finnix-scripts binary: binary-without-manpage sbin/telinit.finnix
-
-# ssh.finnix is a wrapper around ssh.distrib
-finnix-scripts binary: script-in-etc-init.d-not-registered-via-update-rc.d etc/init.d/ssh.finnix
-finnix-scripts binary: init.d-script-does-not-implement-required-option etc/init.d/ssh.finnix stop
-finnix-scripts binary: init.d-script-does-not-implement-required-option etc/init.d/ssh.finnix restart
-finnix-scripts binary: init.d-script-does-not-implement-required-option etc/init.d/ssh.finnix force-reload

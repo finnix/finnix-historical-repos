@@ -9,9 +9,9 @@ B<rebuildfstab>
 =head1 DESCRIPTION
 
 B<rebuildfstab> scans for block devices.  If it determines a block 
-device is a known filesystem type (through B<fstype>), a corresponding 
-directory is added to /media, and a line in /etc/fstab is added.  
-Filesystems that disappear are removed from /etc/fstab.
+device is a valid filesystem, a corresponding directory is added to 
+/media, and a line in /etc/fstab is added.  Filesystems that disappear 
+are removed from /etc/fstab.
 
 On Finnix systems, B<rebuildfstab> is executed by udev automatically 
 upon block device changes (hotplugs, etc).  It can also be run 
@@ -27,8 +27,8 @@ None known at this time.
 
 =head1 AUTHOR
 
-B<rebuildfstab> was written by Ryan Finnie <ryan@finnie.org>, with 
-portions taken from the script of the same name by Klaus Knopper.
+B<rebuildfstab> was written by Ryan Finnie <ryan@finnie.org>.  It is a 
+rewrite of a script of the same name by Klaus Knopper.
 
 =cut
 

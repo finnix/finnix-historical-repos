@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# finnix-hwsubmit
+# rebuildfstab
 # Copyright (C) 2012 Ryan Finnie
 #
 # This program is free software; you can redistribute it and/or modify
@@ -31,10 +31,20 @@ DEVROOT="/dev"
 
 [ -e /proc/partitions ] || exit
 
-# Wait a random amount of time
-sleep $(awk '{ srand($1); print rand() }' /proc/sys/kernel/random/uuid)
+if [ -f /etc/finnix/initrd.env ]; then
+  . /etc/finnix/initrd.env
+fi
 
-# Exit if script is already running
+# Do not modify /etc/fstab in forensic mode
+if [ "$FINNIX_FORENSIC" = "yes" ]; then
+  exit 0
+fi
+
+# Stagger execution of the script
+sleep 0.$(expr $$ % 10)
+
+# Exit if script is already running, telling the other running script
+# to rescan when it's done
 if [ -e "$PIDFILE" ]; then
   RUNNINGPID="$(cat "$PIDFILE")"
   if [ -n "$RUNNINGPID" -a -d "/proc/$RUNNINGPID" ]; then
@@ -43,25 +53,11 @@ if [ -e "$PIDFILE" ]; then
   fi
   rm -f "$PIDFILE"
 fi
-
-if [ -f /etc/finnix/initrd.env ]; then
-  . /etc/finnix/initrd.env
-fi
-
-if [ "$FINNIX_FORENSIC" = "yes" ]; then
-  FORENSICMSG="# fstab creation disabled in forensic mode"
-  if ! grep -q "$FORENSICMSG" "$FSTABFILE"; then
-    echo "$FORENSICMSG" >>"$FSTABFILE"
-  fi
-  exit 0
-fi
-
 echo "$$" >"$PIDFILE"
 
-# Go through fstab and grab a list of previous entries
+# Go through fstab and grab a list of non-automatic entries
 TMP="$(mktemp)"
 : >"$TMP"
-PREVADDED=""
 while read line; do
   if ! echo "$line" | grep -q "$ADDEDBY"'$'; then
     echo "$line" >>"$TMP"

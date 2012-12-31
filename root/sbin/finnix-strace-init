@@ -19,12 +19,13 @@
 
 set -e
 
+PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+
 if [ -z "$1" ]; then
   echo "Usage: $0 /sbin/init args"
   exit 1
 fi
 
-strace -q -p $$ -f -eopen,execve -o /tmp/thestrace &
+strace -q -p $$ -f -eopen,execve -o /var/log/finnix-strace-init.trace &
 sleep 3
 exec "$@"
-

@@ -21,7 +21,6 @@ override_dh_auto_install:
 	# Documentation
 	install -m 0755 -d $(CURDIR)/debian/finnix-scripts/usr/share/man/man1
 	pod2man -c '' -r '' -s 1 man/shell-login.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/shell-login.1
-	pod2man -c '' -r '' -s 1 man/fstype.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/fstype.1
 	pod2man -c '' -r '' -s 1 man/rebuildfstab.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/rebuildfstab.1
 	pod2man -c '' -r '' -s 1 man/notfound.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/notfound.1
 	pod2man -c '' -r '' -s 1 man/finnix-chroot-dev.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-chroot-dev.1

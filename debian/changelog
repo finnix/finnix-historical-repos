@@ -1,3 +1,16 @@
+finnix-scripts (20121231.1) unstable; urgency=low
+
+  * finnix-strace-init: Change strace output to
+    /var/log/finnix-strace-init.trace
+  * rebuildfstab:
+    * General cleanup
+    * Change random wait to staggered wait (thanks sneakums)
+  * Remove unused fstype script
+  * Do not put ssh.distrib and ssh.finnix in /etc/init.d
+  * ssh.finnix: Handle both * and ! for root shadow
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 31 Dec 2012 12:13:57 -0800
+
 finnix-scripts (20121231.0) unstable; urgency=low
 
   * Optimize rebuildfstab, make udev-safe from the start

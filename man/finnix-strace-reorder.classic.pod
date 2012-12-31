@@ -11,7 +11,7 @@ B<finnix-strace-reorder.classic> <I<strace output> >I<order file>
 
 B<finnix-strace-reorder.classic> takes input in the form of strace data 
 (collected during Finnix boot by the "finnix strace" boot option, and 
-stored in /tmp/thestrace), determines which files are being opened or 
+stored in /var/log/), determines which files are being opened or 
 executed, and returns them, along with a weight.  The weight is 
 determined by the number of times the file is loaded.
 
