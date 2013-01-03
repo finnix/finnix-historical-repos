@@ -1,3 +1,0 @@
-# Symlinks to runit
-finnix-scripts binary: binary-without-manpage sbin/init.finnix
-finnix-scripts binary: binary-without-manpage sbin/telinit.finnix

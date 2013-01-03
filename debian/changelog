@@ -1,3 +1,12 @@
+finnix-scripts (20130102.0) unstable; urgency=low
+
+  * Move runit symlink generation to postinst, avoid lintian warning
+  * debian/postrm should be debian/prerm
+  * Force deletion of runit reboot/shutdown files on boot
+  * Symlink diverted init binaries directly to runit-init
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 02 Jan 2013 19:42:33 -0800
+
 finnix-scripts (20121231.1) unstable; urgency=low
 
   * finnix-strace-init: Change strace output to

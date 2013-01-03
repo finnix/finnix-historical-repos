@@ -12,12 +12,6 @@ override_dh_auto_install:
 	install -m 0755 -d $(CURDIR)/debian/finnix-scripts
 	cp -a root/* $(CURDIR)/debian/finnix-scripts
 
-	# Install broken (by design) symlinks
-	ln -sf /var/run/runit-control-reboot $(CURDIR)/debian/finnix-scripts/etc/runit/reboot
-	ln -sf /var/run/runit-control-stopit $(CURDIR)/debian/finnix-scripts/etc/runit/stopit
-	ln -sf runit-init $(CURDIR)/debian/finnix-scripts/sbin/init.finnix
-	ln -sf runit-init $(CURDIR)/debian/finnix-scripts/sbin/telinit.finnix
-
 	# Documentation
 	install -m 0755 -d $(CURDIR)/debian/finnix-scripts/usr/share/man/man1
 	pod2man -c '' -r '' -s 1 man/shell-login.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/shell-login.1

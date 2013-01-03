@@ -4,24 +4,37 @@ set -e
 #DEBHELPER#
 
 if [ "$1" = configure ] && [ -z "$2" ]; then
+  # Divert sysvinit files and symlink to runit-init
   for fn in /sbin/init /sbin/telinit; do
     if ! [ -e "$fn.distrib" ]; then
       dpkg-divert --rename --package finnix-scripts --divert "$fn.distrib" --add "$fn"
-      ln -s "$(basename $fn).finnix" "$fn"
+      ln -s runit-init "$fn"
     fi
   done
 
-  # /etc/init.d/ssh must be handled specially
-  if ! [ -e "/lib/finnix/init.d/ssh.distrib" ]; then
-    dpkg-divert --rename --package finnix-scripts --divert "/lib/finnix/init.d/ssh.distrib" --add "/etc/init.d/ssh"
-    ln -s "/lib/finnix/init.d/ssh.finnix" "/etc/init.d/ssh"
+  # Divert /etc/init.d/ssh, but make sure it is diverted out of /etc
+  if ! [ -e /lib/finnix/init.d/ssh.distrib ]; then
+    dpkg-divert --rename --package finnix-scripts --divert /lib/finnix/init.d/ssh.distrib --add /etc/init.d/ssh
+    ln -s /lib/finnix/init.d/ssh.finnix /etc/init.d/ssh
   fi
 
+  # Finnix-specific bashrc enhancements
   if ! grep /etc/bash.bashrc.finnix /etc/bash.bashrc >/dev/null 2>/dev/null; then
     echo '[ -r /etc/bash.bashrc.finnix ] && . /etc/bash.bashrc.finnix' >>/etc/bash.bashrc
   fi
 
+  # Add a finnix user
   if ! getent passwd finnix >/dev/null 2>/dev/null; then
     useradd --create-home --shell /bin/bash finnix
+  fi
+
+  # Install runit shutdown/reboot files
+  if [ ! -h /etc/runit/reboot ]; then
+    rm -f /var/run/runit-control-reboot /etc/runit/reboot
+    ln -s /var/run/runit-control-reboot /etc/runit/reboot
+  fi
+  if [ ! -h /etc/runit/stopit ]; then
+    rm -f /var/run/runit-control-stopit /etc/runit/stopit
+    ln -s /var/run/runit-control-stopit /etc/runit/stopit
   fi
 fi

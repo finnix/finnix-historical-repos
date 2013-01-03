@@ -49,3 +49,7 @@ _f12 umount /initrd
 
 # Set hostname
 hostname `cat /etc/hostname`
+
+# Remove runit shutdown/reboot config files, if they happen to exist
+rm -f /var/run/runit-control-reboot
+rm -f /var/run/runit-control-stopit
