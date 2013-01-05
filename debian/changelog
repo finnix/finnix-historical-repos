@@ -1,3 +1,12 @@
+neale-master (20130104.0) UNRELEASED; urgency=low
+
+  * Fix gcc logic change producing false errors in Memtest86+ 4.20
+    (LP: #1096110)
+  * Makefile enhancements
+  * Move patches to patches/ (and in version control)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 04 Jan 2013 22:26:48 -0800
+
 neale-master (20121229.0) unstable; urgency=low
 
   * Support parallel building of build modules

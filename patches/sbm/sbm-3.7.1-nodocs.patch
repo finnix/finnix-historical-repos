@@ -1,0 +1,14 @@
+diff -ruN sbm-3.7.1.orig/Makefile sbm-3.7.1/Makefile
+--- sbm-3.7.1.orig/Makefile	2001-02-20 16:27:04.000000000 +0000
++++ sbm-3.7.1/Makefile	2012-12-01 16:48:04.496201667 +0000
+@@ -67,8 +67,8 @@
+ ASM=		nasm $(CONFIG)
+ CC=		gcc $(COMMON_FLAGS)
+ 
+-SUBDIRS=	manager manager/themes installer docs
+-#SUBDIRS=	manager manager/themes installer
++#SUBDIRS=	manager manager/themes installer docs
++SUBDIRS=	manager manager/themes installer
+ 
+ LOADER=		$(DEST_DIR)/loader.bin
+ MAIN=		$(DEST_DIR)/main.bin
