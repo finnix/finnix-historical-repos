@@ -7,7 +7,7 @@ F1 boot/amd64/f1
 F2 boot/amd64/f2
 
 MENU BACKGROUND boot/amd64/splash.png
-MENU TITLE Finnix {VERSION}
+MENU TITLE Finnix {T:VERSION}
 MENU VSHIFT 5
 MENU ROWS 10
 MENU TABMSGROW 15
@@ -36,7 +36,7 @@ Boot Finnix with a 64-bit kernel and 1024x768 VGA console.  If the VGA
 console does not initialize, see "other boot profiles".
 ENDTEXT
 KERNEL boot/amd64/linux
-APPEND initrd=boot/amd64/{INITRD_FN} _NETOPTS_ vga=791 quiet 
+APPEND initrd=boot/amd64/{T:INITRD_FN} _NETOPTS_ vga=791 quiet 
 
 LABEL memtest
 MENU LABEL Run Memtest86+
@@ -94,7 +94,7 @@ TEXT HELP
 Boot Finnix with a 64-bit kernel in 80x24 character text mode.
 ENDTEXT
 KERNEL boot/amd64/linux
-APPEND initrd=boot/amd64/{INITRD_FN} _NETOPTS_ vga=normal quiet 
+APPEND initrd=boot/amd64/{T:INITRD_FN} _NETOPTS_ vga=normal quiet 
 
 LABEL debug
 MENU LABEL Boot Finnix (debug mode)
@@ -102,7 +102,7 @@ TEXT HELP
 Boot Finnix with a 64-bit kernel in special debugging mode.
 ENDTEXT
 KERNEL boot/amd64/linux
-APPEND initrd=boot/amd64/{INITRD_FN} _NETOPTS_ vga=normal debug 
+APPEND initrd=boot/amd64/{T:INITRD_FN} _NETOPTS_ vga=normal debug 
 
 LABEL failsafe
 MENU LABEL Boot Finnix (failsafe)
@@ -111,7 +111,7 @@ Boot Finnix with a 64-bit kernel, with as many automatic options turned
 off as possible.
 ENDTEXT
 KERNEL boot/amd64/linux
-APPEND initrd=boot/amd64/{INITRD_FN} _NETOPTS_ vga=normal noapic noacpi pnpbios=off acpi=off nofstab nodma noapm nodhcp nolvm nomouse noeject 
+APPEND initrd=boot/amd64/{T:INITRD_FN} _NETOPTS_ vga=normal noapic noacpi pnpbios=off acpi=off nofstab nodma noapm nodhcp nolvm nomouse noeject 
 
 LABEL hd0
 MENU LABEL Boot hard drive

@@ -1,9 +1,9 @@
 
 
 
-09Finnix07 version 0f{VERSION:%-20s}07                    http://www.finnix.org/
-Copyright (C) 1999-2000, 2005-{YEAR} Ryan Finnie         http://www.finnie.org/
-Compiled: {COMPILE_DATE}
+09Finnix07 version 0f{T:VERSION:%-20s}07                    http://www.finnix.org/
+Copyright (C) 1999-2000, 2005-{T:YEAR} Ryan Finnie         http://www.finnie.org/
+Compiled: {T:COMPILE_DATE}
 
 The Finnix compilation is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as published by
