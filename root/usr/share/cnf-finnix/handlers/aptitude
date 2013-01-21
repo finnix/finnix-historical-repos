@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cat >&2 <<EOM
+"aptitude" is not included due to size constraints.  To install, type
+"apt-get install aptitude".
+EOM
+exit 127

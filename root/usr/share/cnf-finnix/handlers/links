@@ -1,0 +1,8 @@
+#!/bin/sh
+
+WHAT="$(basename "$0")"
+cat >&2 <<EOM
+"$WHAT" is not included by default.  Please use "elinks" instead, or to
+install, type "apt-get install $WHAT".
+EOM
+exit 127

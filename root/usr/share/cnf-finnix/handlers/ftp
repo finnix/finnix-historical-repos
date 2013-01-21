@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cat >&2 <<EOM
+"ftp" is not included by default.  Please use "lftp" instead, or to
+install, type "apt-get install ftp".
+EOM
+exit 127

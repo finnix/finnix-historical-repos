@@ -19,10 +19,19 @@ else
   fi
 fi
 
-alias aptitude='notfound aptitude'
-alias lynx='notfound lynx'
-alias links='notfound links'
-alias ftp='notfound ftp'
+# if the command-not-found package is installed, use it
+if [ -x /usr/bin/cnf-finnix ]; then
+  function command_not_found_handle {
+    # check because cnf-finnix could've been removed in the meantime
+    if [ -x /usr/bin/cnf-finnix ]; then
+       /usr/bin/cnf-finnix -- "$1"
+       return $?
+    else
+       printf "%s: command not found\n" "$1" >&2
+       return 127
+    fi
+  }
+fi
 
 alias shredscan='badblocks -v -s -w -t random'
 alias ls='ls --color=auto'
@@ -34,4 +43,3 @@ alias l='ls -CF'
 if [ "$FINNIXDEV" = "1" ]; then
   . /etc/bash.bashrc.finnixdev
 fi
-

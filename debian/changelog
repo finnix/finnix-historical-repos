@@ -1,3 +1,13 @@
+finnix-scripts (20130120.0) unstable; urgency=low
+
+  * Replaced "notfound" with "cnf-finnix", which is more modular and a 
+    real bash command_not_found_handle handler.
+  * finnix-build-stage2: Added a better templating system for stuff 
+    templates
+  * rebuildfstab: Replaced some needlessly complex code
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 20 Jan 2013 22:07:09 -0800
+
 finnix-scripts (20130102.0) unstable; urgency=low
 
   * Move runit symlink generation to postinst, avoid lintian warning

@@ -1,0 +1,28 @@
+=head1 NAME
+
+cnf-finnix - A simple "command not found" informational program
+
+=head1 SYNOPSIS
+
+B<cnf-finnix> I<command> S<[ ignored arguments ]>
+
+=head1 DESCRIPTION
+
+B<cnf-finnix> is an informational program, similar to the 
+B<command-not-found> program, but simpler.  It is designed to be used 
+from /etc/bash.bashrc or /etc/profile.
+
+=head1 OPTIONS
+
+All arguments past the specified command are either ignored, or passed 
+to the real program
+
+=head1 BUGS
+
+None known, many assumed.
+
+=head1 AUTHOR
+
+B<cnf-finnix> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut

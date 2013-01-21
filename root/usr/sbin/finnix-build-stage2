@@ -167,13 +167,34 @@ sub findmods_loop {
 }
 BASHEOM
 }
+
+simple_template() {
+  perl - "$@" 3<&0 <<"BASHEOM"
+use strict;
+use warnings;
+
+open(FD, "<&=3");
+while(<FD>) {
+  s/\{T:(.*?)\}/process_template($1)/eg;
+  print;
+}
+close(FD);
+
+sub process_template {
+  my $in = shift;
+  my($var, $fmt);
+  if($in =~ /^(\w+):(\%.*?)$/) {
+    $var = $1; $fmt = $2;
+  } else {
+    $var = $in; $fmt = "%s";
+  }
+  return sprintf($fmt, ($ENV{"T_$var"} ? $ENV{"T_$var"} : ""));
+}
+BASHEOM
+}
 # End functions
 
-FINNIXDATECLEAN="$(date)"
-FINNIXDATE="${FINNIXDATECLEAN}"
-OS_NAME_UNDERSCORE="$(echo ${OS_NAME} | sed 's/ /_/g')"
-OS_VERSION_FMT="$(printf '%-20s' "${OS_VERSION}")"
-FVTITLE="${OS_VERSION}"
+FINNIXDATE="$(date)"
 
 ### make sure required binaries are present
 BAD_BINARIES=""
@@ -286,40 +307,43 @@ EOM
 
 fi
 
-### generate splash screens
-if [ -f ${FINNIX_STUFF}/readme.txt.content ]; then
-  cat ${FINNIX_STUFF}/readme.txt.content | sed "s/FINNIX-VERSION-NUMBR/${OS_VERSION_FMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" | perl -pe 's/\n/\r\n/g' > ${FINNIX_MASTER}/readme.txt
+export T_VERSION="$OS_VERSION"
+export T_COMPILE_DATE="$FINNIXDATE"
+export T_INITRD_FN="$INITRD_FN"
+export T_YEAR="$(date +%Y)"
+
+### generate splash screens and configs
+if [ -f "${FINNIX_STUFF}/readme.txt.content" ]; then
+  simple_template <"${FINNIX_STUFF}/readme.txt.content" | perl -pe 's/\n/\r\n/g' >"${FINNIX_MASTER}/readme.txt"
+fi
+if [ -f "${FINNIX_STUFF}/boot.msg.content" ]; then
+  simple_template <"${FINNIX_STUFF}/boot.msg.content" "${FINNIX_BOOT}/boot.msg"
 fi
 if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
-  if [ -f ${FINNIX_STUFF}/boot.msg.content ]; then
-    cat ${FINNIX_STUFF}/boot.msg.content | sed "s/FINNIX-VERSION-NUMBR/${OS_VERSION_FMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/boot.msg
+  if [ -f "${FINNIX_STUFF}/yaboot.conf.content" ]; then
+    simple_template <"${FINNIX_STUFF}/yaboot.conf.content" >"${FINNIX_BOOT}/yaboot.conf"
   fi
-  if [ -f ${FINNIX_STUFF}/yaboot.conf.content ]; then
-    cat ${FINNIX_STUFF}/yaboot.conf.content | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_BOOT}/yaboot.conf
-  fi
-  if [ -f ${FINNIX_STUFF}/yaboot_net.conf.content ]; then
-    cat ${FINNIX_STUFF}/yaboot_net.conf.content | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_BOOT}/yaboot_net.conf
+  if [ -f "${FINNIX_STUFF}/yaboot_net.conf.content" ]; then
+    simple_template <"${FINNIX_STUFF}/yaboot_net.conf.content" >"${FINNIX_BOOT}/yaboot_net.conf"
   fi
 else
-  if [ -f ${FINNIX_STUFF}/boot.msg.content ]; then
-    cat ${FINNIX_STUFF}/boot.msg.content | sed "s/FINNIX-VERSION-NUMBR/${OS_VERSION_FMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/boot.msg
+  for i in 1 2 3 4; do
+    if [ -f "${FINNIX_STUFF}/f$i.content" ]; then
+      simple_template <"${FINNIX_STUFF}/f$i.content" >"${FINNIX_BOOT}/f$i"
+    fi
+  done
+  if [ -f "${FINNIX_STUFF}/isolinux.cfg.content" ]; then
+    simple_template <"${FINNIX_STUFF}/isolinux.cfg.content" >"${FINNIX_MASTER}/isolinux.cfg"
   fi
-  if [ -f ${FINNIX_STUFF}/finnix.header ]; then
-    for i in 1 2; do
-      cat ${FINNIX_STUFF}/finnix.header ${FINNIX_STUFF}/f$i.content ${FINNIX_STUFF}/finnix.footer | sed "s/FINNIX-VERSION-NUMBR/${OS_VERSION_FMT}/g" | sed "s/FINNIX-COMPILE-DATE/${FINNIXDATE}/g" | sed "s/FYER/$(date +%Y)/g" > ${FINNIX_BOOT}/f$i
-    done
+  if [ -f "${FINNIX_STUFF}/syslinux.cfg.content" ]; then
+    simple_template <"${FINNIX_STUFF}/syslinux.cfg.content" >"${FINNIX_MASTER}/syslinux.cfg"
   fi
-  if [ -f ${FINNIX_STUFF}/isolinux.cfg.content ]; then
-    cat ${FINNIX_STUFF}/isolinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${OS_NAME}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_MASTER}/isolinux.cfg
-  fi
-  if [ -f ${FINNIX_STUFF}/syslinux.cfg.content ]; then
-    cat ${FINNIX_STUFF}/syslinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${OS_NAME}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_FN}/g" > ${FINNIX_MASTER}/syslinux.cfg
-  fi
-  if [ -f ${FINNIX_STUFF}/pxelinux.cfg.content ]; then
-    cat ${FINNIX_STUFF}/pxelinux.cfg.content | sed "s/FINNIX-NAME-TITLE/${OS_NAME}/g" | sed "s/FINNIX-VERSION-TITLE/${FVTITLE}/g" | sed "s/FINNIX-INITRD/${INITRD_NET_FN}/g" > ${FINNIX_BOOT}/pxelinux/template.cfg
+  if [ -f "${FINNIX_STUFF}/pxelinux.cfg.content" ]; then
+    simple_template <"${FINNIX_STUFF}/pxelinux.cfg.content" >"${FINNIX_BOOT}/pxelinux/template.cfg"
   fi
 fi
 
+### copy boot binaries in
 if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
   cp -a "${FINNIX_SOURCE}/usr/lib/yaboot/yaboot" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/yaboot"
 else
@@ -353,7 +377,7 @@ rm -f ${FINNIX_ISO}
 ISOVOL32="$(echo ${OS_NAME} ${OS_VERSION} | awk '{ print substr($0, 1, 32) }')"
 if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
   genisoimage -hide-rr-moved -hfs -part -map ${FINNIX_MASTER}/boot/ppc/hfs.map -no-desktop \
-    -hfs-volid "${OS_NAME_UNDERSCORE}_${OS_VERSION}" -hfs-bless ${FINNIX_BOOT} \
+    -hfs-volid "$(echo ${OS_NAME} | sed 's/ /_/g')_${OS_VERSION}" -hfs-bless ${FINNIX_BOOT} \
     -pad -l -r -J -v -V "${ISOVOL32}" -o ${FINNIX_ISO} ${FINNIX_MASTER}
 else
   genisoimage -pad -l -r -J -v -V "${ISOVOL32}" -no-emul-boot -boot-load-size 4 \

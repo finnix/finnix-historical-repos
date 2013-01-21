@@ -57,12 +57,7 @@ echo "$$" >"$PIDFILE"
 
 # Go through fstab and grab a list of non-automatic entries
 TMP="$(mktemp)"
-: >"$TMP"
-while read line; do
-  if ! echo "$line" | grep -q "$ADDEDBY"'$'; then
-    echo "$line" >>"$TMP"
-  fi
-done <"$FSTABFILE"
+grep -v "$ADDEDBY"'$' <"$FSTABFILE" >"$TMP"
 
 # Flush cache
 blkid -g -p
