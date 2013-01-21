@@ -1,7 +1,7 @@
-Finnix version FINNIX-VERSION-NUMBR                     http://www.finnix.org/
-Copyright (C) 1999-2000, 2005-FYER Ryan Finnie          http://www.finnie.org/
+Finnix version {VERSION:%-20s}                   http://www.finnix.org/
+Copyright (C) 1999-2000, 2005-{YEAR} Ryan Finnie        http://www.finnie.org/
 
-Compiled: FINNIX-COMPILE-DATE
+Compiled: {COMPILE_DATE}
 
 Finnix is a self-contained, bootable Linux CD distribution ("LiveCD") 
 for system administrators, based on Debian testing. You can mount and 
