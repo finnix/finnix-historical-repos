@@ -125,15 +125,20 @@ if [ -x /busybin/sh ]; then
 
   # Get rid of the compressed root filesystem
   _f12 umount -drfl /FINNIX
+
+  # Now we should be able to umount the rest.
+  for mount in $(awk '$3 !~ "^(tmpfs|sysfs|proc)$" { print $2 }' /proc/mounts); do
+    _f12 umount -drfl "$mount"
+  done
+else
+  # umount everything we can, everything else is ro
+  for mount in $(awk '$3 !~ "^(tmpfs|sysfs|proc)$" { print $2 }' /proc/mounts); do
+    _f12 umount -dr "$mount"
+  done
 fi
 
-# Remove remaining unused modules (Kernel 2.4)
+# Remove remaining unused modules
 _f12 rmmod -a
-# Now we should be able to umount the rest.
-for mount in $(awk '$3 !~ "^(tmpfs|sysfs|proc)$" && $2 != "/" { print $2 }' /proc/mounts); do
-  _f12 umount -drfl "$mount"
-done
-_f12 mount -o remount,ro /
 
 echo -n "done${CRE}"
 
@@ -144,19 +149,17 @@ sync; sync;
 
 # Thank you, you've been a great audience.
 echo "${CRE}${BLUEITEM} It is now safe to shut down/reboot."
-READCMD="wait"
 for i in 5 4 3 2 1; do
   echo -n "${CRE}${BLUEITEM} $message in $i (or press ENTER to $message2 immediately)..."
   # Give the user an opportunity to press Enter to immediately shut
   # down/reboot, or "d" to get to the debug shell.
-  read -t 2 READCMD
-  if [ -z "$READCMD" ]; then
-    break
-  elif [ "$READCMD" = "d" ]; then
-    FINNIX_DEBUG="yes"
-    break
-  else
-    READCMD="wait"
+  if read -t 2 READCMD; then
+    if [ -z "$READCMD" ]; then
+      break
+    elif [ "$READCMD" = "d" ]; then
+      FINNIX_DEBUG="yes"
+      break
+    fi
   fi
 done
 

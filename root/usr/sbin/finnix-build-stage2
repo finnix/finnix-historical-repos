@@ -317,7 +317,7 @@ if [ -f "${FINNIX_STUFF}/readme.txt.content" ]; then
   simple_template <"${FINNIX_STUFF}/readme.txt.content" | perl -pe 's/\n/\r\n/g' >"${FINNIX_MASTER}/readme.txt"
 fi
 if [ -f "${FINNIX_STUFF}/boot.msg.content" ]; then
-  simple_template <"${FINNIX_STUFF}/boot.msg.content" "${FINNIX_BOOT}/boot.msg"
+  simple_template <"${FINNIX_STUFF}/boot.msg.content" >"${FINNIX_BOOT}/boot.msg"
 fi
 if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
   if [ -f "${FINNIX_STUFF}/yaboot.conf.content" ]; then

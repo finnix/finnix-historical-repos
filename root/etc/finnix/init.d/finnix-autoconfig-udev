@@ -36,9 +36,16 @@ mkdir -p /var/run/udev
 _f12 invoke-rc.d udev start
 echo -n "done${CRE}"
 
-# /dev/pts and /dev/shm (needed right after udev)
+# /dev/pts (needed right after udev)
 stringinfile "/dev/pts" /proc/mounts || _f12 mount -t devpts devpts /dev/pts
-stringinfile "/dev/shm" /proc/mounts || _f12 mount -t tmpfs devshm /dev/shm
+
+# Unless udev did a /dev/shm mount, symlink it to /run/shm
+if ! stringinfile "/dev/shm" /proc/mounts; then
+  mkdir -p /run/shm
+  chmod 1777 /run/shm
+  _f12 rm -rf /dev/shm
+  ln -s /run/shm /dev/shm
+fi
 
 # If mtab is a regular file, futz around with it
 # If it's a symlink, leave it alone

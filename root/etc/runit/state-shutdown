@@ -2,6 +2,14 @@
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
-cp /etc/runit/state-shutdown-real /busybin/
-cd /
-exec /busybin/sh /busybin/state-shutdown-real "$@"
+# NB: Only bash and busybin ash are supported, due to requiring
+# "read -t"
+if [ -x /busybin/sh ]; then
+  # Using busybin allows for clean CD ejection
+  cp /etc/runit/state-shutdown-real /busybin/
+  cd /
+  exec /busybin/sh /busybin/state-shutdown-real "$@"
+else
+  cd /
+  exec /bin/bash /etc/runit/state-shutdown-real "$@"
+fi

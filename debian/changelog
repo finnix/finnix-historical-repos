@@ -1,3 +1,12 @@
+finnix-scripts (20130126.0) unstable; urgency=low
+
+  * Use the existing root tmpfs for /dev/shm
+  * Allow for (mostly) clean (but no CD ejection) shutdown if /busybin 
+    has been removed
+  * Fix boot.msg template syntax error
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 26 Jan 2013 20:35:51 -0800
+
 finnix-scripts (20130120.1) unstable; urgency=low
 
   * bash.bashrc.finnix: Fix command_not_found_handle error
