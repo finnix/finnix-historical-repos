@@ -1,3 +1,11 @@
+finnix-scripts (20130128.0) unstable; urgency=low
+
+  * Allow for immediate input during shutdown timer
+  * state-shutdown-real: Use bash shebang (but actually call it from
+    busybox ash if /busybin exists)
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 28 Jan 2013 21:18:41 -0800
+
 finnix-scripts (20130126.0) unstable; urgency=low
 
   * Use the existing root tmpfs for /dev/shm

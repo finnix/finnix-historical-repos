@@ -1,4 +1,17 @@
-#!/bin/sh
+#!/bin/bash
+
+# Note: While the shebang says /bin/bash, this script must be written to
+# also be run as a busybox ash script (a small superset of POSIX shell).
+# The only reason it's not /bin/sh is because of "read -t", which is
+# supported in bash and ash, but not POSIX shell.
+
+# state-shutdown-real
+# Copyright (C) 2013 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
@@ -33,14 +46,11 @@ if [ -x /etc/runit/reboot ]; then
   message="Rebooting"
   message2="reboot"
   command="reboot"
-  #options="-d -i -f -n"
   options="-f -n"
 else
   RUNLEVEL=0
   message="Shutting down"
   message2="shut down"
-  #command="halt"
-  #options="-p -d -i -f -n"
   command="poweroff"
   options="-f -n"
 fi
@@ -149,11 +159,12 @@ sync; sync;
 
 # Thank you, you've been a great audience.
 echo "${CRE}${BLUEITEM} It is now safe to shut down/reboot."
-for i in 5 4 3 2 1; do
+for i in 10 9 8 7 6 5 4 3 2 1; do
   echo -n "${CRE}${BLUEITEM} $message in $i (or press ENTER to $message2 immediately)..."
   # Give the user an opportunity to press Enter to immediately shut
   # down/reboot, or "d" to get to the debug shell.
-  if read -t 2 READCMD; then
+  if read -t 1 -n 1 READCMD; then
+    echo -n "${CRE}"
     if [ -z "$READCMD" ]; then
       break
     elif [ "$READCMD" = "d" ]; then
