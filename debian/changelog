@@ -1,3 +1,10 @@
+finnix-scripts (20130205.0) unstable; urgency=low
+
+  * Fix initrd net template generation
+  * Add space-saving apt defaults
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 05 Feb 2013 18:47:55 -0800
+
 finnix-scripts (20130128.0) unstable; urgency=low
 
   * Allow for immediate input during shutdown timer

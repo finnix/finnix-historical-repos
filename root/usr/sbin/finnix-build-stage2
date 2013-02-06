@@ -324,7 +324,7 @@ if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
     simple_template <"${FINNIX_STUFF}/yaboot.conf.content" >"${FINNIX_BOOT}/yaboot.conf"
   fi
   if [ -f "${FINNIX_STUFF}/yaboot_net.conf.content" ]; then
-    simple_template <"${FINNIX_STUFF}/yaboot_net.conf.content" >"${FINNIX_BOOT}/yaboot_net.conf"
+    T_INITRD_FN="$INITRD_NET_FN" simple_template <"${FINNIX_STUFF}/yaboot_net.conf.content" >"${FINNIX_BOOT}/yaboot_net.conf"
   fi
 else
   for i in 1 2 3 4; do
@@ -339,7 +339,7 @@ else
     simple_template <"${FINNIX_STUFF}/syslinux.cfg.content" >"${FINNIX_MASTER}/syslinux.cfg"
   fi
   if [ -f "${FINNIX_STUFF}/pxelinux.cfg.content" ]; then
-    simple_template <"${FINNIX_STUFF}/pxelinux.cfg.content" >"${FINNIX_BOOT}/pxelinux/template.cfg"
+    T_INITRD_FN="$INITRD_NET_FN" simple_template <"${FINNIX_STUFF}/pxelinux.cfg.content" >"${FINNIX_BOOT}/pxelinux/template.cfg"
   fi
 fi
 
