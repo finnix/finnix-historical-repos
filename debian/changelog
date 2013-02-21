@@ -1,3 +1,9 @@
+finnix-release (108~3) unstable; urgency=low
+
+  * Treat /etc/lsb-release as a divertable file
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 20 Feb 2013 23:28:03 -0800
+
 finnix-release (108~2) unstable; urgency=low
 
   * Fix incorrect DISTRIB_CODENAME

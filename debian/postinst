@@ -6,7 +6,7 @@ set -e
 if [ "$1" = configure ]; then
   ln -sf finnix /etc/dpkg/origins/default
 
-  for fn in /etc/os-release; do
+  for fn in /etc/os-release /etc/lsb-release; do
     if ! [ -e "$fn.distrib" ]; then
       dpkg-divert --rename --package finnix-release --divert "$fn.distrib" --add "$fn"
       ln -s "$(basename $fn).finnix" "$fn"

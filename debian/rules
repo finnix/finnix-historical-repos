@@ -10,7 +10,7 @@
 override_dh_auto_install:
 	install -m 0755 -d $(CURDIR)/debian/finnix-release
 	cp -a $(CURDIR)/root/* $(CURDIR)/debian/finnix-release
-	$(CURDIR)/build-os-release $(CURDIR)/debian/finnix-release/etc/lsb-release $(CURDIR)/debian/finnix-release/etc/os-release.finnix
+	$(CURDIR)/build-os-release $(CURDIR)/debian/finnix-release/etc/lsb-release.finnix $(CURDIR)/debian/finnix-release/etc/os-release.finnix
 
 override_dh_md5sums:
 	dh_md5sums -x
