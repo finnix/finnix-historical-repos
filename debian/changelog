@@ -1,3 +1,9 @@
+finnix-scripts (20130220.0) unstable; urgency=low
+
+  * Treat /etc/lsb-base-logging.sh as divertable
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 20 Feb 2013 23:41:34 -0800
+
 finnix-scripts (20130205.0) unstable; urgency=low
 
   * Fix initrd net template generation
