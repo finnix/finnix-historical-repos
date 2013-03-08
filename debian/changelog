@@ -1,3 +1,9 @@
+finnix-scripts (20130221.0) unstable; urgency=low
+
+  * Fix /etc/lsb-base-logging.sh diversion
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 21 Feb 2013 00:37:47 -0800
+
 finnix-scripts (20130220.0) unstable; urgency=low
 
   * Treat /etc/lsb-base-logging.sh as divertable

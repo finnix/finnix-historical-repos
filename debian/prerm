@@ -4,7 +4,7 @@ set -e
 #DEBHELPER#
 
 if [ "$1" = remove ]; then
-  # Remove runit diversions
+  # Remove diversions
   for fn in /etc/lsb-base-logging.sh /sbin/init /sbin/telinit; do
     if [ -e "$fn.distrib" ]; then
       rm -f "$fn"
