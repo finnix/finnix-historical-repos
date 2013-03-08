@@ -4,13 +4,32 @@
 # hardening options at build time
 export DEB_BUILD_HARDENING=1
 
+override_dh_clean:
+	$(RM) -rf $(CURDIR)/build-gdisk
+	$(RM) -rf $(CURDIR)/build-gdisk-noicu
+	$(MAKE) clean
+	dh_clean
+
+override_dh_auto_build:
+	install -d $(CURDIR)/build-gdisk
+	$(MAKE) -C $(CURDIR)/build-gdisk -f ../Makefile VPATH=..
+	install -d $(CURDIR)/build-gdisk-noicu
+	$(MAKE) -C $(CURDIR)/build-gdisk-noicu -f ../Makefile VPATH=.. USE_ICU=0
+
 # Upstream Makefile don't provide install rule
 override_dh_install:
-	install -D gdisk  $(CURDIR)/debian/gdisk-noicu/sbin/gdisk
-	install -D sgdisk $(CURDIR)/debian/gdisk-noicu/sbin/sgdisk
-	install -D cgdisk $(CURDIR)/debian/gdisk-noicu/sbin/cgdisk
-	install -D fixparts $(CURDIR)/debian/gdisk-noicu/sbin/fixparts
+	# gdisk
+	install -D build-gdisk/gdisk  $(CURDIR)/debian/gdisk/sbin/gdisk
+	install -D build-gdisk/sgdisk $(CURDIR)/debian/gdisk/sbin/sgdisk
+	install -D build-gdisk/cgdisk $(CURDIR)/debian/gdisk/sbin/cgdisk
+	install -D build-gdisk/fixparts $(CURDIR)/debian/gdisk/sbin/fixparts
+	# gdisk-noicu
+	install -D build-gdisk-noicu/gdisk  $(CURDIR)/debian/gdisk-noicu/sbin/gdisk
+	install -D build-gdisk-noicu/sgdisk $(CURDIR)/debian/gdisk-noicu/sbin/sgdisk
+	install -D build-gdisk-noicu/cgdisk $(CURDIR)/debian/gdisk-noicu/sbin/cgdisk
+	install -D build-gdisk-noicu/fixparts $(CURDIR)/debian/gdisk-noicu/sbin/fixparts
 	# install index page for doc-base
+	install -D debian/index.html $(CURDIR)/debian/gdisk/usr/share/doc/gdisk/index.html
 	install -D debian/index.html $(CURDIR)/debian/gdisk-noicu/usr/share/doc/gdisk-noicu/index.html
 
 %:

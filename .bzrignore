@@ -1,4 +1,7 @@
 ./files
+./gdisk
+./gdisk.debhelper.log
+./gdisk.substvars
 ./gdisk-noicu
 ./gdisk-noicu.debhelper.log
 ./gdisk-noicu.substvars

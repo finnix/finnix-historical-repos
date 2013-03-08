@@ -1,3 +1,10 @@
+gdisk (0.8.5-1+finnix3) unstable; urgency=low
+
+  * Migrate back to a gdisk source package, with a both gdisk and
+    gdisk-noicu binary packages (see: #702544)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 08 Mar 2013 00:18:50 -0800
+
 gdisk-noicu (0.8.5-1+finnix2) unstable; urgency=low
 
   * Migrate to xz packaging, add ignore options (LP: #1082283)
