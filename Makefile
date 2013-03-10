@@ -49,6 +49,7 @@ build/memtest-stamp:
 	rm -rf build/memtest
 	mkdir -p build/memtest
 	tar -ax --strip-components=1 -C build/memtest -f sources/memtest/memtest86+-4.20.tar.gz
+	patch -d build/memtest -p1 <patches/memtest/memtest86+-4.20-finnix.patch
 	patch -d build/memtest -p1 <patches/memtest/memtest86+-4.20-773569.patch
 	make -C build/memtest memtest.bin
 	install -m 0755 -d binaries
