@@ -3,4 +3,13 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 /etc/finnix/init.d/rcS
-cat /run/initctl >/dev/null &
+
+# /sbin/halt et al will try to send a signal to /run/initctl.  It will
+# handle the lack of this fifo gracefully, but will still emit a
+# warning. Let's pretend we actually handle this.
+INITCTL="/run/initctl"
+if [ ! -p "$INITCTL" ]; then
+  rm -f "$INITCTL"
+  mknod -m 600 "$INITCTL" p
+fi
+cat /run/initctl >/dev/null 2>/dev/null &

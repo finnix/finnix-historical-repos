@@ -1,3 +1,9 @@
+finnix-scripts (20130323.0) unstable; urgency=low
+
+  * Create /run/initctl if it does not exist.
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 23 Mar 2013 15:16:46 -0700
+
 finnix-scripts (20130221.0) unstable; urgency=low
 
   * Fix /etc/lsb-base-logging.sh diversion
