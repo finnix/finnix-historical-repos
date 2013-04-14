@@ -1,3 +1,9 @@
+finnix-scripts (20130414.0) unstable; urgency=low
+
+  * Add /boot/grub/loopback.cfg support (LP: #1168959)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 14 Apr 2013 14:03:58 -0700
+
 finnix-scripts (20130323.0) unstable; urgency=low
 
   * Create /run/initctl if it does not exist.

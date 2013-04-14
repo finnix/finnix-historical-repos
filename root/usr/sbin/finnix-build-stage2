@@ -324,7 +324,9 @@ if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
     simple_template <"${FINNIX_STUFF}/yaboot.conf.content" >"${FINNIX_BOOT}/yaboot.conf"
   fi
   if [ -f "${FINNIX_STUFF}/yaboot_net.conf.content" ]; then
-    T_INITRD_FN="$INITRD_NET_FN" simple_template <"${FINNIX_STUFF}/yaboot_net.conf.content" >"${FINNIX_BOOT}/yaboot_net.conf"
+    export T_INITRD_FN="$INITRD_NET_FN"
+    simple_template <"${FINNIX_STUFF}/yaboot_net.conf.content" >"${FINNIX_BOOT}/yaboot_net.conf"
+    export T_INITRD_FN="$INITRD_FN"
   fi
 else
   for i in 1 2 3 4; do
@@ -339,7 +341,13 @@ else
     simple_template <"${FINNIX_STUFF}/syslinux.cfg.content" >"${FINNIX_MASTER}/syslinux.cfg"
   fi
   if [ -f "${FINNIX_STUFF}/pxelinux.cfg.content" ]; then
-    T_INITRD_FN="$INITRD_NET_FN" simple_template <"${FINNIX_STUFF}/pxelinux.cfg.content" >"${FINNIX_BOOT}/pxelinux/template.cfg"
+    export T_INITRD_FN="$INITRD_NET_FN"
+    simple_template <"${FINNIX_STUFF}/pxelinux.cfg.content" >"${FINNIX_BOOT}/pxelinux/template.cfg"
+    export T_INITRD_FN="$INITRD_FN"
+  fi
+  if [ -f "${FINNIX_STUFF}/grub-loopback.cfg.content" ]; then
+    mkdir -p "${FINNIX_MASTER}/boot/grub"
+    simple_template <"${FINNIX_STUFF}/grub-loopback.cfg.content" >"${FINNIX_MASTER}/boot/grub/loopback.cfg"
   fi
 fi
 
