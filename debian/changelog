@@ -1,3 +1,9 @@
+finnix-standard (20130414.0) unstable; urgency=low
+
+  * Add nickstat (LP: #1168856)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 14 Apr 2013 04:23:47 -0700
+
 finnix-standard (107) unstable; urgency=low
 
   * Finnix 107
