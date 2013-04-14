@@ -1,0 +1,15 @@
+menuentry "Boot Finnix AMD64 {T:VERSION}" {
+        linux /boot/amd64/linux findiso=${iso_path} vga=791 quiet --
+        initrd /boot/amd64/{T:INITRD_FN}
+}
+menuentry "Run Memtest86+ (Finnix AMD64 {T:VERSION})" {
+        linux16 /boot/amd64/memtest
+}
+menuentry "Boot Finnix AMD64 {T:VERSION} (text mode)" {
+        linux /boot/amd64/linux findiso=${iso_path} vga=normal quiet --
+        initrd /boot/amd64/{T:INITRD_FN}
+}
+menuentry "Boot Finnix AMD64 {T:VERSION} (debug)" {
+        linux /boot/amd64/linux findiso=${iso_path} vga=normal debug --
+        initrd /boot/amd64/{T:INITRD_FN}
+}

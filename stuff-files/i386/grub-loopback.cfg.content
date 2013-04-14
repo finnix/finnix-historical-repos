@@ -1,0 +1,27 @@
+menuentry "Boot Finnix {T:VERSION} (64-bit)" {
+        linux /boot/x86/linux64 findiso=${iso_path} vga=791 quiet --
+        initrd /boot/x86/{T:INITRD_FN}
+}
+menuentry "Boot Finnix {T:VERSION} (32-bit)" {
+        linux /boot/x86/linux findiso=${iso_path} vga=791 quiet --
+        initrd /boot/x86/{T:INITRD_FN}
+}
+menuentry "Run Memtest86+ (Finnix {T:VERSION})" {
+        linux16 /boot/x86/memtest
+}
+menuentry "Boot Finnix {T:VERSION} (64-bit, text mode)" {
+        linux /boot/x86/linux64 findiso=${iso_path} vga=normal quiet --
+        initrd /boot/x86/{T:INITRD_FN}
+}
+menuentry "Boot Finnix {T:VERSION} (32-bit, text mode)" {
+        linux /boot/x86/linux findiso=${iso_path} vga=normal quiet --
+        initrd /boot/x86/{T:INITRD_FN}
+}
+menuentry "Boot Finnix {T:VERSION} (64-bit, debug)" {
+        linux /boot/x86/linux64 findiso=${iso_path} vga=normal debug --
+        initrd /boot/x86/{T:INITRD_FN}
+}
+menuentry "Boot Finnix {T:VERSION} (32-bit, debug)" {
+        linux /boot/x86/linux findiso=${iso_path} vga=normal debug --
+        initrd /boot/x86/{T:INITRD_FN}
+}
