@@ -1,3 +1,9 @@
+neale-kernel (20130413.0) unstable; urgency=low
+
+  * Debian 3.8.5-1~experimental.1
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 13 Apr 2013 22:36:39 -0700
+
 neale-kernel (20121229.0) unstable; urgency=low
 
   * Allow standard "dpkg-buildpackage -b -jN" concurrency
