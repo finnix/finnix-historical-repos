@@ -106,12 +106,6 @@ echo -n "${BLUEITEM} Turning off swap... "
 _f12 swapoff -a
 echo -n "done${CRE}"
 
-if [ "${FINNIX_NOEJECT}" = "no" ]; then
-  # Turn on autoeject of CD-Roms
-  for dev in /proc/sys/dev/cdrom*/lock; do [ -f "$dev" ] && echo 0 > "$dev"; done
-  for dev in /proc/sys/dev/cdrom*/autoeject; do [ -f "$dev" ] && echo 1 > "$dev"; done
-fi
-
 # Now umount everything but root
 echo -n "${BLUEITEM} Unmounting remaining file systems... "
 
@@ -156,6 +150,13 @@ echo -n "done${CRE}"
 # (Yes, I'm old school and still sync twice)
 sync; sync;
 [ -e /proc/sys/kernel/ctrl-alt-del ] && echo 1 >/proc/sys/kernel/ctrl-alt-del
+
+# Eject the CD
+if [ "${FINNIX_NOEJECT}" = "no" ]; then
+  if [ -n "${FINNIX_DEV}" ]; then
+    _f12 eject "${FINNIX_DEV}"
+  fi
+fi
 
 # Thank you, you've been a great audience.
 echo "${CRE}${BLUEITEM} It is now safe to shut down/reboot."
