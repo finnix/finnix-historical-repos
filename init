@@ -607,18 +607,12 @@ if [ -n "$TORAM" -a -n "${FINNIX_CDBASE}" ]; then
     unset TORAM
     rm -rf ${FINNIX_CDBASE}_ramdisk
   else
-    if [ "${FINNIX_NOEJECT}" = "no" ]; then
-      # At this point, all of this code block is to simply eject the CD.
-      # Turn on autoeject of CD-Roms
-      for dev in /proc/sys/dev/cdrom*/lock; do [ -f "$dev" ] && echo 0 > "$dev"; done
-      for dev in /proc/sys/dev/cdrom*/autoeject; do [ -f "$dev" ] && echo 1 > "$dev"; done
-    fi
-    # Unmount the device, triggering CD ejection
+    # Unmount the device and eject
     _f12 umount ${FINNIX_CDBASE}
     if [ "${FINNIX_NOEJECT}" = "no" ]; then
-      # Bring everything back to normal after ejection
-      for dev in /proc/sys/dev/cdrom*/lock; do [ -f "$dev" ] && echo 1 > "$dev"; done
-      for dev in /proc/sys/dev/cdrom*/autoeject; do [ -f "$dev" ] && echo 0 > "$dev"; done
+      if [ -n "${FINNIX_DEV}" ]; then
+        _f12 eject "${FINNIX_DEV}"
+      fi
     fi
     # At this point /ramdisk/cdrom is empty and /ramdisk/cdrom_ramdisk is populated.  Fix that.
     rm -rf ${FINNIX_CDBASE}
