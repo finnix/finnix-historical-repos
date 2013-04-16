@@ -1,6 +1,6 @@
-grub-finnix (107) UNRELEASED; urgency=low
+grub-loopback-iso (1) UNRELEASED; urgency=low
 
   * Initial release. (Closes: #693774)
     (See also: LP: #1080572)
 
- -- Ryan Finnie <ryan@finnie.org>  Tue, 20 Nov 2012 06:47:46 +0000
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 16 Apr 2013 00:10:20 +0000

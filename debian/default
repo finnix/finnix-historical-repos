@@ -1,13 +1,5 @@
-# To build GRUB 2 menu entries for Finnix ISOs, specify the location 
+# To build GRUB 2 menu entries for loopback ISOs, specify the location 
 # here.  This can either be a single ISO, or a directory containing 
-# multiple Finnix ISOs.
+# multiple loopback ISOs.
 #
-# Note that there are several restrictions, both from GRUB 2 and Finnix, 
-# regarding where the ISO may be booted from (type of partition, 
-# filesystem, etc).  Please see the package's README.Debian file for 
-# details.
-#
-FINNIX_ISO="/boot/finnix"
-
-# Extra options may be passed to Finnix here.
-EXTRA_OPTS="quiet"
+LOOPBACK_ISO="/boot/loopback-iso"

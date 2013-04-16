@@ -1,40 +1,20 @@
 == About ==
 
-grub-finnix is a package which hooks into Debian's update-grub2 
-configuration system, and builds GRUB 2 stanzas for booting a compatible 
-Finnix ISO.
+grub-loopback-iso is a GRUB 2 configuration hook to boot compatible
+ISOs stored on the host filesystem. The stanzas built utilize GRUB
+2's loopback mount support to chain a /boot/grub/loopback.cfg file on
+an ISO.
 
 == Installation ==
 
-Download a compatible Finnix release ISO from http://www.finnix.org/ .  
-The earliest supported release is:
+Place compatible ISOs in a suitable location.  By default, this is 
+/boot/loopback-isos, but may be changed by editing 
+/etc/default/grub-loopback-iso (for example, if the /boot partition is 
+too small).  However, keep in mind that the ISO's operating system may 
+have restrictions on what type of partition the ISO may be placed on; it 
+is the ISO's operating system (initrd most likely) which is responsible 
+for finding the ISO by scanning partitions, so the partition and 
+filesystem must be known to the ISO operating system.
 
-    Finnix 107
-
-The most recent known (as of the time of this writing) supported release 
-is:
-
-    Finnix 107
-
-Though there is a good chance later releases will work with grub-finnix.
-
-Place the ISO somewhere on the system, keeping in mind the following 
-restrictions:
-
- 1. Finnix's first-stage boot cannot look for the ISO on LVM partitions, 
-    encrypted partitions, etc, even though GRUB 2 can.  In general, you 
-    are restricted to straight MBR or GPT partitions.
-
- 2. The filesystem must be ext2, ext3 or fat32 (or technically isofs or 
-    SquashFS) for Finnix to be able to find the ISO.  Note that, at this 
-    time, ext4 is not compatible, as Finnix's first-stage boot only 
-    includes the ext2 module, which is forwards compatible with ext3, 
-    but not ext4.
-
-Once the ISO is placed, edit /etc/default/grub-finnix and set FINNIX_ISO 
-to the location of the ISO.  By default, this is set to /boot/finnix, 
-meaning you can create the directory /boot/finnix and place one or more 
-finnix ISOs in there.
-
-Then simply run "update-grub2", and verify the Finnix stanzas have been 
+Then simply run "update-grub2", and verify the correct stanzas have been 
 created in /boot/grub/grub.cfg .

@@ -1,19 +1,17 @@
-Source: grub-finnix
+Source: grub-loopback-iso
 Section: admin
 Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
 Build-Depends: debhelper (>= 7.0.50~)
 Standards-Version: 3.9.4
-Vcs-Browser: https://code.launchpad.net/~finnix/finnix/grub-finnix-pkg
-Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/grub-finnix-pkg
+Vcs-Browser: https://code.launchpad.net/~finnix/finnix/grub-loopback-iso-pkg
+Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/grub-loopback-iso-pkg
 
-Package: grub-finnix
+Package: grub-loopback-iso
 Architecture: i386 amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}, grub-pc (>= 1.99-1)
-Description: Boot a Finnix rescue/maintenance ISO from GRUB 2
- grub-finnix is a GRUB 2 configuration hook to boot compatible versions
- of Finnix, a Debian-based rescue and maintenance LiveCD distribution,
- from ISOs stored on the host filesystem. The stanzas built utilize GRUB
- 2's loopback mount support to boot a Finnix kernel and initrd, and
- passes the location of the ISO to Finnix.  Finnix's first-stage initrd
- then searches for the partition containing the specified ISO.
+Description: Boot a compatible loopback ISO from GRUB 2
+ grub-loopback-iso is a GRUB 2 configuration hook to boot compatible
+ ISOs stored on the host filesystem. The stanzas built utilize GRUB
+ 2's loopback mount support to chain a /boot/grub/loopback.cfg file on
+ an ISO.

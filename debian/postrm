@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# grub-finnix is just a grub.d hook, so we don't want to call
+# grub-loopback-iso is just a grub.d hook, so we don't want to call
 # update-grub2 on remove (the grub.d file would still be around), just
 # purge.
 if [ "$1" = purge ]; then

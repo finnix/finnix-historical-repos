@@ -1,4 +1,4 @@
 debian/files
-debian/grub-finnix
-debian/grub-finnix.debhelper.log
-debian/grub-finnix.substvars
+debian/grub-loopback-iso
+debian/grub-loopback-iso.debhelper.log
+debian/grub-loopback-iso.substvars
