@@ -133,30 +133,32 @@ while(my $l = <FILE>) {
 }
 close(FILE);
 
-my @toreturn = findmods_loop($kver, $base, @ARGV[2..$#ARGV]);
+my @toreturn = findmods_loop($kver, @ARGV[2..$#ARGV]);
 foreach my $m (@toreturn) {
   print "$m\n";
 }
 
 sub findmods_loop {
   my $kver = shift;
-  my $base = shift;
-  $base = "/" unless $base;
   my %toreturn_hash = ();
   foreach my $modfile (@_) {
     if(substr($modfile, 0, 1) eq "/") {
       $modfile =~ s,^/lib/modules/$kver/,,;
     }
     unless(substr($modfile, -3, 3) eq ".ko") {
-      $modfile = $modloc{"$modfile.ko"};
+      if($modloc{"$modfile.ko"}) {
+        $modfile = $modloc{"$modfile.ko"};
+      } else {
+        print STDERR "Cannot find $kver $modfile\n";
+        next;
+      }
     }
-    next unless $modfile;
     $toreturn_hash{$modfile}++;
     if($moddep{$modfile}) {
       foreach my $dep (split(/\s+/, $moddep{$modfile})) {
         unless($toreturn_hash{$dep}) {
           $toreturn_hash{$dep}++;
-          foreach my $subdep (findmods_loop($kver, $base, $dep)) {
+          foreach my $subdep (findmods_loop($kver, $dep)) {
             $toreturn_hash{$subdep}++;
           }
         }
@@ -225,7 +227,7 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   # Block devices
   IMODS="${IMODS} floppy loop"
   # Filesystems
-  IMODS="${IMODS} ext2 isofs vfat nls_cp437 nls_utf8 unionfs aufs squashfs"
+  IMODS="${IMODS} ext2 ext3 ext4 isofs vfat nls_cp437 nls_utf8 unionfs aufs squashfs"
   # Xen modules
   IMODS="${IMODS} xen-blkfront xenfs"
   # zram
@@ -295,13 +297,13 @@ EOM
   ### cpio for ramdisk
   rm -f ${FINNIX_BOOT}/initrd.gz ${FINNIX_BOOT}/initrd.xz ${FINNIX_BOOT}/initrd
   if [ "$QUICK" = "yes" ]; then
-    INITRD_FN=initrd; (cd ${FINNIX_INITRD} ; find . | cpio --verbose -o -H newc >${FINNIX_BOOT}/initrd; chmod 0644 ${FINNIX_BOOT}/initrd)
+    INITRD_FN=initrd; (cd ${FINNIX_INITRD} ; find . | cpio -o -H newc >${FINNIX_BOOT}/initrd; chmod 0644 ${FINNIX_BOOT}/initrd)
     INITRD_NET_FN=initrd_net
   elif [ "$QUICK" = "sorta" ]; then
-    INITRD_FN=initrd.gz; (cd ${FINNIX_INITRD} ; find . | cpio --verbose -o -H newc | gzip -9 -c >${FINNIX_BOOT}/initrd.gz; chmod 0644 ${FINNIX_BOOT}/initrd.gz)
+    INITRD_FN=initrd.gz; (cd ${FINNIX_INITRD} ; find . | cpio -o -H newc | gzip -9 -c >${FINNIX_BOOT}/initrd.gz; chmod 0644 ${FINNIX_BOOT}/initrd.gz)
     INITRD_NET_FN=initrd_net.gz
   else
-    INITRD_FN=initrd.xz; (cd ${FINNIX_INITRD} ; find . | cpio --verbose -o -H newc | xz -C crc32 -c >${FINNIX_BOOT}/initrd.xz; chmod 0644 ${FINNIX_BOOT}/initrd.xz)
+    INITRD_FN=initrd.xz; (cd ${FINNIX_INITRD} ; find . | cpio -o -H newc | xz -C crc32 -c >${FINNIX_BOOT}/initrd.xz; chmod 0644 ${FINNIX_BOOT}/initrd.xz)
     INITRD_NET_FN=initrd_net.xz
   fi
 

@@ -1,3 +1,9 @@
+finnix-scripts (20130416.0) unstable; urgency=low
+
+  * Add ext4 (and ext3) modules to initrd (LP: #1114788)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 16 Apr 2013 00:02:15 -0700
+
 finnix-scripts (20130414.1) unstable; urgency=low
 
   * Simplify CD ejection (LP: #1169023)
