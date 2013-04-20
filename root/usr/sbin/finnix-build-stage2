@@ -68,6 +68,9 @@ if [ -z "$FINNIX_BOOT" ]; then
 fi
 [ -z "$FINNIX_INITRD" ] && FINNIX_INITRD=${FINNIX_BASE}/initrd
 [ -z "$FINNIX_STUFF" ] && FINNIX_STUFF=${FINNIX_BASE}/stuff
+[ -z "$FINNIX_VANITYHASH_BITS" ] && FINNIX_VANITYHASH_BITS="32"
+# Cheap, utterly non-portable way to get a CPU count
+[ -z "$FINNIX_VANITYHASH_WORKERS" ] && FINNIX_VANITYHASH_WORKERS="$(ls -d /sys/devices/system/cpu/cpu* 2>/dev/null | perl -ne '/\/?cpu[0-9]+$/ && $i++; END { print ($i ? $i : 1) };')"
 if [ -f "${FINNIX_SOURCE}/etc/os-release" ]; then
   RELEASE_FILE="${FINNIX_SOURCE}/etc/os-release"
 elif [ -f "${FINNIX_STUFF}/os-release" ]; then
@@ -401,7 +404,10 @@ which implantisomd5 2>/dev/null >/dev/null && implantisomd5 ${FINNIX_ISO}
 if [ -n "$FINNIX_VANITYHASH" ]; then
   # Note: this assumes -pad, which guarantees the last 512 bytes we chop
   # off and modify will be all null.
-  (dd if=${FINNIX_ISO} bs=512 count=$(($(($(stat -c %s ${FINNIX_ISO}) / 512)) - 1)); dd if=/dev/zero bs=1 count=508) | vanityhash -a -b 32 -w 2 "$FINNIX_VANITYHASH" > ${FINNIX_ISO}.vanity
+  (
+    dd if=${FINNIX_ISO} bs=512 count=$(($(($(stat -c %s ${FINNIX_ISO}) / 512)) - 1))
+    dd if=/dev/zero bs=1 count=508
+  ) | vanityhash -a -b "$FINNIX_VANITYHASH_BITS" -w "$FINNIX_VANITYHASH_WORKERS" "$FINNIX_VANITYHASH" >${FINNIX_ISO}.vanity
   if [ -s "${FINNIX_ISO}.vanity" -a $(($(stat -c %s ${FINNIX_ISO}.vanity) % 512)) -eq 0 ]; then
     mv ${FINNIX_ISO}.vanity ${FINNIX_ISO}
   else
