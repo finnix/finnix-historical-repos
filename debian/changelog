@@ -1,3 +1,9 @@
+finnix-standard (20130414.1) unstable; urgency=low
+
+  * Add quota, quotatool (LP: #1098993)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 14 Apr 2013 22:03:34 -0700
+
 finnix-standard (20130414.0) unstable; urgency=low
 
   * Add nickstat (LP: #1168856)
