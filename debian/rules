@@ -7,10 +7,6 @@
 %:
 	dh $@
 
-override_dh_auto_install:
-	install -m 0755 -d $(CURDIR)/debian/finnix-keyring/usr/share/keyrings
-	$(CURDIR)/build-keyring $(CURDIR)/keys $(CURDIR)/debian/finnix-keyring/usr/share/keyrings/finnix-keyring.gpg
-
 override_dh_md5sums:
 	dh_md5sums -x
 

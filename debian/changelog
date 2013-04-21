@@ -1,3 +1,9 @@
+finnix-keyring (20130311.0) unstable; urgency=low
+
+  * Use standard Makefile in top-level directory
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 11 Mar 2013 12:22:27 -0700
+
 finnix-keyring (107) unstable; urgency=low
 
   * Finnix 107
