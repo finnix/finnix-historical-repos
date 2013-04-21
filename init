@@ -609,10 +609,11 @@ if [ -n "$TORAM" -a -n "${FINNIX_CDBASE}" ]; then
   else
     # Unmount the device and eject
     _f12 umount ${FINNIX_CDBASE}
-    if [ "${FINNIX_NOEJECT}" = "no" ]; then
-      if [ -n "${FINNIX_DEV}" ]; then
-        _f12 eject "${FINNIX_DEV}"
-      fi
+    if [ "${FINNIX_NOEJECT}" = "no" ] && [ -n "${FINNIX_DEV}" ]; then
+      case "$(basename ${FINNIX_DEV})" in
+        sr*) _f12 eject "${FINNIX_DEV}";;
+        scd*) _f12 eject "${FINNIX_DEV}";;
+      esac
     fi
     # At this point /ramdisk/cdrom is empty and /ramdisk/cdrom_ramdisk is populated.  Fix that.
     rm -rf ${FINNIX_CDBASE}

@@ -1,3 +1,9 @@
+neale-initrd (20130416.0) unstable; urgency=low
+
+  * Only try to eject SCSI CD drives
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 16 Apr 2013 21:06:43 -0700
+
 neale-initrd (20130414.0) unstable; urgency=low
 
   * Simplify CD ejection (LP: #1169023)
