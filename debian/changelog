@@ -1,3 +1,10 @@
+finnix-scripts (20130422.0) unstable; urgency=low
+
+  * Refresh ISO /boot files only if FINNIX_SOURCE exists, but check to 
+    make sure those boot files exist in the end (LP: 1171695)
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 22 Apr 2013 21:16:24 -0700
+
 finnix-scripts (20130419.0) unstable; urgency=low
 
   * Make vanityhash workers/bits configurable

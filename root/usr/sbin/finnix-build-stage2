@@ -358,16 +358,36 @@ fi
 
 ### copy boot binaries in
 if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
-  cp -a "${FINNIX_SOURCE}/usr/lib/yaboot/yaboot" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/yaboot"
-else
-  rm -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/boot.cat"
-  cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" "${FINNIX_MASTER}/isolinux.bin"
-  cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/memdisk" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/memdisk"
-  for com32 in hdt.c32 menu.c32 vesamenu.c32 chain.c32; do
-    cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/$com32" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$com32"
+  if [ -f "${FINNIX_SOURCE}/usr/lib/yaboot/yaboot" ]; then
+    cp -a "${FINNIX_SOURCE}/usr/lib/yaboot/yaboot" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/yaboot"
+  fi
+  for missing in yaboot; do
+    if [ ! -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$missing" ]; then
+      echo "Required boot file missing: $missing"
+      exit 1
+    fi
   done
-  cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pxelinux/pxelinux.0"
-  gzip -9 -c <"${FINNIX_SOURCE}/usr/share/misc/pci.ids" >"${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pci.ids"
+else
+  if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" ]; then
+    rm -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/boot.cat"
+    cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" "${FINNIX_MASTER}/isolinux.bin"
+    cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/memdisk" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/memdisk"
+    for com32 in hdt.c32 menu.c32 vesamenu.c32 chain.c32; do
+      cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/$com32" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$com32"
+    done
+    cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pxelinux/pxelinux.0"
+    gzip -9 -c <"${FINNIX_SOURCE}/usr/share/misc/pci.ids" >"${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pci.ids"
+  fi
+  if [ ! -f "${FINNIX_MASTER}/isolinux.bin" ]; then
+    echo "Required boot file missing: isolinux.bin"
+    exit 1
+  fi
+  for missing in memdisk hdt.c32 menu.c32 vesamenu.c32 chain.c32 pxelinux/pxelinux.0 pci.ids; do
+    if [ ! -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$missing" ]; then
+      echo "Required boot file missing: $missing"
+      exit 1
+    fi
+  done
 fi
 
 ### copy os-release in
