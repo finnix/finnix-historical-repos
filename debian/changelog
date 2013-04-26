@@ -1,7 +1,13 @@
+finnix-scripts (20130425.0) unstable; urgency=low
+
+  * Add ehci-pci to initrd (LP: #1173007)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 25 Apr 2013 21:04:24 -0700
+
 finnix-scripts (20130422.0) unstable; urgency=low
 
   * Refresh ISO /boot files only if FINNIX_SOURCE exists, but check to 
-    make sure those boot files exist in the end (LP: 1171695)
+    make sure those boot files exist in the end (LP: #1171695)
 
  -- Ryan Finnie <ryan@finnie.org>  Mon, 22 Apr 2013 21:16:24 -0700
 
@@ -362,7 +368,7 @@ finnix-scripts (105) unstable; urgency=low
   * Updated stage1/2 scripts
     * Remove ide/ copy
     * Standardize importable variables
-  * Migrate system from sysvinit to runit (LP: 981386)
+  * Migrate system from sysvinit to runit (LP: #981386)
   * Replace dialog with whiptail
   * Fix titles in finnix-generate-entropy
   * Remove "finnix" utility
@@ -383,7 +389,7 @@ finnix-scripts (105) unstable; urgency=low
   * Add shipped syslinux.cfg
   * Add broken (by design) symlinks via debian/rules
   * Remove obsolete initscripts
-  * exec-stop: Fix CDROM detection bug (LP: 981428)
+  * exec-stop: Fix CDROM detection bug (LP: #981428)
   * exec-stop: Attempt last-ditch ejection of the CD
   * finnix-build-stage{1,2}: Stop relying on remove "depmod -m"
     (LP: #980556)

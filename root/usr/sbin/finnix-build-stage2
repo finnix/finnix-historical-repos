@@ -216,7 +216,7 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   ### generate modules
 
   # USB/Firewire
-  IMODS="ehci-hcd ohci-hcd uhci-hcd usb-storage usbhid firewire-sbp2 firewire-ohci sg"
+  IMODS="ehci-pci ehci-hcd ohci-hcd uhci-hcd usb-storage usbhid firewire-sbp2 firewire-ohci sg"
   # Common SCSI
   IMODS="${IMODS} aic7xxx BusLogic sym53c8xx"
   # Slightly less common SCSI
