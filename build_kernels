@@ -3,15 +3,20 @@
 set -e
 set -x
 
-# Directory containing sources, patches, configs
-BASE_DIR="$1"
-# Installation root directory
-INSTALL_DIR="$2"
-# i386/amd64/powerpc
-DEB_BUILD_ARCH="$3"
+# build/install
+COMMAND="$1"
+
+if [ -z "${CURDIR}" ]; then
+  echo "CURDIR is required" >&2; exit 1
+elif [ -z "${DEB_BUILD_ARCH}" ]; then
+  echo "DEB_BUILD_ARCH is required" >&2; exit 1
+fi
+if [ "${COMMAND}" = "install" -a -z "${DESTDIR}" ]; then
+  echo "DESTDIR is required" >&2; exit 1
+fi
 
 # Read VERSION and EXTRAVERSION
-. "${BASE_DIR}/configs/build_kernels.config"
+. "${CURDIR}/configs/build_kernels.config"
 
 # Handle 3.N kernels
 case "${VERSION}" in
@@ -28,54 +33,94 @@ case "${VERSION}" in
   ;;
 esac
 
+process_command() {
+  case "${COMMAND}" in
+  build)
+    build_arch
+    ;;
+  install)
+    install_arch
+    ;;
+  *)
+    echo "Unknown command ${COMMAND}" >&2
+    exit 1
+    ;;
+  esac
+}
+
 build_arch() {
-  rm -rf "${BASE_DIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
-  mkdir -p "${BASE_DIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
-  cd "${BASE_DIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
+  rm -rf "${CURDIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
+  mkdir -p "${CURDIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
+  cd "${CURDIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
 
   # Extract sources
-  for i in `cat "${BASE_DIR}/sources/series"`; do
-    tar -ax --strip-components=1 -f "${BASE_DIR}/sources/$i"
+  for i in `cat "${CURDIR}/sources/series"`; do
+    tar -ax --strip-components=1 -f "${CURDIR}/sources/$i"
   done
 
   # Apply patches
-  for i in `cat "${BASE_DIR}/patches/series"`; do
-    patch -p1 <"${BASE_DIR}/patches/$i"
+  for i in `cat "${CURDIR}/patches/series"`; do
+    patch -p1 <"${CURDIR}/patches/$i"
   done
 
   # No concurrency by default
   [ -z "$KERNEL_JOBS" ] && KERNEL_JOBS=1
 
   # Move config in
-  cp "${BASE_DIR}/configs/config-${VERSION}${KERNEL_EXTRAVERSION}" .config
+  cp "${CURDIR}/configs/config-${VERSION}${KERNEL_EXTRAVERSION}" .config
   make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" oldconfig
 
   # Main make
   make -j${KERNEL_JOBS} ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}"
 
+  # Clean up
+  cd "${CURDIR}"
+}
+
+install_arch() {
+  cd "${CURDIR}/build/${VERSION}${KERNEL_EXTRAVERSION}"
+
   # Install modules
-  mkdir -p "${INSTALL_DIR}/lib/modules"
-  make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" INSTALL_MOD_PATH="${INSTALL_DIR}" modules_install
-  find "${INSTALL_DIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}" -name '*.ko' -print0 | xargs -0 strip -x -R .note -R .comment
-  rm -f "${INSTALL_DIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/build"
-  rm -f "${INSTALL_DIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/source"
+  mkdir -p "${DESTDIR}/lib/modules"
+  make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" INSTALL_MOD_PATH="${DESTDIR}" modules_install
+  find "${DESTDIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}" -name '*.ko' -print0 | xargs -0 strip -x -R .note -R .comment
+  rm -f "${DESTDIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/build"
+  rm -f "${DESTDIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/source"
 
   # Install kernel
-  mkdir -p "${INSTALL_DIR}/boot"
-  cp System.map "${INSTALL_DIR}/boot/System.map-${VERSION}${KERNEL_EXTRAVERSION}"
-  cp .config "${INSTALL_DIR}/boot/config-${VERSION}${KERNEL_EXTRAVERSION}"
-  case "${KERNEL_MAKE_ARCH}" in
-  i386|x86_64)
-    cp arch/x86/boot/bzImage "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
+  mkdir -p "${DESTDIR}/boot"
+  cp System.map "${DESTDIR}/boot/System.map-${VERSION}${KERNEL_EXTRAVERSION}"
+  cp .config "${DESTDIR}/boot/config-${VERSION}${KERNEL_EXTRAVERSION}"
+  case "${DEB_BUILD_ARCH}" in
+  i386)
+    case "${FINNIX_ARCH}" in
+    x86)
+      cp arch/x86/boot/bzImage "${DESTDIR}/boot/linux"
+      ;;
+    amd64)
+      cp arch/x86/boot/bzImage "${DESTDIR}/boot/linux64"
+      ;;
+    esac
+    ;;
+  amd64)
+    cp arch/x86/boot/bzImage "${DESTDIR}/boot/linux"
     ;;
   powerpc)
-    cp vmlinux "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
-    strip "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}"
+    case "${FINNIX_ARCH}" in
+    ppc)
+      cp vmlinux "${DESTDIR}/boot/linux"
+      strip "${DESTDIR}/boot/linux"
+      ;;
+    ppc64)
+      cp vmlinux "${DESTDIR}/boot/linux64"
+      strip "${DESTDIR}/boot/linux64"
+      ;;
+    esac
     ;;
   esac
 
   # Clean up
-  cd "${BASE_DIR}"
+  cd "${CURDIR}"
 }
 
 case "${DEB_BUILD_ARCH}" in
@@ -83,32 +128,27 @@ i386)
   FINNIX_ARCH="amd64"
   KERNEL_MAKE_ARCH="x86_64"
   KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
-  build_arch
-  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux64"
+  process_command
   FINNIX_ARCH="x86"
   KERNEL_MAKE_ARCH="i386"
   KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
-  build_arch
-  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux"
+  process_command
   ;;
 amd64)
   FINNIX_ARCH="amd64"
   KERNEL_MAKE_ARCH="x86_64"
   KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
-  build_arch
-  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux"
+  process_command
   ;;
 powerpc)
   FINNIX_ARCH="ppc64"
   KERNEL_MAKE_ARCH="powerpc"
   KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
-  build_arch
-  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux64"
+  process_command
   FINNIX_ARCH="ppc"
   KERNEL_MAKE_ARCH="powerpc"
   KERNEL_EXTRAVERSION="${EXTRAVERSION}-${FINNIX_ARCH}-finnix"
-  build_arch
-  mv "${INSTALL_DIR}/boot/linux-${VERSION}${KERNEL_EXTRAVERSION}" "${INSTALL_DIR}/boot/linux"
+  process_command
   ;;
 *)
   echo "Unknown architecture ${DEB_BUILD_ARCH}" >&2

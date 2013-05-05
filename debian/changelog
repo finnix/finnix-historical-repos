@@ -1,3 +1,9 @@
+neale-kernel (20130504.0) unstable; urgency=low
+
+  * Add Makefile, separate into build/install tasks
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 04 May 2013 17:05:24 -0700
+
 neale-kernel (20130413.0) unstable; urgency=low
 
   * Debian 3.8.5-1~experimental.1

@@ -4,24 +4,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-DEB_BUILD_ARCH := $(shell dpkg-architecture -qDEB_BUILD_ARCH)
-
-KERNEL_JOBS=1
-ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-KERNEL_JOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-endif
-export KERNEL_JOBS
-
 %:
 	dh $@
-
-override_dh_auto_clean:
-	rm -rf $(CURDIR)/build
-	dh_clean
-
-override_dh_auto_install:
-	install -m 0755 -d $(CURDIR)/debian/neale-kernel
-	$(CURDIR)/build_kernels $(CURDIR) $(CURDIR)/debian/neale-kernel $(DEB_BUILD_ARCH)
 
 override_dh_builddeb:
 	dh_builddeb -- -Zxz
