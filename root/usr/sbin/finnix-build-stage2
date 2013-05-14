@@ -419,6 +419,11 @@ else
   which isohybrid 2>/dev/null >/dev/null && isohybrid ${FINNIX_ISO}
 fi
 
+lb="$(($(stat -c %s ${FINNIX_ISO}) % 1048576))"
+if [ $lb -gt 0 ]; then
+  dd if=/dev/zero bs="$((1048576 - $lb))" count=1 >>${FINNIX_ISO}
+fi
+
 which implantisomd5 2>/dev/null >/dev/null && implantisomd5 ${FINNIX_ISO}
 
 if [ -n "$FINNIX_VANITYHASH" ]; then

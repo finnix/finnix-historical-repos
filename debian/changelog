@@ -1,3 +1,9 @@
+finnix-scripts (20130513.0) unstable; urgency=low
+
+  * Round ISOs to 1 MiB (LP: #1179760)
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 13 May 2013 20:33:11 -0700
+
 finnix-scripts (20130425.0) unstable; urgency=low
 
   * Add ehci-pci to initrd (LP: #1173007)
