@@ -1,3 +1,10 @@
+neale-kernel (20130913.0) unstable; urgency=low
+
+  * Debian 3.11-1~exp1
+  * Refresh logo patch for Linux 3.11
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 13 Sep 2013 12:48:12 -0700
+
 neale-kernel (20130504.0) unstable; urgency=low
 
   * Add Makefile, separate into build/install tasks
