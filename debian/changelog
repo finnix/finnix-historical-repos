@@ -1,3 +1,10 @@
+neale-kernel (20130915.0) unstable; urgency=low
+
+  * Debian 3.10.11-1
+  * Revert 3.11 logo patch
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 15 Sep 2013 12:17:03 -0700
+
 neale-kernel (20130913.0) unstable; urgency=low
 
   * Debian 3.11-1~exp1
