@@ -1,3 +1,9 @@
+finnix-scripts (20131006.2) unstable; urgency=low
+
+  * Include xhci-hcd in initrd for USB3 booting (LP: #1190039)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 06 Oct 2013 12:46:13 -0700
+
 finnix-scripts (20131006.1) unstable; urgency=low
 
   * Include xz-utils (LP: #1236064)
