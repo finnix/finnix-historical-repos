@@ -38,11 +38,11 @@ if [ "$1" = configure ] && [ -z "$2" ]; then
 
   # Install runit shutdown/reboot files
   if [ ! -h /etc/runit/reboot ]; then
-    rm -f /var/run/runit-control-reboot /etc/runit/reboot
-    ln -s /var/run/runit-control-reboot /etc/runit/reboot
+    rm -f /run/runit-control-reboot /etc/runit/reboot
+    ln -s /run/runit-control-reboot /etc/runit/reboot
   fi
   if [ ! -h /etc/runit/stopit ]; then
-    rm -f /var/run/runit-control-stopit /etc/runit/stopit
-    ln -s /var/run/runit-control-stopit /etc/runit/stopit
+    rm -f /run/runit-control-stopit /etc/runit/stopit
+    ln -s /run/runit-control-stopit /etc/runit/stopit
   fi
 fi

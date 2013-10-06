@@ -24,15 +24,15 @@ export PATH
 umask 022
 
 FSTABFILE="/etc/fstab"
-PIDFILE="/var/run/rebuildfstab.pid"
-RESCANFILE="/var/run/rebuildfstab.rescan"
+PIDFILE="/run/rebuildfstab.pid"
+RESCANFILE="/run/rebuildfstab.rescan"
 ADDEDBY="Added by Finnix"
 DEVROOT="/dev"
 
 [ -e /proc/partitions ] || exit
 
-if [ -f /etc/finnix/initrd.env ]; then
-  . /etc/finnix/initrd.env
+if [ -f /run/finnix/initrd.env ]; then
+  . /run/finnix/initrd.env
 fi
 
 # Do not modify /etc/fstab in forensic mode

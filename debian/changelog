@@ -1,3 +1,10 @@
+finnix-scripts (20131006.0) unstable; urgency=low
+
+  * Move initrd.env to /run/finnix/ (LP: #1236052)
+  * Replace /var/run/ with /run/ (LP: #1236054)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 06 Oct 2013 12:10:32 -0700
+
 finnix-scripts (20130513.0) unstable; urgency=low
 
   * Round ISOs to 1 MiB (LP: #1179760)

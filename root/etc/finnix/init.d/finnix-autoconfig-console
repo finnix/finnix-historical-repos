@@ -31,8 +31,8 @@ esac
 . /lib/finnix/finnix-rc-helper.sh
 
 # Clear utmp/wtmp
-:> /var/run/utmp
-:> /var/run/wtmp
+:> /run/utmp
+:> /run/wtmp
 
 # Add boot record to utmp/wtmp
 if [ -x /usr/sbin/finnix-utmp ]; then
@@ -64,7 +64,7 @@ if [ -n "$CONSOLES" ]; then
       cp -a /lib/finnix/service.d/getty-skel/run /lib/finnix/service.d/getty-$TTY/
       cp -a /lib/finnix/service.d/getty-skel/finish /lib/finnix/service.d/getty-$TTY/
       echo TTY=$TTY >/lib/finnix/service.d/getty-$TTY/config
-      ln -s /var/run/sv.getty-$TTY /lib/finnix/service.d/getty-$TTY/supervise
+      ln -s /run/sv.getty-$TTY /lib/finnix/service.d/getty-$TTY/supervise
     fi
     ln -s ../../service.d/getty-$TTY /lib/finnix/service/running/getty-$TTY
   done

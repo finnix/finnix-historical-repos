@@ -39,8 +39,8 @@ FINNIX_XENU_OLD="no"
 FINNIX_XENU_NEW="no"
 FINNIX_UML="no"
 FINNIX_NOEJECT="no"
-if [ -f /etc/finnix/initrd.env ]; then
-  . /etc/finnix/initrd.env
+if [ -f /run/finnix/initrd.env ]; then
+  . /run/finnix/initrd.env
 fi
 
 # Line clearing screws up readability in debug mode

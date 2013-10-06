@@ -10,7 +10,7 @@
 # Short-Description: Create dynamic part of /etc/motd
 # Description:       /etc/motd is user-editable and static.  This script
 #                    creates the initial dynamic part, by default the
-#                    output of uname, and stores it in /var/run/motd.dynamic.
+#                    output of uname, and stores it in /run/motd.dynamic.
 #                    Both parts are output by pam_motd.
 ### END INIT INFO
 

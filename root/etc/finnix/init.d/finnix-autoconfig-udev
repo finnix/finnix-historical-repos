@@ -32,7 +32,7 @@ esac
 
 # Start udev
 echo -n "${CRE}${BLUEITEM} Populating /dev and setting up devices... "
-mkdir -p /var/run/udev
+mkdir -p /run/udev
 _f12 invoke-rc.d udev start
 echo -n "done${CRE}"
 

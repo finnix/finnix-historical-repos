@@ -11,9 +11,6 @@
 
 set -e
 
-# This next line prevents a false positive and abort from openssh-server.config:
-#   --pidfile /var/run/sshd.pid
-
 . /lib/lsb/init-functions
 
 check_finnix() {
