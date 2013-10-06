@@ -1,3 +1,9 @@
+finnix-netboot (20131006.0) unstable; urgency=low
+
+  * Replace /var/run/ with /run/ (LP: #1236054)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 06 Oct 2013 12:12:14 -0700
+
 finnix-netboot (107) unstable; urgency=low
 
   * Finnix 107

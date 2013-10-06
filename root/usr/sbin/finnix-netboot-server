@@ -262,9 +262,9 @@ BOOTDIR=/boot
     log_action_msg "Setting up nfs..."
     grep -q "^/cdrom" /etc/exports || echo "/cdrom 0.0.0.0/0.0.0.0(ro,sync,no_subtree_check)" >>/etc/exports
     sleep 1
-    mkdir -p /var/run/rpcbind
-    touch /var/run/rpcbind/rpcbind.xdr
-    touch /var/run/rpcbind/portmap.xdr
+    mkdir -p /run/rpcbind
+    touch /run/rpcbind/rpcbind.xdr
+    touch /run/rpcbind/portmap.xdr
     invoke-rc.d rpcbind start
     ln -sf ../../init.d/rpcbind /etc/finnix/rc0.d/K05rpcbind
     ln -sf ../../init.d/rpcbind /etc/finnix/rc6.d/K05rpcbind
