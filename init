@@ -844,8 +844,8 @@ if [ ! "${selinux_check}" = "1" ]; then
 fi
 
 # Give a few things to the userland
-mkdir -p /ramdisk/UNIONFS/etc/finnix
-cat >/ramdisk/UNIONFS/etc/finnix/initrd.env <<EOM
+mkdir -p /ramdisk/UNIONFS/run/finnix
+cat >/ramdisk/UNIONFS/run/finnix/initrd.env <<EOM
 FINNIX_DIR="${FINNIX_DIR}"
 FINNIX_DISTARCH="${FINNIX_DISTARCH}"
 FINNIX_DISTARCH_FALLBACK="${FINNIX_DISTARCH_FALLBACK}"
