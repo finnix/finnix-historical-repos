@@ -1,3 +1,9 @@
+finnix-scripts (20131006.1) unstable; urgency=low
+
+  * Include xz-utils (LP: #1236064)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 06 Oct 2013 12:30:14 -0700
+
 finnix-scripts (20131006.0) unstable; urgency=low
 
   * Move initrd.env to /run/finnix/ (LP: #1236052)
