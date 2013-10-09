@@ -248,13 +248,12 @@ fi
 
 ### clean up environment
 echo -n "Cleaning certificates... "
-#rm -rf ${FINNIX_SOURCE}/usr/share/ca-certificates/*
 rm -f ${FINNIX_SOURCE}/etc/ssl/private/ssl-cert-snakeoil.key
-rm -f ${FINNIX_SOURCE}/etc/ssl/certs/ssl-cert-snakeoil.pem
-find ${FINNIX_SOURCE}/etc/ssl/certs -type l -delete
-#echo '!' > ${FINNIX_SOURCE}/etc/ca-certificates.conf
-#chroot ${FINNIX_SOURCE} /bin/bash -c "update-ca-certificates"
-echo -n >${FINNIX_SOURCE}/etc/ssl/certs/ca-certificates.crt
+if [ -d " ${FINNIX_SOURCE}/etc/ssl/certs" ]; then
+  rm -f ${FINNIX_SOURCE}/etc/ssl/certs/ssl-cert-snakeoil.pem
+  find ${FINNIX_SOURCE}/etc/ssl/certs -type l -delete
+  echo -n >${FINNIX_SOURCE}/etc/ssl/certs/ca-certificates.crt
+fi
 echo "done."
 
 if [ "$FINNIX_CROSS_COMPILE" = "no" ]; then
@@ -263,7 +262,9 @@ if [ "$FINNIX_CROSS_COMPILE" = "no" ]; then
   echo "done."
 
   echo -n "Setting alternatives... "
-  chroot ${FINNIX_SOURCE} update-alternatives --set editor /bin/nano
+  if [ -x "${FINNIX_SOURCE}/bin/nano" ]; then
+    chroot ${FINNIX_SOURCE} update-alternatives --set editor /bin/nano
+  fi
   echo "done."
 fi
 

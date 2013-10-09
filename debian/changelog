@@ -1,3 +1,9 @@
+finnix-scripts (20131009.0) unstable; urgency=low
+
+  * Handle lack of nano or ca-certificates (LP: #1237276)
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 09 Oct 2013 01:35:56 -0700
+
 finnix-scripts (20131006.2) unstable; urgency=low
 
   * Include xhci-hcd in initrd for USB3 booting (LP: #1190039)
