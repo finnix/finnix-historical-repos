@@ -1,0 +1,18 @@
+Source: finnix-minimal-arch
+Section: misc
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+Vcs-Browser: https://code.launchpad.net/~finnix/finnix/finnix-minimal-arch-pkg
+Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/finnix-minimal-arch-pkg
+Homepage: http://www.finnix.org/
+
+Package: finnix-minimal-arch
+Architecture: any
+Depends: ${misc:Depends}, syslinux [i386 amd64], yaboot [powerpc]
+Description: Minimal Finnix dependencies (architecture-specific)
+ This meta-package depends all needed packages for a minimal Finnix
+ distribution.
+ .
+ This package contains architecture-specific dependencies.
