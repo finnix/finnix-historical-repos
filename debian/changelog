@@ -1,3 +1,9 @@
+finnix-standard (20131009.0) unstable; urgency=low
+
+  * Use finnix-minimal (LP: #1237276)
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 09 Oct 2013 09:27:26 -0700
+
 finnix-standard (20131008.0) unstable; urgency=low
 
   * Install kpartx (LP: #1237226)

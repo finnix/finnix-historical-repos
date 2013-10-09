@@ -10,7 +10,7 @@ Homepage: http://www.finnix.org/
 
 Package: finnix-standard
 Architecture: all
-Depends: ${misc:Depends}, finnix-base, finnix-scripts, finnix-netboot, 
+Depends: ${misc:Depends}, finnix-minimal, finnix-netboot, 
  finnix-standard-arch, 2ping, apmd, apt-utils, arj, arpwatch, ash, at,
  attr, bc, bittornado, bonnie++, bootchart, bsd-mailx, btrfs-tools,
  buffer, bzip2, ca-certificates, cabextract, cdbackup, cdpr, chkrootkit,
@@ -19,8 +19,8 @@ Depends: ${misc:Depends}, finnix-base, finnix-scripts, finnix-netboot,
  eject, elinks-lite, emad, etherwake, ethtool, fdutils, fetchmail, file,
  finger, fsarchiver, fuseext2, fxload, gawk, gddrescue,
  gdisk-noicu | gdisk, genromfs, gpm, grepcidr, hdparm, hexedit, 
- hfsutils, htop, ifenslave-2.6, iftop, ifupdown, iotop, ipcalc, 
- iptables, iptraf, iputils-ping, irssi, isc-dhcp-client, isomd5sum, 
+ hfsutils, htop, ifenslave-2.6, iftop, iotop, ipcalc, 
+ iptables, iptraf, iputils-ping, irssi, isomd5sum, 
  jfsutils, joe, less, lftp, lm-sensors, lpr, lrzsz, lsof, ltrace, lvm2, 
  makedev, man-db, mbr, mc, mdadm, memtester, mii-diag, minicom, mt-st, 
  mtools, mtr-tiny, nano, netcat-openbsd, nmap, ntfs-3g, ntpdate, 
