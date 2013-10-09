@@ -1,3 +1,9 @@
+finnix-standard (20131008.0) unstable; urgency=low
+
+  * Install kpartx (LP: #1237226)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 08 Oct 2013 23:45:44 -0700
+
 finnix-standard (20130610.0) unstable; urgency=low
 
   * Remove mutt (LP: #1189638)

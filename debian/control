@@ -34,7 +34,7 @@ Depends: ${misc:Depends}, finnix-base, finnix-scripts, finnix-netboot,
  units, unp, unzip, usbutils, uuid-runtime, vanityhash, vlan, wget, 
  whois, wipe, wireless-tools, wodim, wpasupplicant, xfsdump, xfsprogs, 
  zerofree, zile, zip, arping, bridge-utils, testdisk, nicstat, quota, 
- quotatool
+ quotatool, kpartx
 Description: Standard Finnix dependencies
  This meta-package depends all needed packages for a standard Finnix
  distribution.
