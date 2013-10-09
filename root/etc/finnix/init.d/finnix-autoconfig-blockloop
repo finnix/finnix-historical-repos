@@ -47,8 +47,10 @@ if ! checkbootparam "noraid"; then
   echo -n "${BLUEITEM} Scanning for RAID volumes: "
   raidfound=""
   newraidfound=""
-  mdadm --examine --scan | sed "s'/dev/md/'/dev/md'g" >/etc/mdadm/mdadm.conf
-  if _f12 grep ^ARRAY /etc/mdadm/mdadm.conf; then
+  if [ -x /sbin/mdadm ]; then
+    mdadm --examine --scan | sed "s'/dev/md/'/dev/md'g" >/etc/mdadm/mdadm.conf
+  fi
+  if _f12 grep -q ^ARRAY /etc/mdadm/mdadm.conf; then
     for i in /lib/modules/`uname -r`/kernel/drivers/md/raid*.ko; do _f12 modprobe $(basename $i .ko); done
     _f12 mdadm --assemble --scan --auto=yes
     for i in /sys/block/md*; do

@@ -1,3 +1,9 @@
+finnix-scripts (20131009.1) unstable; urgency=low
+
+  * Handle lack of mdadm (LP: #1237276)
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 09 Oct 2013 01:42:54 -0700
+
 finnix-scripts (20131009.0) unstable; urgency=low
 
   * Handle lack of nano or ca-certificates (LP: #1237276)
