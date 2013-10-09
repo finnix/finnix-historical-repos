@@ -10,7 +10,7 @@ Homepage: http://www.finnix.org/
 
 Package: finnix-standard-arch
 Architecture: any
-Depends: ${misc:Depends}, acpi [i386 amd64], cmospwd [i386 amd64], cpuburn [i386 amd64], cpuid [i386 amd64], dmidecode [i386 amd64], gpart [i386 amd64], lilo [i386 amd64], syslinux [i386 amd64], mac-fdisk [powerpc], powerpc-utils [powerpc], yaboot [powerpc]
+Depends: ${misc:Depends}, finnix-minimal-arch, acpi [i386 amd64], cmospwd [i386 amd64], cpuburn [i386 amd64], cpuid [i386 amd64], dmidecode [i386 amd64], gpart [i386 amd64], lilo [i386 amd64], mac-fdisk [powerpc], powerpc-utils [powerpc]
 Description: Standard Finnix dependencies (architecture-specific)
  This meta-package depends all needed packages for a standard Finnix
  distribution.

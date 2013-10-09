@@ -1,3 +1,9 @@
+finnix-standard-arch (20131009.0) unstable; urgency=low
+
+  * Use finnix-minimal-arch (LP: #1237276)
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 09 Oct 2013 09:23:40 -0700
+
 finnix-standard-arch (107) unstable; urgency=low
 
   * Finnix 107
