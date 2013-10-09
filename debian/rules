@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	# Prevent this package from disappearing
+	install -m 0755 -d $(CURDIR)/debian/finnix-minimal/usr/share/finnix-minimal
+	touch $(CURDIR)/debian/finnix-minimal/usr/share/finnix-minimal/inuse
+
+override_dh_md5sums:
+	dh_md5sums -x
+
+override_dh_builddeb:
+	dh_builddeb -- -Zxz

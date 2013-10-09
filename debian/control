@@ -1,0 +1,16 @@
+Source: finnix-minimal
+Section: misc
+Priority: optional
+Maintainer: Ryan Finnie <ryan@finnie.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+Vcs-Browser: https://code.launchpad.net/~finnix/finnix/finnix-minimal-pkg
+Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/finnix-minimal-pkg
+Homepage: http://www.finnix.org/
+
+Package: finnix-minimal
+Architecture: all
+Depends: ${misc:Depends}, finnix-base, finnix-minimal-arch, finnix-scripts, kmod, nvi | editor, net-tools, iproute, isc-dhcp-client, ifupdown
+Description: Minimal Finnix dependencies
+ This meta-package depends all needed packages for a minimal Finnix
+ distribution.

@@ -1,0 +1,4 @@
+debian/files
+debian/finnix-minimal
+debian/finnix-minimal.debhelper.log
+debian/finnix-minimal.substvars
