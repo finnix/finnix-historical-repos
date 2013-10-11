@@ -1,0 +1,91 @@
+#!/bin/sh
+
+# state-stopping
+# Copyright (C) 2013 Ryan Finnie
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
+. /lib/finnix/finnix-rc-helper.sh
+
+waitdot() {
+  local RUNFOR="$1"
+  while [ ${RUNFOR} -gt 0 ]; do
+    echo -n "."
+    sleep 1
+    RUNFOR=$(($RUNFOR-1))
+  done
+}
+
+# Run a shell if in debug mode
+rundebugshell() {
+  echo "${BLUEITEM} Starting debug shell."
+  echo "${BLUEITEM} Type \"exit\" to continue."
+  _f12 which bash && bash || sh
+}
+
+# Let's see if we can get rid of that "INIT:" message
+echo -n "${CRE}${ESC}[1A${CRE}"
+echo -n "${CRE}${ESC}[1A${CRE}"
+echo
+
+# Disable kernel messages
+[ "${FINNIX_DEBUG}" = "no" ] && echo "0" > /proc/sys/kernel/printk
+
+if [ -x /etc/runit/reboot ]; then
+  RUNLEVEL=6
+else
+  RUNLEVEL=0
+fi
+
+export RUNLEVEL
+
+cd /
+
+echo -n "${BLUEITEM} Stopping supervised services..."
+
+# Interactive shells ignore most signals except HUP, so handle
+# them specially
+_f12 sv down /lib/finnix/service/running/getty-*
+_f12 sv hup /lib/finnix/service/running/getty-*
+
+# Stop remaining runit services
+_f12 sv shutdown /lib/finnix/service/running/*
+
+echo -n " done${CRE}"
+
+# Execute "normal" rc-level shutdown scripts, if any
+/etc/finnix/init.d/rc $RUNLEVEL
+
+[ "${FINNIX_DEBUG}" = "yes" ] && rundebugshell
+
+# udev is being too "smart" for its own good
+FOUND_CDROM="$(awk '$2 == "/cdrom" { print $1 }' </proc/mounts)"
+if [ -n "$FOUND_CDROM" ]; then
+  if (
+    eval `_f2 /lib/udev/cdrom_id $FOUND_CDROM`
+    [ "$ID_CDROM" = "1" ] || exit 1
+  ); then
+    _f12 /lib/udev/cdrom_id --unlock-media $FOUND_CDROM
+  fi
+fi
+
+# Now kill them all
+echo -n "${BLUEITEM} Stopping remaining processes"
+killall5 -15
+waitdot 4
+killall5 -9
+waitdot 1
+echo -n " done${CRE}"
+
+# Umount devpts early (otherwise UNIONFS may stay busy)
+_f12 umount -t devpts -a
+
+# turn off swap, then unmount file systems.
+echo -n "${BLUEITEM} Turning off swap... "
+_f12 swapoff -a
+echo -n "done${CRE}"

@@ -1,3 +1,9 @@
+finnix-scripts (20131010.0) unstable; urgency=low
+
+  * Split state-shutdown-real into state-stopping (LP: #1238343)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 10 Oct 2013 18:16:45 -0700
+
 finnix-scripts (20131009.1) unstable; urgency=low
 
   * Handle lack of mdadm (LP: #1237276)
