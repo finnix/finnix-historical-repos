@@ -1,0 +1,4 @@
+./files
+./runit
+./runit.debhelper.log
+./runit.substvars

@@ -1,3 +1,9 @@
+runit (2.1.1-6.2finnix1) unstable; urgency=low
+
+  * Add stage 4 functionality (LP: #1238343)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 10 Oct 2013 16:15:36 -0700
+
 runit (2.1.1-6.2) unstable; urgency=medium
 
   * Non-maintainer upload.
