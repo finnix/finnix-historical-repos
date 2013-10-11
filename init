@@ -831,11 +831,6 @@ _f12 umount -l /dev
 # Give control to the init process.
 PATH=/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 
-# To make cd ejection possible on shutdown, copy runit to the ramdisk
-rm -f /ramdisk/UNIONFS/sbin/runit
-cp -p /ramdisk/FINNIX/sbin/runit /ramdisk/.init
-ln -s /.init /ramdisk/UNIONFS/sbin/runit
-
 # If the user really wants SELinux, let them.
 # Otherwise, prevent init from trying to start it.
 selinux_check="$(getbootparam selinux)"

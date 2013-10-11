@@ -1,3 +1,9 @@
+neale-initrd (20131010.0) unstable; urgency=low
+
+  * Remove runit hack (LP: #1238343)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 10 Oct 2013 18:11:03 -0700
+
 neale-initrd (20131006.0) unstable; urgency=low
 
   * Move initrd.env to /run/finnix/ (LP: #1236052)
