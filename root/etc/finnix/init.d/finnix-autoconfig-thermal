@@ -44,18 +44,23 @@ powerpc|ppc64)
 	case "$MODEL" in
 	  RackMac3,1|PowerMac7,2|PowerMac7,3)
 	    _f12 modprobe therm_pm72
+	    _f12 modprobe i2c_powermac
 	    ;;
 	  PowerMac8,1|PowerMac8,2)
 	    _f12 modprobe windfarm_pm81
+	    _f12 modprobe i2c_powermac
 	    ;;
 	  PowerMac9,1)
 	    _f12 modprobe windfarm_pm91
+	    _f12 modprobe i2c_powermac
 	    ;;
 	  PowerMac11,2)
 	    _f12 modprobe windfarm_pm112
+	    _f12 modprobe i2c_powermac
 	    ;;
 	  PowerMac12,1)
 	    _f12 modprobe windfarm_pm121
+	    _f12 modprobe i2c_powermac
 	    ;;
 	esac
 	;;
