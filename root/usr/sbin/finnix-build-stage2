@@ -446,6 +446,14 @@ if [ -n "$FINNIX_GPGUSER" ] && [ ! "$QUICK" = "yes" ]; then
   gpg --sign --local-user "$FINNIX_GPGUSER" -ba -o ${FINNIX_ISO}.gpg ${FINNIX_ISO}
 fi
 
+if [ -n "$FINNIX_BT_TRACKER" ]; then
+  if [ -n "$FINNIX_BT_ANNOUNCE_LIST" ]; then
+    btmakemetafile "$FINNIX_BT_TRACKER" "${FINNIX_ISO}" --announce_list "$FINNIX_BT_ANNOUNCE_LIST" --comment "${OS_NAME} ${OS_VERSION}"
+  else
+    btmakemetafile "$FINNIX_BT_TRACKER" "${FINNIX_ISO}" --comment "${OS_NAME} ${OS_VERSION}"
+  fi
+fi
+
 echo ""
 echo "Version: ${OS_VERSION}"
 echo "Build: ${FINNIXDATE}"

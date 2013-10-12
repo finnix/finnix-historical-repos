@@ -1,3 +1,9 @@
+finnix-scripts (20131012.2) unstable; urgency=low
+
+  * Create .torrent file (LP: #1173023)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 12 Oct 2013 12:08:55 -0700
+
 finnix-scripts (20131012.1) unstable; urgency=low
 
   * finnix-autoconfig-thermal: Also load i2c_powermac
