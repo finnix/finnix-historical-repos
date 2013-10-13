@@ -1,3 +1,9 @@
+neale-stuff (20131006.1) unstable; urgency=low
+
+  * Rename text32 profile to text (LP: #1172935)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 06 Oct 2013 13:08:52 -0700
+
 neale-stuff (20130414.0) unstable; urgency=low
 
   * Add /boot/grub/loopback.cfg support (LP: #1168959)

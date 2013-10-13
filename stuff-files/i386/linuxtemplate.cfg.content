@@ -97,7 +97,7 @@ LABEL submenu1-exit
 MENU LABEL Back to main menu
 MENU EXIT
 
-LABEL text32
+LABEL text
 MENU LABEL Boot Finnix (32-bit, text mode)
 TEXT HELP
 Boot Finnix with a 32-bit kernel in 80x24 character text mode.
