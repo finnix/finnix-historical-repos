@@ -6,24 +6,24 @@ message=/boot/ppc/boot.msg
 image=/boot/ppc/linux
   label=finnix
   initrd=/boot/ppc/{T:INITRD_FN}
-  append="quiet"
+  append="nomodeset quiet"
   read-only
 
 image=/boot/ppc/linux
   label=debug
   initrd=/boot/ppc/{T:INITRD_FN}
-  append="debug"
+  append="nomodeset debug"
   read-only
 
 image=/boot/ppc/linux64
   label=finnix64
   initrd=/boot/ppc/{T:INITRD_FN}
-  append="quiet"
+  append="nomodeset quiet"
   read-only
 
 image=/boot/ppc/linux64
   label=debug64
   initrd=/boot/ppc/{T:INITRD_FN}
-  append="debug"
+  append="nomodeset debug"
   read-only
 

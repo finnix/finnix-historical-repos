@@ -36,7 +36,7 @@ Boot Finnix with a 64-bit kernel and 1024x768 VGA console.  If you have a
 32-bit CPU, use the following 32-bit profile.
 ENDTEXT
 KERNEL boot/x86/linux64
-APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=791 quiet 
+APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=791 nomodeset quiet 
 
 LABEL finnix
 MENU LABEL Boot Finnix (32-bit)
@@ -45,7 +45,7 @@ Boot Finnix with a 32-bit kernel and 1024x768 VGA console.  If the VGA
 console does not initialize, see "other boot profiles".
 ENDTEXT
 KERNEL boot/x86/linux
-APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=791 quiet 
+APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=791 nomodeset quiet 
 
 LABEL memtest
 MENU LABEL Run Memtest86+
@@ -103,7 +103,7 @@ TEXT HELP
 Boot Finnix with a 32-bit kernel in 80x24 character text mode.
 ENDTEXT
 KERNEL boot/x86/linux
-APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal quiet 
+APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal nomodeset quiet 
 
 LABEL text64
 MENU LABEL Boot Finnix (64-bit, text mode)
@@ -112,7 +112,7 @@ Boot Finnix with a 64-bit kernel in 80x24 character text mode.
 (Kernel is 64-bit, userland is 32-bit.)
 ENDTEXT
 KERNEL boot/x86/linux64
-APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal quiet 
+APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal nomodeset quiet 
 
 LABEL debug32
 MENU LABEL Boot Finnix (32-bit, debug mode)
@@ -120,7 +120,7 @@ TEXT HELP
 Boot Finnix with a 32-bit kernel in special debugging mode.
 ENDTEXT
 KERNEL boot/x86/linux
-APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal debug 
+APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal nomodeset debug 
 
 LABEL debug64
 MENU LABEL Boot Finnix (64-bit, debug mode)
@@ -129,7 +129,7 @@ Boot Finnix with a 64-bit kernel in special debugging mode.
 (Kernel is 64-bit, userland is 32-bit.)
 ENDTEXT
 KERNEL boot/x86/linux64
-APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal debug 
+APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal nomodeset debug 
 
 LABEL failsafe
 MENU LABEL Boot Finnix (failsafe)
@@ -138,7 +138,7 @@ Boot Finnix with a 32-bit kernel, with as many automatic options turned
 off as possible.
 ENDTEXT
 KERNEL boot/x86/linux
-APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal noapic noacpi pnpbios=off acpi=off nofstab nodma noapm nodhcp nolvm nomouse noeject 
+APPEND initrd=boot/x86/{T:INITRD_FN} _NETOPTS_ vga=normal noapic noacpi pnpbios=off acpi=off nofstab nodma noapm nodhcp nolvm nomouse noeject nomodeset 
 
 LABEL hd0
 MENU LABEL Boot hard drive

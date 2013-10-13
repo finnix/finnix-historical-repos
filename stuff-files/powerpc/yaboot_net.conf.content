@@ -6,24 +6,24 @@ message=_TFTPBASE_/boot/ppc/boot.msg
 image=_TFTPBASE_/boot/ppc/linux
   label=finnix
   initrd=_TFTPBASE_/boot/ppc/{T:INITRD_FN}
-  append="_NETOPTS_ quiet"
+  append="_NETOPTS_ nomodeset quiet"
   read-only
 
 image=_TFTPBASE_/boot/ppc/linux
   label=debug
   initrd=_TFTPBASE_/boot/ppc/{T:INITRD_FN}
-  append="_NETOPTS_ debug"
+  append="_NETOPTS_ nomodeset debug"
   read-only
 
 image=_TFTPBASE_/boot/ppc/linux64
   label=finnix64
   initrd=_TFTPBASE_/boot/ppc/{T:INITRD_FN}
-  append="_NETOPTS_ quiet"
+  append="_NETOPTS_ nomodeset quiet"
   read-only
 
 image=_TFTPBASE_/boot/ppc/linux64
   label=debug64
   initrd=_TFTPBASE_/boot/ppc/{T:INITRD_FN}
-  append="_NETOPTS_ debug"
+  append="_NETOPTS_ nomodeset debug"
   read-only
 

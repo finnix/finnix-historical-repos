@@ -1,3 +1,9 @@
+neale-stuff (20131012.0) unstable; urgency=low
+
+  * Default to nomodeset everywhere (LP: #1239246)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 12 Oct 2013 18:11:16 -0700
+
 neale-stuff (20131006.1) unstable; urgency=low
 
   * Rename text32 profile to text (LP: #1172935)
