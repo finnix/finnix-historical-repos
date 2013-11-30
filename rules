@@ -14,6 +14,16 @@ ifeq (,$(findstring $(ARCH),$(DIET_ARCHS)))
   CFLAGS =-O2 -Wall
 endif
 
+# Work around diet using -mpowerpc-gpopt when itself given -Os, as
+# -mpowerpc-gpopt generates instructions not available on 32-bit
+# PowerPC CPUs (Bug: #726008)
+ifneq (,$(findstring powerpc,$(DIET_ARCHS)))
+  ifneq (,$(findstring powerpc,$(ARCH)))
+    CC =diet -v gcc
+    CFLAGS =-Os
+  endif
+endif
+
 # readdir64, getdents64 seems to be broken in dietlibc on sparc
 ifeq (,$(findstring sparc,$(ARCH)))
   CFLAGS +=-D_FILE_OFFSET_BITS=64

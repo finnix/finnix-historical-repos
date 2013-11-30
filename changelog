@@ -1,3 +1,9 @@
+runit (2.1.1-6.2finnix2) unstable; urgency=low
+
+  * Fix compilation on modern GCC (LP: #1239248)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 30 Nov 2013 10:11:07 -0800
+
 runit (2.1.1-6.2finnix1) unstable; urgency=low
 
   * Add stage 4 functionality (LP: #1238343)
