@@ -1,3 +1,9 @@
+finnix-standard (20131118.0) unstable; urgency=low
+
+  * Remove mii-diag (LP: #1249681)
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 18 Nov 2013 10:36:52 -0800
+
 finnix-standard (20131009.0) unstable; urgency=low
 
   * Use finnix-minimal (LP: #1237276)
