@@ -1,3 +1,9 @@
+finnix-scripts (20131214.0) unstable; urgency=low
+
+  * Add httpd alias (LP: #1260038)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 14 Dec 2013 10:43:29 -0800
+
 finnix-scripts (20131012.2) unstable; urgency=low
 
   * Create .torrent file (LP: #1173023)

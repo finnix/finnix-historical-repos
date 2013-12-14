@@ -34,6 +34,7 @@ if [ -x /usr/bin/cnf-finnix ]; then
 fi
 
 alias shredscan='badblocks -v -s -w -t random'
+alias httpd='python -m SimpleHTTPServer'
 alias ls='ls --color=auto'
 alias ll='ls -l'
 alias la='ls -A'
