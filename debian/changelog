@@ -1,3 +1,9 @@
+finnix-scripts (20131226.0) unstable; urgency=low
+
+  * Remove SSH1 key generation (LP: #1264420)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 26 Dec 2013 22:09:49 -0800
+
 finnix-scripts (20131214.0) unstable; urgency=low
 
   * Add httpd alias (LP: #1260038)
