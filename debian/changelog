@@ -1,3 +1,9 @@
+neale-initrd (20131227.0) unstable; urgency=low
+
+  * Replace net-tools with iproute2 (LP: #1264445)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 27 Dec 2013 09:32:10 -0800
+
 neale-initrd (20131010.0) unstable; urgency=low
 
   * Remove runit hack (LP: #1238343)

@@ -447,14 +447,18 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
     echo -n "${CRE}"
   fi
 
-  ifconfig lo 127.0.0.1 up
+  ip -4 addr flush dev lo
+  ip -6 addr flush dev lo
+  ip -4 addr add 127.0.0.1/8 dev lo
+  ip -6 addr add ::1/128 dev lo
+  ip link set dev lo up
   IP_INT="$(getbootparam ip_int)"
   arr=$(echo "$IP_INT" | tr "," "\n")
   if [ "$arr" = "all" ] || [ -z "$arr" ]; then
     arr="$(awk -F: '/eth.:|tr.:/{print $1}' /proc/net/dev)"
   fi
   for i in $arr; do
-    ifconfig "${i}" up
+    ip link set dev "${i}" up
     IP_V4DHCP="$(getbootparam ip_${i}_v4dhcp)"
     IP_V4ADDR="$(getbootparam ip_${i}_v4addr)"
     IP_V4NETMASK="$(getbootparam ip_${i}_v4netmask)"
@@ -476,7 +480,7 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
     else
       if [ -n "$IP_V4ADDR" ]; then
         [ -z "$IP_V4NETMASK" ] && IP_V4NETMASK="255.255.255.0"
-        ifconfig "${i}" "$IP_V4ADDR" netmask "$IP_V4NETMASK"
+        ip -4 addr add "$IP_V4ADDR"/"$IP_V4NETMASK" "${i}"
       fi
     fi
     if [ -n "$IP_V6ADDR" ]; then
@@ -484,7 +488,7 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
     fi
   done
   if [ -n "$IP_V4GATEWAY" ]; then
-    route add default gw "$IP_V4GATEWAY"
+    ip -4 route add default via "$IP_V4GATEWAY"
   fi
   if [ -n "$IP_V6GATEWAY" ]; then
     ip -6 route add default via "$IP_V6GATEWAY"
