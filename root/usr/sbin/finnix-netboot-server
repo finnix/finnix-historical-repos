@@ -193,7 +193,7 @@ fi
 if [ "$BIGINIT" = "no" ]; then
   SERVERIP=""
   for i in /sys/class/net/eth*; do
-    SERVERIPTEST="$(ifconfig $(basename $i) | grep "inet addr" | awk '{print $2}' | sed 's/^addr://')"
+    SERVERIPTEST="$(ip -4 addr | grep inet | grep "scope global" | awk '{print $2}' | sed 's/\/.*$//' | head -n 1)"
     [ -n "$SERVERIPTEST" ] && SERVERIP="$SERVERIPTEST"
   done
 

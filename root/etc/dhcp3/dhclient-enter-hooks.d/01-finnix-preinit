@@ -10,7 +10,7 @@
 if [ "$reason" = "PREINIT" ]; then
   # Only bring the interface up if it's down
   if [ "$(cat /sys/class/net/$interface/operstate)" = "down" ]; then
-    ifconfig $interface inet 0 up
+    ip link set dev $interface up
   fi
 
   # Prevent the dhclient-script from executing its own internal code
