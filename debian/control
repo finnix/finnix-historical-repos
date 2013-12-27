@@ -10,7 +10,7 @@ Homepage: http://www.finnix.org/
 
 Package: finnix-minimal
 Architecture: all
-Depends: ${misc:Depends}, finnix-base, finnix-minimal-arch, finnix-scripts, kmod, nvi | editor, net-tools, iproute, isc-dhcp-client, ifupdown
+Depends: ${misc:Depends}, finnix-base, finnix-minimal-arch, finnix-scripts, kmod, nvi | editor, iproute2, isc-dhcp-client, ifupdown
 Description: Minimal Finnix dependencies
  This meta-package depends all needed packages for a minimal Finnix
  distribution.

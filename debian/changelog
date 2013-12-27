@@ -1,3 +1,9 @@
+finnix-minimal (20131227.0) unstable; urgency=low
+
+  * Replace net-tools with iproute2 (LP: #1264445)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 27 Dec 2013 00:06:33 -0800
+
 finnix-minimal (20131009.0) unstable; urgency=low
 
   * New package (LP: #1237276)
