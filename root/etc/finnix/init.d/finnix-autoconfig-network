@@ -31,7 +31,11 @@ esac
 . /lib/finnix/finnix-rc-helper.sh
 
 # Bring up loopback interface now
-ifconfig lo 127.0.0.1 up
+ip -4 addr flush dev lo
+ip -6 addr flush dev lo
+ip -4 addr add 127.0.0.1/8 dev lo
+ip -6 addr add ::1/128 dev lo
+ip link set dev lo up
 
 # Configure interfaces (static or DHCP)
 if [ "$FINNIX_NFSBOOT" = "yes" ] || [ "$FINNIX_FORENSIC" = "yes" ]; then
@@ -57,14 +61,13 @@ for i in $arr; do
     if ! checkbootparam "nodhcp"; then
       echo -n "${BLUEITEM} Starting background DHCP request: "
       echo -n "${WHITE}$DEVICE${NORMAL} "
-      #_f12 ifconfig $DEVICE up
       dhclient -v "${i}" >>/var/log/dhclient."${i}".log 2>&1 &
       echo -n "done${CRE}"
     fi
   else
     if [ -n "$IP_V4ADDR" ]; then
       [ -z "$IP_V4NETMASK" ] && IP_V4NETMASK="255.255.255.0"
-      ifconfig "${i}" "$IP_V4ADDR" netmask "$IP_V4NETMASK"
+      ip -4 addr add "$IP_V4ADDR"/"$IP_V4NETMASK" "${i}"
     fi
   fi
   if [ -n "$IP_V6ADDR" ]; then
@@ -72,7 +75,7 @@ for i in $arr; do
   fi
 done
 if [ -n "$IP_V4GATEWAY" ]; then
-  route add default gw "$IP_V4GATEWAY"
+  ip -4 route add default via "$IP_V4GATEWAY"
 fi
 if [ -n "$IP_V6GATEWAY" ]; then
   ip -6 route add default via "$IP_V6GATEWAY"

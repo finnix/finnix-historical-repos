@@ -23,7 +23,7 @@ EOM
       fi
       echo -n "${BLUEITEM} Waiting... "; sleep 5; echo -n "done${CRE}"
       echo "${BLUEITEM}   Current system IP addresses:"
-      ifconfig -a | grep "inet addr" | grep -v "inet addr:127"
+      ip addr | grep inet | grep "scope global"
     fi
     ;;
   stop)

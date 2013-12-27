@@ -1,3 +1,9 @@
+finnix-scripts (20131226.1) unstable; urgency=low
+
+  * Replace net-tools with iproute2 (LP: #1264445)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 26 Dec 2013 23:44:45 -0800
+
 finnix-scripts (20131226.0) unstable; urgency=low
 
   * Remove SSH1 key generation (LP: #1264420)
