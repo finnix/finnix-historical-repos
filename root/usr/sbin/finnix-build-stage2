@@ -211,6 +211,13 @@ if [ -n "${BAD_BINARIES}" ]; then
   exit 1
 fi
 
+### copy os-release in
+if [ -f "${RELEASE_FILE}" ]; then
+  if ! [ "${RELEASE_FILE}" = "${FINNIX_MASTER}/finnix/os-release" ]; then
+    cp "${RELEASE_FILE}" "${FINNIX_MASTER}/finnix/os-release"
+  fi
+fi
+
 ### initrd tasks
 if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   ### generate modules
@@ -388,13 +395,6 @@ else
       exit 1
     fi
   done
-fi
-
-### copy os-release in
-if [ -f "${RELEASE_FILE}" ]; then
-  if ! [ "${RELEASE_FILE}" = "${FINNIX_MASTER}/finnix/os-release" ]; then
-    cp "${RELEASE_FILE}" "${FINNIX_MASTER}/finnix/os-release"
-  fi
 fi
 
 ### calculate md5sums
