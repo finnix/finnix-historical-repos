@@ -1,3 +1,9 @@
+finnix-standard (20140119.0) unstable; urgency=low
+
+  * Remove bootchart (LP: #1270532)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 19 Jan 2014 00:05:59 -0800
+
 finnix-standard (20131214.0) unstable; urgency=low
 
   * Remove pppoeconf (LP: #1261015)
