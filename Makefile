@@ -39,8 +39,8 @@ build/sbm-stamp:
 build/ipxe-stamp:
 	rm -rf build/ipxe
 	mkdir -p build/ipxe
-	tar -ax --strip-components=1 -C build/ipxe -f sources/ipxe/ipxe-git.20121120.717279a.tar.xz
-	make -C build/ipxe/src bin/ipxe.lkrn
+	tar -ax --strip-components=1 -C build/ipxe -f sources/ipxe/ipxe-git.20140129.3fa7a3b.tar.xz
+	make -C build/ipxe/src bin/ipxe.lkrn V=1 EXTRAVERSION="+ (Finnix $(shell dpkg-parsechangelog | grep Version: | cut -d' ' -f2-))"
 	install -m 0755 -d binaries
 	install -m 0644 build/ipxe/src/bin/ipxe.lkrn binaries/ipxe
 	touch build/ipxe-stamp
@@ -48,9 +48,8 @@ build/ipxe-stamp:
 build/memtest-stamp:
 	rm -rf build/memtest
 	mkdir -p build/memtest
-	tar -ax --strip-components=1 -C build/memtest -f sources/memtest/memtest86+-4.20.tar.gz
-	patch -d build/memtest -p1 <patches/memtest/memtest86+-4.20-finnix.patch
-	patch -d build/memtest -p1 <patches/memtest/memtest86+-4.20-773569.patch
+	tar -ax --strip-components=1 -C build/memtest -f sources/memtest/memtest86+-5.01.tar.gz
+	patch -d build/memtest -p1 <patches/memtest/memtest86+-5.01-finnix.patch
 	make -C build/memtest memtest.bin
 	install -m 0755 -d binaries
 	install -m 0644 build/memtest/memtest.bin binaries/memtest

@@ -1,3 +1,12 @@
+neale-master (20140129.0) unstable; urgency=low
+
+  * Upgrade Memtest86+ build to 5.10 (LP: #1274393)
+    * Drop memtest86+-4.20-773569.patch
+  * Upgrade iPXE build to 20140129.3fa7a3b (LP: #1274399)
+    * Add Finnix-tagged EXTRAVERSION support
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 29 Jan 2014 22:27:22 -0800
+
 neale-master (20130310.0) unstable; urgency=low
 
   * Add Finnix identifier to memtest86+ screen
