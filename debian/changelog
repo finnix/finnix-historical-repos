@@ -1,3 +1,9 @@
+finnix-standard (20140207.0) unstable; urgency=low
+
+  * Remove arpwatch (LP: #1277754)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 07 Feb 2014 16:33:07 -0800
+
 finnix-standard (20140129.0) unstable; urgency=low
 
   * Re-add pppoeconf, re-entered testing (LP: #1261015)
