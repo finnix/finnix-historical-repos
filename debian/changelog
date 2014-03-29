@@ -1,3 +1,9 @@
+finnix-standard (20140329.0) unstable; urgency=low
+
+  * Re-add arpwatch (LP: #1277754)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 29 Mar 2014 12:19:04 -0700
+
 finnix-standard (20140207.0) unstable; urgency=low
 
   * Remove arpwatch (LP: #1277754)
