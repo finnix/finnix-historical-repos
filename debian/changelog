@@ -1,3 +1,10 @@
+neale-initrd (20140329.0) unstable; urgency=low
+
+  * Upgrade BusyBox to 1.22.1 (LP: #1280655)
+  * sysmodules: Default to uname -r, accept argument
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 29 Mar 2014 00:33:31 -0700
+
 neale-initrd (20131227.0) unstable; urgency=low
 
   * Replace net-tools with iproute2 (LP: #1264445)

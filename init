@@ -385,8 +385,7 @@ fi
 if [ -z "${NOBOOTHWSETUP}" ]; then
   echo -n "${CRE}${BLUEITEM} Loading probed module: "
 
-  MODALIASES="/lib/modules/$(uname -r)/modules.alias"
-  LOADMODS="$(sysmodules <$MODALIASES) ide-generic generic"
+  LOADMODS="$(sysmodules) ide-generic generic"
   if [ "${FINNIX_XENU}" = "yes" ]; then
     LOADMODS="$LOADMODS xen-blkfront xen-netfront"
   fi

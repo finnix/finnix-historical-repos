@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/utsname.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <stdlib.h>
@@ -111,10 +112,28 @@ int
 main(int argc, char *argv[])
 {
     char l[512];
+    char *fn;
+    FILE *f;
+
+    fn = *++argv;
+    if(!fn) {
+        struct utsname uts;
+        if(uname(&uts) == -1) {
+            perror("uname");
+            return 2;
+        }
+        fn = alloca(PATH_MAX);
+        snprintf(fn, PATH_MAX, "/lib/modules/%s/modules.alias", uts.release);
+    }
+
+    if ((f = fopen(fn, "r")) == NULL) {
+        perror(fn);
+        return 2;
+    }
 
     find("/sys/devices");
 
-    while (NULL != fgets(l, sizeof l, stdin)) {
+    while (NULL != fgets(l, sizeof l, f)) {
         int i;
         char *matcher;
         char *module;
@@ -140,6 +159,8 @@ main(int argc, char *argv[])
             }
         }
     }
+
+    fclose(f);
 
     return 0;
 }

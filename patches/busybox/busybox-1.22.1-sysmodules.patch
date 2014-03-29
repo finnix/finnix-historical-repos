@@ -1,42 +1,41 @@
-diff -ruN busybox-1.19.4.orig/modutils/Config.src busybox-1.19.4/modutils/Config.src
---- busybox-1.19.4.orig/modutils/Config.src	2012-02-04 11:24:55.000000000 -0800
-+++ busybox-1.19.4/modutils/Config.src	2012-04-12 13:17:48.743730944 -0700
-@@ -90,6 +90,13 @@
- 	  the format of module-init-tools for Linux kernel 2.6.
- 	  Increases size somewhat.
+diff -ruN busybox-1.22.1.orig/modutils/Config.src busybox-1.22.1/modutils/Config.src
+--- busybox-1.22.1.orig/modutils/Config.src	2014-01-09 10:15:44.000000000 -0800
++++ busybox-1.22.1/modutils/Config.src	2014-02-14 12:17:16.885702685 -0800
+@@ -121,6 +121,14 @@
+ 	  and modules.symbols) that contain dependency information
+ 	  for modprobe.
  
 +config SYSMODULES
 +	bool "sysmodules"
 +	default n
 +	select PLATFORM_LINUX
 +	help
-+	  sysmodules compares sysfs devices to modaliases.
++	  sysmodules compares sysfs devices to modaliases and prints a
++          list of loadable modules.
 +
- config MODPROBE
- 	bool "modprobe"
- 	default n
-diff -ruN busybox-1.19.4.orig/modutils/Kbuild.src busybox-1.19.4/modutils/Kbuild.src
---- busybox-1.19.4.orig/modutils/Kbuild.src	2012-02-04 11:24:55.000000000 -0800
-+++ busybox-1.19.4/modutils/Kbuild.src	2012-04-12 13:23:00.060738481 -0700
-@@ -11,6 +11,7 @@
- lib-$(CONFIG_DEPMOD)              += depmod.o modutils.o
- lib-$(CONFIG_INSMOD)              += insmod.o modutils.o
+ comment "Options common to multiple modutils"
+ 
+ config FEATURE_2_4_MODULES
+diff -ruN busybox-1.22.1.orig/modutils/Kbuild.src busybox-1.22.1/modutils/Kbuild.src
+--- busybox-1.22.1.orig/modutils/Kbuild.src	2014-01-09 10:15:44.000000000 -0800
++++ busybox-1.22.1/modutils/Kbuild.src	2014-02-14 12:17:16.885702685 -0800
+@@ -13,4 +13,5 @@
  lib-$(CONFIG_LSMOD)               += lsmod.o modutils.o
-+lib-$(CONFIG_SYSMODULES)          += sysmodules.o
  lib-$(CONFIG_MODPROBE)            += modprobe.o modutils.o
  lib-$(CONFIG_RMMOD)               += rmmod.o modutils.o
++lib-$(CONFIG_SYSMODULES)          += sysmodules.o
  lib-$(CONFIG_FEATURE_2_4_MODULES) += modutils-24.o
-diff -ruN busybox-1.19.4.orig/modutils/sysmodules.c busybox-1.19.4/modutils/sysmodules.c
---- busybox-1.19.4.orig/modutils/sysmodules.c	1969-12-31 16:00:00.000000000 -0800
-+++ busybox-1.19.4/modutils/sysmodules.c	2012-04-12 13:36:42.567737375 -0700
-@@ -0,0 +1,153 @@
+diff -ruN busybox-1.22.1.orig/modutils/sysmodules.c busybox-1.22.1/modutils/sysmodules.c
+--- busybox-1.22.1.orig/modutils/sysmodules.c	1969-12-31 16:00:00.000000000 -0800
++++ busybox-1.22.1/modutils/sysmodules.c	2014-02-14 12:17:16.885702685 -0800
+@@ -0,0 +1,174 @@
 +/*
 + * sysmodules
 + *
-+ * This software determines which modules can be loaded based on a copy
-+ * of modules.alias, comparing to sysfs devies that publish a modalias.
++ * This software determines which modules can be loaded based on
++ * modules.alias, comparing to sysfs devices which publish a modalias.
 + *
-+ * Usage: sysmodules < /lib/modules/`uname -r`/modules.alias
++ * Usage: sysmodules [modules.alias]
 + *
 + * This software contains code originally written by Neale Pickett, and
 + * included the following disclaimer of copyright:
@@ -59,9 +58,11 @@ diff -ruN busybox-1.19.4.orig/modutils/sysmodules.c busybox-1.19.4/modutils/sysm
 +//applet:IF_SYSMODULES(APPLET(sysmodules, BB_DIR_SBIN, BB_SUID_DROP))
 +
 +//usage:#define sysmodules_trivial_usage
-+//usage:       ""
++//usage:       "[modules.alias]"
 +//usage:#define sysmodules_full_usage "\n\n"
-+//usage:       "Compares sysfs devices to modaliases"
++//usage:       "Compares sysfs devices to modaliases\n"
++//usage:     "\n        [modules.alias]    (default /lib/modules/`uname -r`/modules.alias)"
++
 +
 +#include "libbb.h"
 +#include "sysmodules.h"
@@ -69,6 +70,7 @@ diff -ruN busybox-1.19.4.orig/modutils/sysmodules.c busybox-1.19.4/modutils/sysm
 +#include <stdio.h>
 +#include <sys/types.h>
 +#include <sys/stat.h>
++#include <sys/utsname.h>
 +#include <unistd.h>
 +#include <dirent.h>
 +#include <stdlib.h>
@@ -148,13 +150,29 @@ diff -ruN busybox-1.19.4.orig/modutils/sysmodules.c busybox-1.19.4/modutils/sysm
 +
 +const char *syspath = "/sys/devices";
 +int sysmodules_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-+int sysmodules_main(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
++int sysmodules_main(int argc UNUSED_PARAM, char **argv)
 +{
 +    char l[512];
++    char *fn;
++    FILE *f;
++
++    fn = *++argv;
++    if(!fn) {
++        struct utsname uts;
++        if(uname(&uts) == -1) {
++            bb_perror_msg_and_die("uname");
++        }
++        fn = alloca(PATH_MAX);
++        snprintf(fn, PATH_MAX, "/lib/modules/%s/modules.alias", uts.release);
++    }
++
++    if ((f = fopen(fn, "r")) == NULL) {
++        bb_perror_msg_and_die(fn);
++    }
 +
 +    sysmodules_find((char *)syspath);
 +
-+    while (NULL != fgets(l, sizeof l, stdin)) {
++    while (NULL != fgets(l, sizeof l, f)) {
 +        int i;
 +        char *matcher;
 +        char *module;
@@ -181,11 +199,13 @@ diff -ruN busybox-1.19.4.orig/modutils/sysmodules.c busybox-1.19.4/modutils/sysm
 +        }
 +    }
 +
++    fclose(f);
++
 +    return 0;
 +}
-diff -ruN busybox-1.19.4.orig/modutils/sysmodules.h busybox-1.19.4/modutils/sysmodules.h
---- busybox-1.19.4.orig/modutils/sysmodules.h	1969-12-31 16:00:00.000000000 -0800
-+++ busybox-1.19.4/modutils/sysmodules.h	2012-04-12 13:38:50.177238541 -0700
+diff -ruN busybox-1.22.1.orig/modutils/sysmodules.h busybox-1.22.1/modutils/sysmodules.h
+--- busybox-1.22.1.orig/modutils/sysmodules.h	1969-12-31 16:00:00.000000000 -0800
++++ busybox-1.22.1/modutils/sysmodules.h	2014-02-14 12:17:16.885702685 -0800
 @@ -0,0 +1,3 @@
 +void sysmodules_cat(char *path);
 +void sysmodules_find(char *path);

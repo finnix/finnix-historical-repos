@@ -1,0 +1,13 @@
+--- busybox-1.22.1/libbb/xreadlink.c.orig	2014-03-12 09:00:22.461220185 +0000
++++ busybox-1.22.1/libbb/xreadlink.c	2014-03-12 09:01:06.429220034 +0000
+@@ -108,8 +108,8 @@
+ 
+ char* FAST_FUNC xmalloc_realpath(const char *path)
+ {
+-#if defined(__GLIBC__) || \
+-    (defined(__UCLIBC__) && UCLIBC_VERSION >= KERNEL_VERSION(0, 9, 31))
++#if defined(__GLIBC__) && \
++    (!defined(__UCLIBC__) || UCLIBC_VERSION >= KERNEL_VERSION(0, 9, 31))
+ 	/* glibc provides a non-standard extension */
+ 	/* new: POSIX.1-2008 specifies this behavior as well */
+ 	return realpath(path, NULL);
