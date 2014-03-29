@@ -1,3 +1,9 @@
+neale-kernel (20140329.0) unstable; urgency=low
+
+  * Debian 3.13.7-1
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 29 Mar 2014 01:01:44 -0700
+
 neale-kernel (20130915.0) unstable; urgency=low
 
   * Debian 3.10.11-1
