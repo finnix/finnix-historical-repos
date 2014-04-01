@@ -1,3 +1,11 @@
+neale-initrd (20140401.0) unstable; urgency=low
+
+  * Rebuild against new buildroot toolchains
+  * Document build process
+  * Change location of busybox binaries
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 01 Apr 2014 15:14:50 -0700
+
 neale-initrd (20140329.0) unstable; urgency=low
 
   * Upgrade BusyBox to 1.22.1 (LP: #1280655)

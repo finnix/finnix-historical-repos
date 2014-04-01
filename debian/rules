@@ -26,7 +26,9 @@ override_dh_auto_install:
 	install -m 0644 $(CURDIR)/resolv.conf $(CURDIR)/debian/neale-initrd/etc/resolv.conf
 	install -m 0755 $(CURDIR)/finnix-colors.sh $(CURDIR)/debian/neale-initrd/bin/finnix-colors.sh
 	install -m 0755 $(CURDIR)/udhcpc.script $(CURDIR)/debian/neale-initrd/bin/udhcpc.script
-	install -m 0755 $(CURDIR)/binaries/busybox/busybox.$(DEB_BUILD_ARCH) $(CURDIR)/debian/neale-initrd/bin/busybox
+
+	# debhelper will take care of stripping the binary
+	install -m 0755 $(CURDIR)/binaries/busybox/$(DEB_BUILD_ARCH)/busybox_unstripped $(CURDIR)/debian/neale-initrd/bin/busybox
 
 	(cd $(CURDIR)/debian/neale-initrd/bin && for i in `./busybox --list`; do ln -s busybox $$i; done)
 	mknod -m 0600 $(CURDIR)/debian/neale-initrd/dev/console c 5 1

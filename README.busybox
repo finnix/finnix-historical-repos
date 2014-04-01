@@ -1,0 +1,48 @@
+To save space, BusyBox is compiled against a uClibc toolchain.  This is 
+a process which cannot easily be automated within a Debian source 
+package, as building the toolchain involves building a number of large 
+programs.  So instead, pre-built binaries are included here for 
+supported Finnix architectures.
+
+A buildroot environment (currently 2014.02) is used, with the following 
+configuration options enabled for each architecture:
+
+BR2_i386=y
+BR2_x86_i486=y
+BR2_TOOLCHAIN_BUILDROOT_LARGEFILE=y
+BR2_TOOLCHAIN_BUILDROOT_INET_IPV6=y
+BR2_TOOLCHAIN_BUILDROOT_INET_RPC=y
+BR2_PTHREADS_OLD=y
+
+BR2_x86_64=y
+BR2_x86_generic=y
+BR2_TOOLCHAIN_BUILDROOT_LARGEFILE=y
+BR2_TOOLCHAIN_BUILDROOT_INET_IPV6=y
+BR2_TOOLCHAIN_BUILDROOT_INET_RPC=y
+BR2_PTHREADS_NATIVE=y
+
+BR2_powerpc=y
+BR2_generic_powerpc=y
+BR2_TOOLCHAIN_BUILDROOT_LARGEFILE=y
+BR2_TOOLCHAIN_BUILDROOT_INET_IPV6=y
+BR2_TOOLCHAIN_BUILDROOT_INET_RPC=y
+BR2_PTHREADS_OLD=y
+
+BusyBox itself is built from the tarball in sources/busybox/, and the 
+patches and config in patches/busybox/.
+
+To build the toolchain and BusyBox:
+
+BUILDROOTDIR=/path/to/buildroot
+BUSYBOXDIR=/path/to/busybox
+
+cd $BUILDROOTDIR
+make menuconfig
+
+make clean && time make toolchain
+
+cd $BUSYBOXDIR
+(
+  export PATH=$BUILDROOTDIR/output/host/usr/bin:$PATH
+  make clean && time make CROSS_COMPILE=$(cd $BUILDROOTDIR/output/host/usr && ls -d -1 *-buildroot-linux-uclibc)- busybox
+)
