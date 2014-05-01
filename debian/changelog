@@ -1,3 +1,11 @@
+finnix-scripts (20140430.0) unstable; urgency=low
+
+  * Move diverted /etc/lsb-base-logging.sh.finnix to
+    /lib/lsb/init-functions.d/50-finnix (LP: #1314057)
+  * Fix /etc/ssl/certs and add /etc/ssl/certs/README.finnix
+    (LP: #1314879)
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 30 Apr 2014 20:08:28 -0700
+
 finnix-scripts (20131227.0) unstable; urgency=low
 
   * Copy os-release to /finnix/ sooner to fix forensic generation

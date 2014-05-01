@@ -18,14 +18,6 @@ if [ "$1" = configure ] && [ -z "$2" ]; then
     ln -s /lib/finnix/init.d/ssh.finnix /etc/init.d/ssh
   fi
 
-  # Divert misc files
-  for fn in /etc/lsb-base-logging.sh; do
-    if ! [ -e "$fn.distrib" ]; then
-      dpkg-divert --rename --package finnix-scripts --divert "$fn.distrib" --add "$fn"
-      ln -s "$(basename $fn).finnix" "$fn"
-    fi
-  done
-
   # Finnix-specific bashrc enhancements
   if ! grep /etc/bash.bashrc.finnix /etc/bash.bashrc >/dev/null 2>/dev/null; then
     echo '[ -r /etc/bash.bashrc.finnix ] && . /etc/bash.bashrc.finnix' >>/etc/bash.bashrc

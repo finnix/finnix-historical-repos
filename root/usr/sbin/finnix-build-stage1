@@ -249,7 +249,7 @@ fi
 ### clean up environment
 echo -n "Cleaning certificates... "
 rm -f ${FINNIX_SOURCE}/etc/ssl/private/ssl-cert-snakeoil.key
-if [ -d " ${FINNIX_SOURCE}/etc/ssl/certs" ]; then
+if [ -d "${FINNIX_SOURCE}/etc/ssl/certs" ]; then
   rm -f ${FINNIX_SOURCE}/etc/ssl/certs/ssl-cert-snakeoil.pem
   find ${FINNIX_SOURCE}/etc/ssl/certs -type l -delete
   echo -n >${FINNIX_SOURCE}/etc/ssl/certs/ca-certificates.crt
