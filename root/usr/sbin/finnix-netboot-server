@@ -110,18 +110,18 @@ setup_initrd() {
   fi
   INITRD_NET_DIR="$(mktemp -d)"
 
-  if [ -f "/cdrom${INITRDDIR}/initrd.xz" ]; then
+  if [ -f "/media/cd_base${INITRDDIR}/initrd.xz" ]; then
     INITRD_NET_IMG_MODE="xz"
     INITRD_NET_IMG="/srv/tftp${TFTPDISTDIR}${INITRDDIR}/initrd_net.xz"
-    (cd $INITRD_NET_DIR ; xz -d -c /cdrom${INITRDDIR}/initrd.xz | cpio --quiet -idm)
-  elif [ -f "/cdrom${INITRDDIR}/initrd.gz" ]; then
+    (cd $INITRD_NET_DIR ; xz -d -c /media/cd_base${INITRDDIR}/initrd.xz | cpio --quiet -idm)
+  elif [ -f "/media/cd_base${INITRDDIR}/initrd.gz" ]; then
     INITRD_NET_IMG_MODE="gzip"
     INITRD_NET_IMG="/srv/tftp${TFTPDISTDIR}${INITRDDIR}/initrd_net.gz"
-    (cd $INITRD_NET_DIR ; gunzip -c /cdrom${INITRDDIR}/initrd.gz | cpio --quiet -idm)
-  elif [ -f "/cdrom${INITRDDIR}/initrd" ]; then
+    (cd $INITRD_NET_DIR ; gunzip -c /media/cd_base${INITRDDIR}/initrd.gz | cpio --quiet -idm)
+  elif [ -f "/media/cd_base${INITRDDIR}/initrd" ]; then
     INITRD_NET_IMG_MODE="uncompressed"
     INITRD_NET_IMG="/srv/tftp${TFTPDISTDIR}${INITRDDIR}/initrd_net"
-    (cd $INITRD_NET_DIR ; cpio --quiet -idm < /cdrom${INITRDDIR}/initrd)
+    (cd $INITRD_NET_DIR ; cpio --quiet -idm < /media/cd_base${INITRDDIR}/initrd)
   else
     echo "ERROR: Cannot determine base initrd"
     exit 1
@@ -129,7 +129,7 @@ setup_initrd() {
 
   if [ "$BIGINIT" = "yes" ]; then
     mkdir -p "$INITRD_NET_DIR/cdroot"
-    cp -a /cdrom/* "$INITRD_NET_DIR/cdroot/"
+    cp -a /media/cd_base/* "$INITRD_NET_DIR/cdroot/"
   else
     rm -rf $INITRD_NET_DIR/lib/modules/*
     for i in /lib/modules/*; do
@@ -212,15 +212,15 @@ BOOTDIR=/boot
 
   log_action_msg "Copying boot files to tftpboot..."
   mkdir -p /srv/tftp${TFTPDISTDIR}${BOOTDIR}
-  cp -a /cdrom${BOOTDIR}/* /srv/tftp${TFTPDISTDIR}${BOOTDIR}/
+  cp -a /media/cd_base${BOOTDIR}/* /srv/tftp${TFTPDISTDIR}${BOOTDIR}/
 
   if [ "$BIGINIT" = "yes" ]; then
     NETOPTS=""
   else
-    NETOPTS="nfsroot=${SERVERIP}:/cdrom"
+    NETOPTS="nfsroot=${SERVERIP}:/media/cd_base"
   fi
 
-  if [ -e "/cdrom${BOOTDIR}/ppc/yaboot.conf" ]; then
+  if [ -e "/media/cd_base${BOOTDIR}/ppc/yaboot.conf" ]; then
     INITRDDIR="${BOOTDIR}/ppc"
     setup_initrd
 
@@ -229,7 +229,7 @@ BOOTDIR=/boot
       | "s'_TFTPBASE_'${TFTPDISTDIR}'g" >/srv/tftp${TFTPDISTDIR}/yaboot.conf
   fi
 
-  if [ -d "/cdrom${BOOTDIR}/x86/pxelinux" ]; then
+  if [ -d "/media/cd_base${BOOTDIR}/x86/pxelinux" ]; then
     INITRDDIR="${BOOTDIR}/x86"
     setup_initrd
 
@@ -237,7 +237,7 @@ BOOTDIR=/boot
     cp -a /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/pxelinux.0 /srv/tftp${TFTPDISTDIR}/
     mkdir -p /srv/tftp${TFTPDISTDIR}/pxelinux.cfg
     sed "s'_NETOPTS_'${NETOPTS}'g" /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/template.cfg >/srv/tftp${TFTPDISTDIR}/pxelinux.cfg/default
-  elif [ -d "/cdrom${BOOTDIR}/amd64/pxelinux" ]; then
+  elif [ -d "/media/cd_base${BOOTDIR}/amd64/pxelinux" ]; then
     INITRDDIR="${BOOTDIR}/amd64"
     setup_initrd
 
@@ -260,7 +260,7 @@ BOOTDIR=/boot
 
   if [ "$BIGINIT" = "no" ]; then
     log_action_msg "Setting up nfs..."
-    grep -q "^/cdrom" /etc/exports || echo "/cdrom 0.0.0.0/0.0.0.0(ro,sync,no_subtree_check)" >>/etc/exports
+    grep -q "^/media/cd_base" /etc/exports || echo "/media/cd_base 0.0.0.0/0.0.0.0(ro,sync,no_subtree_check,fsid=$(uuidgen))" >>/etc/exports
     sleep 1
     mkdir -p /run/rpcbind
     touch /run/rpcbind/rpcbind.xdr
@@ -292,11 +292,11 @@ if [ -z "$SERVERIP" ]; then
   SERVERIP="<server IP>"
 fi
 
-if [ -d "/cdrom${BOOTDIR}/x86/pxelinux" ]; then
+if [ -d "/media/cd_base${BOOTDIR}/x86/pxelinux" ]; then
   DIALOGMSG="${DIALOGMSG}\n\nTo PXE boot an x86 machine, note the machine's MAC address, and put the following in your network's DHCP configuration (assuming an ISC DHCP server):\n\ngroup {\n  next-server ${SERVERIP};\n  filename \"${TFTPDISTDIR}/pxelinux.0\";\n  host clienthostname {\n    hardware ethernet aa:bb:cc:dd:ee:ff; # Client MAC address\n    fixed-address 10.0.0.201; # Client IP address\n  }\n}\n\nFor Microsoft's DHCP server, create a new reservation, then set option 66 to \"${SERVERIP}\", and option 67 to \"${TFTPDISTDIR}/pxelinux.0\"."
-elif [ -d "/cdrom${BOOTDIR}/amd64/pxelinux" ]; then
+elif [ -d "/media/cd_base${BOOTDIR}/amd64/pxelinux" ]; then
   DIALOGMSG="${DIALOGMSG}\n\nTo PXE boot an AMD64 machine, note the machine's MAC address, and put the following in your network's DHCP configuration (assuming an ISC DHCP server):\n\ngroup {\n  next-server ${SERVERIP};\n  filename \"${TFTPDISTDIR}/pxelinux.0\";\n  host clienthostname {\n    hardware ethernet aa:bb:cc:dd:ee:ff; # Client MAC address\n    fixed-address 10.0.0.201; # Client IP address\n  }\n}\n\nFor Microsoft's DHCP server, create a new reservation, then set option 66 to \"${SERVERIP}\", and option 67 to \"${TFTPDISTDIR}/pxelinux.0\"."
-elif [ -e "/cdrom${BOOTDIR}/ppc/yaboot.conf" ]; then
+elif [ -e "/media/cd_base${BOOTDIR}/ppc/yaboot.conf" ]; then
   DIALOGMSG="${DIALOGMSG}\n\nPowerPC OpenFirmware booting requires no special DHCP options.  Boot into OpenFirmware (hold Command-Option-O-F during boot), then enter \"boot enet:${SERVERIP},\\finnix\\boot\\ppc\\yaboot\"."
 else
   DIALOGMSG="TFTP and NFS services are now running."
