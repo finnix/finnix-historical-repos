@@ -33,10 +33,9 @@ while(my $linein = <STDIN>) {
     next unless (-e $file);
     $file = abs_path($file);
     next unless (-e $file);
-    $file =~ s/^\/(UNIONFS|FINNIX)\//\//;
     $file =~ s/^\///;
-    next unless(-e "/FINNIX/$file");
-    next if(-d "/FINNIX/$file");
+    next unless(-e "/media/compressed_root/$file");
+    next if(-d "/media/compressed_root/$file");
     next if($found{$file});
     $i++;
     printf "%s\t%s\n", $file, (-10000 - $i);
@@ -54,8 +53,8 @@ while(my $linein = <STDIN>) {
       }
       if($knewarchp) {
         my $newfile = "lib/modules/$kverp-$knewarchp-finnix/$krestp";
-        next unless (-e "/FINNIX/$newfile");
-        next if (-d "/FINNIX/$newfile");
+        next unless (-e "/media/compressed_root/$newfile");
+        next if (-d "/media/compressed_root/$newfile");
         next if($found{$newfile});
         $i++;
         printf "%s\t%s\n", $newfile, (-10000 - $i);

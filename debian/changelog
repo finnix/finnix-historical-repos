@@ -1,3 +1,12 @@
+finnix-scripts (20140501.0) unstable; urgency=low
+
+  * Generate ED25519 host key (LP: #1314965)
+  * Remove usage of console-tools (LP: #1315242)
+  * aufs as root filesystem (LP: #1315243)
+  * Remove old finnix-strace-reorder scripts (LP: #1315246)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 01 May 2014 22:36:26 -0700
+
 finnix-scripts (20140430.0) unstable; urgency=low
 
   * Move diverted /etc/lsb-base-logging.sh.finnix to

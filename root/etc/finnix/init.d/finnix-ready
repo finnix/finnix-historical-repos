@@ -13,7 +13,7 @@ EOM
 
 case "$1" in
   start)
-    STATINFO="$(_f2 stat -t -f /FINNIX)"
+    STATINFO="$(_f2 stat -t -f /media/compressed_root)"
     if [ -n "$STATINFO" ]; then
       while read SUNDEF1 SUNDEF2 SUNDEF3 SUNDEF4 SBLOCKSIZE SUNDEF5 SBLOCKS SUNDEF6; do
         CDSIZE="$(($SBLOCKSIZE * $SBLOCKS / 1048576))M"

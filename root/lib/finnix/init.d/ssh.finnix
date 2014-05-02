@@ -29,6 +29,7 @@ check_finnix() {
     RSA_KEY=/etc/ssh/ssh_host_rsa_key
     DSA_KEY=/etc/ssh/ssh_host_dsa_key
     ECDSA_KEY=/etc/ssh/ssh_host_ecdsa_key
+    ED25519_KEY=/etc/ssh/ssh_host_ed25519_key
     if ! test -f $RSA_KEY ; then
         log_begin_msg "Generating SSH2 RSA host key"
         $KEYGEN -q -t rsa -f $RSA_KEY -C '' -N ''
@@ -42,6 +43,11 @@ check_finnix() {
     if ! test -f $ECDSA_KEY ; then
         log_begin_msg "Generating SSH2 ECDSA host key"
         $KEYGEN -q -t ecdsa -f $ECDSA_KEY -C '' -N ''
+        log_end_msg $?
+    fi
+    if ! test -f $ED25519_KEY ; then
+        log_begin_msg "Generating SSH2 ED25519 host key"
+        $KEYGEN -q -t ecdsa -f $ED25519_KEY -C '' -N ''
         log_end_msg $?
     fi
 }

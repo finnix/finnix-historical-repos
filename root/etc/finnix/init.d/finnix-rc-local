@@ -23,8 +23,8 @@ case "$1" in
   start)
     MYCONFIGS=""
     if [ -n "${FINNIX_DIR}" ]; then
-      if [ -d "/cdrom${FINNIX_DIR}/arch/indep/rc" ]; then
-        for i in /cdrom${FINNIX_DIR}/arch/indep/rc/*; do
+      if [ -d "/media/cd_base${FINNIX_DIR}/arch/indep/rc" ]; then
+        for i in /media/cd_base${FINNIX_DIR}/arch/indep/rc/*; do
           if [ -f "$i" ]; then
             [ -n "$MYCONFIGS" ] && MYCONFIGS="$MYCONFIGS "
             MYCONFIGS="$MYCONFIGS$i"
@@ -34,8 +34,8 @@ case "$1" in
     fi
 
     if [ -n "${FINNIX_CDARCHDIR}" ]; then
-      if [ -d "/cdrom${FINNIX_CDARCHDIR}/rc" ]; then
-        for i in /cdrom${FINNIX_CDARCHDIR}/rc/*; do
+      if [ -d "/media/cd_base${FINNIX_CDARCHDIR}/rc" ]; then
+        for i in /media/cd_base${FINNIX_CDARCHDIR}/rc/*; do
           if [ -f "$i" ]; then
             [ -n "$MYCONFIGS" ] && MYCONFIGS="$MYCONFIGS "
             MYCONFIGS="$MYCONFIGS$i"

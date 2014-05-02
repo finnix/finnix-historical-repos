@@ -6,7 +6,7 @@
 # Required-Stop:
 # Default-Start:     S
 # Default-Stop:
-# Shoft-Description: Set up console fonts, time zone, etc
+# Shoft-Description: Set up locale, time zone, etc
 ### END INIT INFO
 
 # finnix-autoconfig-locale
@@ -30,13 +30,8 @@ esac
 
 . /lib/finnix/finnix-rc-helper.sh
 
-# Nice default US-centric config
-KEYTABLE="us"
+# Nice default
 TZ="UTC"
-
-# Allow keyboard override by boot commandline
-KKEYBOARD="$(getbootparam keyboard)"
-[ -n "$KKEYBOARD" ] && KEYTABLE="$KKEYBOARD"
 
 # Set clock
 #UTC="-u "
@@ -52,10 +47,3 @@ if checkbootparam "nohwclock"; then
 fi
 rm -f /etc/localtime
 cp "/usr/share/zoneinfo/$TZ" /etc/localtime
-
-if [ "${FINNIX_XENU}" = "no" ] && [ "${FINNIX_UML}" = "no" ]; then
-  # Set default keyboard before interactive setup
-  [ -n "$KEYTABLE" ] && _f12 loadkeys -q $KEYTABLE
-  [ -n "$CONSOLEFONT" ] && _f12 consolechars -f $CONSOLEFONT || _f12 consolechars -d
-fi
-

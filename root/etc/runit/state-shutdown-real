@@ -29,12 +29,14 @@ echo -n "${CRE}${ESC}[1A${CRE}"
 echo -n "${CRE}${ESC}[1A${CRE}"
 echo
 
-if [ -x /etc/runit/reboot ]; then
+if [ -x /etc/runit/reboot -o "$SHUTDOWN_TYPE" = "reboot" ]; then
+  SHUTDOWN_TYPE="reboot"
   message="Rebooting"
   message2="reboot"
   command="reboot"
   options="-f -n"
 else
+  SHUTDOWN_TYPE="poweroff"
   message="Shutting down"
   message2="shut down"
   command="poweroff"
@@ -43,40 +45,50 @@ fi
 
 cd /
 
-# Clean input/output
-exec >/dev/console 2>&1 </dev/console
-
 # Now umount everything but root
 echo -n "${BLUEITEM} Unmounting remaining file systems... "
 
+if [ -x /media/ramdisk/busybin/sh -a -z "$PIVOTED_RAMDISK" ]; then
+  mkdir -p /media/ramdisk/tmp
+  chmod 1777 /media/ramdisk/tmp
+
+  mkdir -p /media/ramdisk/lib/finnix
+  cp -a /lib/finnix/*.sh /media/ramdisk/lib/finnix/
+
+  mkdir -p /media/ramdisk/proc
+  mount -t proc proc /media/ramdisk/proc
+  mkdir -p /media/ramdisk/sys
+  mount -t sysfs sysfs /media/ramdisk/sys
+  mkdir -p /media/ramdisk/dev
+  mount -n -t devtmpfs none /media/ramdisk/dev
+
+  cd /media/ramdisk
+  mkdir -p oldroot
+  pivot_root . oldroot
+  PIVOTED_RAMDISK=true SHUTDOWN_TYPE="$SHUTDOWN_TYPE" exec ./busybin/chroot . /busybin/sh /busybin/state-shutdown-real >./dev/console 2>&1 <./dev/console
+fi
+
 if [ -x /busybin/sh ]; then
-  # BusyBox can't supply everything, so let's leave some utils on the ramdisk
   PATH=/busybin
   hash -r
 
-  # If /dev is a symlink, assume it's pointing to a directory on a union
-  if [ -h /dev ]; then
-    # We'll need a few dev entries...
-    rm /dev
-    mkdir -p /dev
-    mount -n -t devtmpfs none /dev
-    exec >/dev/console 2>&1 </dev/console
-  fi
+  # We should be able to umount everything under the old union root
+  for mount in $(awk '$2 ~ "^/oldroot" { print $2 }' /proc/mounts); do
+    _f12 umount -dfl "$mount"
+  done
+  _f12 rmdir /oldroot
 
-  # Get rid of unionfs and its written files
-  _f12 umount -drfl /UNIONFS
-  _f12 rm -rf /tmp/UNIONFS
-
-  # Get rid of the compressed root filesystem
-  _f12 umount -drfl /FINNIX
+  # Remove unused files to save space
+  _f12 rm -rf /union_writable
+  _f12 rm -rf /cd_base
 
   # Now we should be able to umount the rest.
-  for mount in $(awk '$3 !~ "^(tmpfs|sysfs|proc)$" { print $2 }' /proc/mounts); do
+  for mount in $(awk '$3 !~ "^(tmpfs|sysfs|proc|rootfs|devtmpfs)$" { print $2 }' /proc/mounts); do
     _f12 umount -drfl "$mount"
   done
 else
   # umount everything we can, everything else is ro
-  for mount in $(awk '$3 !~ "^(tmpfs|sysfs|proc)$" { print $2 }' /proc/mounts); do
+  for mount in $(awk '$3 !~ "^(tmpfs|sysfs|proc|rootfs|devtmpfs)$" { print $2 }' /proc/mounts); do
     _f12 umount -dr "$mount"
   done
 fi
