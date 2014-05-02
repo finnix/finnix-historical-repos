@@ -1,3 +1,9 @@
+finnix-scripts (20140502.0) unstable; urgency=low
+
+  * Re-add removed console options, add default font
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 02 May 2014 00:09:40 -0700
+
 finnix-scripts (20140501.0) unstable; urgency=low
 
   * Generate ED25519 host key (LP: #1314965)

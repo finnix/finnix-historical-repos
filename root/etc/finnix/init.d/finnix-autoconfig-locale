@@ -47,3 +47,17 @@ if checkbootparam "nohwclock"; then
 fi
 rm -f /etc/localtime
 cp "/usr/share/zoneinfo/$TZ" /etc/localtime
+
+KEYTABLE="$(getbootparam keyboard)"
+if [ -n "$KEYTABLE" ] && which loadkeys >/dev/null 2>/dev/null; then
+  _f12 loadkeys -q "$KEYTABLE"
+fi
+
+CONSOLEFONT="$(getbootparam font)"
+if which setfont >/dev/null 2>/dev/null; then
+  if [ -n "$CONSOLEFONT" ]; then
+    _f12 setfont "$CONSOLEFONT"
+  else
+    _f12 setfont
+  fi
+fi
