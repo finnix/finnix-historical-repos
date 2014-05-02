@@ -37,4 +37,12 @@ if [ "$1" = configure ] && [ -z "$2" ]; then
     rm -f /run/runit-control-stopit /etc/runit/stopit
     ln -s /run/runit-control-stopit /etc/runit/stopit
   fi
+
+  # Configure default console fonts
+  if [ ! -e /usr/share/consolefonts/default8x8.psf.gz ]; then
+    ln -sf finnix8x8.psf.gz /usr/share/consolefonts/default8x8.psf.gz
+  fi
+  if [ ! -e /usr/share/consolefonts/default8x16.psf.gz ]; then
+    ln -sf finnix8x16.psf.gz /usr/share/consolefonts/default8x16.psf.gz
+  fi
 fi

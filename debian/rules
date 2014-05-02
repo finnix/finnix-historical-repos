@@ -12,6 +12,11 @@ override_dh_auto_install:
 	install -m 0755 -d $(CURDIR)/debian/finnix-scripts
 	cp -a root/* $(CURDIR)/debian/finnix-scripts
 
+	# Fonts
+	install -m 0755 -d $(CURDIR)/debian/finnix-scripts/usr/share/consolefonts
+	gzip -c <Fonts/Lat2-VGA8.psf >$(CURDIR)/debian/finnix-scripts/usr/share/consolefonts/finnix8x8.psf.gz
+	gzip -c <Fonts/Lat2-VGA16.psf >$(CURDIR)/debian/finnix-scripts/usr/share/consolefonts/finnix8x16.psf.gz
+
 	# Documentation
 	install -m 0755 -d $(CURDIR)/debian/finnix-scripts/usr/share/man/man1
 	pod2man -c '' -r '' -s 1 man/shell-login.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/shell-login.1

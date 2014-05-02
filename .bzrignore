@@ -2,3 +2,6 @@ debian/files
 debian/finnix-scripts
 debian/finnix-scripts.debhelper.log
 debian/finnix-scripts.substvars
+Fonts/*.log
+Fonts/*.psf
+Fonts/*.sfm

@@ -1,3 +1,10 @@
+finnix-scripts (20140502.1) unstable; urgency=low
+
+  * Remove binary console font, build from source
+    (adapted from Debian console-setup package)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 02 May 2014 10:36:29 -0700
+
 finnix-scripts (20140502.0) unstable; urgency=low
 
   * Re-add removed console options, add default font
