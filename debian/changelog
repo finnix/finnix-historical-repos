@@ -1,3 +1,9 @@
+finnix-standard (20140501.0) unstable; urgency=low
+
+  * Remove usage of console-tools (LP: #1315242)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 01 May 2014 22:38:12 -0700
+
 finnix-standard (20140329.0) unstable; urgency=low
 
   * Re-add arpwatch (LP: #1277754)
