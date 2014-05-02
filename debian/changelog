@@ -1,3 +1,9 @@
+neale-initrd (20140501.0) unstable; urgency=low
+
+  * aufs as root filesystem (LP: #1315243)
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 01 May 2014 22:39:05 -0700
+
 neale-initrd (20140401.0) unstable; urgency=low
 
   * Rebuild against new buildroot toolchains

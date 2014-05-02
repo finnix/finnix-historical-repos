@@ -44,9 +44,6 @@ mountblindly() {
     echo -n "${CRE}${BLUEITEM} Looking for ${OS_NAME} media at ${WHITE}$dispdev${NORMAL}... "
     if finnix_testmount $i; then
       echo "${CRE}${BLUEITEM} ${OS_NAME} media found at ${WHITE}$dispdev${NORMAL}"
-      if [ ! "$i" = "/ramdisk$i" ]; then
-        cp -a $i /ramdisk$i
-      fi
       FOUND_FINNIX="yes"
       FINNIX_DEV="$i"
       break
@@ -58,6 +55,9 @@ mountblindly() {
 finnix_testmount() {
   # Usage: finnix_testmount dev
   dev="$1"
+  if ! test -b $dev; then
+    return 1
+  fi
   if [ "$FINNIX_FORENSIC" = "yes" ]; then
     mounttypes="-t ext2,iso9660,vfat,squashfs"
     if [ "$(blockdev --getro $dev)" = "0" ]; then
@@ -66,33 +66,36 @@ finnix_testmount() {
   else
     mounttypes=""
   fi
+
+  mkdir -p /tmp/testmount
   if [ -n "${FINNIX_FINDISO}" ]; then
-    testmount_cdbase="${FINNIX_CDBASE}_findisobacking"
+    mkdir -p /tmp/testmount_findisobacking
+    if ! _f12 mount -n $mounttypes -o ro $dev "/tmp/testmount_findisobacking"; then
+      return 1
+    fi
+    if ! [ -f "/tmp/testmount_findisobacking${FINNIX_FINDISO}" ]; then
+      umount "/tmp/testmount_findisobacking"
+      return 1
+    fi
+    mkdir -p "/tmp/testmount"
+    if ! _f12 mount $mounttypes -o ro,loop "/tmp/testmount_findisobacking${FINNIX_FINDISO}" "/tmp/testmount"; then
+      umount "/tmp/testmount_findisobacking"
+      return 1
+    fi
   else
-    testmount_cdbase="${FINNIX_CDBASE}"
-  fi
-  [ -d "${testmount_cdbase}" ] || mkdir -p "${testmount_cdbase}"
-  if test -b $dev && _f12 mount -n $mounttypes -o ro $dev ${testmount_cdbase}; then
-    if [ -n "${FINNIX_FINDISO}" ]; then
-      if [ -f "${testmount_cdbase}${FINNIX_FINDISO}" ]; then
-        if ! _f12 mount $mounttypes -o ro,loop "${testmount_cdbase}${FINNIX_FINDISO}" "${FINNIX_CDBASE}"; then
-          umount ${testmount_cdbase}
-          return 1
-        fi
-      else
-        umount ${testmount_cdbase}
-        return 1
-      fi
+    if ! _f12 mount -n $mounttypes -o ro $dev "/tmp/testmount"; then
+      return 1
     fi
-    if test -f "${FINNIX_CDBASE}$CDDISTID" && check_distid "${FINNIX_CDBASE}$CDDISTID" "$INITDISTIDS"; then
-      [ -n "${FINNIX_FINDISO}" ] && umount -d "${FINNIX_CDBASE}"
-      umount ${testmount_cdbase}
-      return 0
-    fi
-    [ -n "${FINNIX_FINDISO}" ] && umount -d "${FINNIX_CDBASE}"
-    umount ${testmount_cdbase}
   fi
-  return 1
+
+  ret=1
+  if test -f "/tmp/testmount$CDDISTID" && check_distid "/tmp/testmount$CDDISTID" "$INITDISTIDS"; then
+    ret=0
+  fi
+
+  [ -n "${FINNIX_FINDISO}" ] && umount -d "/tmp/testmount_findisobacking"
+  umount /tmp/testmount
+  return $ret
 }
 
 # Simple shell grep
@@ -339,8 +342,9 @@ if [ "$USE_ZRAM" = "yes" ]; then
       echo "${BLUEITEM} Enabling zram RAM compression"
     fi
     echo $(expr $FOUNDMEM \* 1024) >/sys/block/zram0/disksize
-    # Unneeded with devtmpfs
-    #mknod /dev/zram0 b $(sed 's/:/ /' /sys/block/zram0/dev)
+    if ! [ -b /dev/zram0 ]; then
+      mknod /dev/zram0 b $(sed 's/:/ /' /sys/block/zram0/dev)
+    fi
     _f12 mkswap /dev/zram0
     _f12 swapon -p 100 /dev/zram0
   fi
@@ -368,14 +372,8 @@ fi
 echo "${BLUEITEM} Total memory: ${WHITE}${FOUNDMEM_M}MiB${NORMAL}, shared ramdisk: ${WHITE}${RAMSIZE_M}MiB${NORMAL}"
 
 echo -n "${BLUEITEM} Setting up ramdisk... "
-mount -n -t tmpfs -o "size=${RAMSIZE}k" tmpfs /ramdisk
-for i in UNIONFS FINNIX cdrom dev initrd mnt media proc selinux sys tmp tmp/UNIONFS tmp/FINNIX busybin; do
-  mkdir /ramdisk/$i
-done
-chmod 777 /ramdisk/tmp
-chmod a+t /ramdisk/tmp
-# We will need the busybox binaries during shutdown
-cp -a /bin/* /ramdisk/busybin/
+mkdir -p /media/ramdisk
+mount -n -t tmpfs -o "size=${RAMSIZE}k" tmpfs /media/ramdisk
 echo -n "done${CRE}"
 
 # Hardware module loading
@@ -414,7 +412,6 @@ fi
 
 # Let's begin looking for ourself!
 FOUND_FINNIX=""
-FINNIX_CDBASE="/ramdisk/cdrom"
 
 # Full CD on initrd
 # Note: a skeleton /finnix layout can be placed in /cdroot as long as
@@ -424,6 +421,8 @@ FINNIX_CDBASE="/ramdisk/cdrom"
 # self-hosting.
 # BEGIN INITRDROOT
 if [ -e "/cdroot$CDDISTID" ] && check_distid "/cdroot$CDDISTID" "$INITDISTIDS"; then
+  FINNIX_CDBASE="/media/ramdisk/cd_base"
+  unset FINNIX_CDBASE_REMOUNT
   mkdir -p "${FINNIX_CDBASE}"
   cp -a /cdroot/* "${FINNIX_CDBASE}/"
   FOUND_FINNIX=yes
@@ -436,6 +435,10 @@ NFSROOT="$(getbootparam nfsroot)"
 FINNIX_NFSBOOT="no"
 if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
   FINNIX_NFSBOOT="yes"
+  FINNIX_CDBASE="/tmp/nfs"
+  mkdir -p "$FINNIX_CDBASE"
+  FINNIX_CDBASE_REMOUNT="/media/nfs/cd_base"
+
   NFSVERS="$(getbootparam nfsvers)"
   [ -z "${NFSVERS}" ] && NFSVERS="2"
 
@@ -535,6 +538,10 @@ if [ -n "${NFSROOT}" ] && [ "${FINNIX_FORENSIC}" = "no" ]; then
 
 # NFS ELSE
 else
+  FINNIX_CDBASE="/tmp/cd_base"
+  mkdir -p "$FINNIX_CDBASE"
+  FINNIX_CDBASE_REMOUNT="/media/unknown/cd_base"
+
   # Search for CD device
   while test -z "$FOUND_FINNIX"; do
    mountblindly
@@ -571,16 +578,24 @@ else
     fi
     if [ -n "${FINNIX_FINDISO}" ]; then
       dispdev="$(basename "$FINNIX_DEV")"
-      [ -d "/ramdisk/media/$dispdev" ] || mkdir -p "/ramdisk/media/$dispdev"
-      mount $mounttypes -o $ROOTWRITE "$FINNIX_DEV" "/ramdisk/media/$dispdev"
-      mount $mounttypes -o ro,loop "/ramdisk/media/$dispdev${FINNIX_FINDISO}" "${FINNIX_CDBASE}"
-      [ -d "${FINNIX_CDBASE}_findisobacking" ] && rmdir "${FINNIX_CDBASE}_findisobacking"
+      FINNIX_CDBASE="/media/findiso"
+      FINNIX_CDBASE_REMOUNT="/media/findiso"
+      REMOUNT_FINDISO_BACKING="$dispdev"
+      mkdir -p "$FINNIX_CDBASE"
+      mkdir -p "/media/${dispdev}"
+      mount $mounttypes -o $ROOTWRITE "$FINNIX_DEV" "/media/${dispdev}"
+      mount $mounttypes -o ro,loop "/media/$dispdev${FINNIX_FINDISO}" "${FINNIX_CDBASE}"
     else
       mount $mounttypes -o $ROOTWRITE "$FINNIX_DEV" "${FINNIX_CDBASE}"
+      FINNIX_CDBASE_REMOUNT="/media/$dispdev"
     fi
   fi
 
 # NFS END
+fi
+
+if [ -n "$TORAM" -a "$FINNIX_CDBASE" = "/media/ramdisk/cd_base" ]; then
+  unset TORAM
 fi
 
 if [ -n "$TORAM" -o -n "$TESTCD" ]; then
@@ -594,21 +609,22 @@ fi
 if [ -n "$TORAM" -a -n "${FINNIX_CDBASE}" ]; then
   echo "${BLUEITEM} Copying ${OS_NAME} image to ramdisk, please be patient... "
   TORAM_FAILED=""
-  _f12 mkdir -p ${FINNIX_CDBASE}_ramdisk || TORAM_FAILED="yes"
+  TORAM_CDBASE="/media/ramdisk/cd_base"
+  _f12 mkdir -p "$TORAM_CDBASE" || TORAM_FAILED="yes"
   for i in `awk '{print $2}' ${FINNIX_CDBASE}/md5sums`; do
     echo -n "${CRE}${BLUEITEM}   ${WHITE}$i${NORMAL}"
-    _f12 mkdir -p "${FINNIX_CDBASE}_ramdisk/$(dirname "$i")" || TORAM_FAILED="yes"
-    _f12 cp -af "${FINNIX_CDBASE}/$i" "${FINNIX_CDBASE}_ramdisk/$i" || TORAM_FAILED="yes"
+    _f12 mkdir -p "${TORAM_CDBASE}/$(dirname "$i")" || TORAM_FAILED="yes"
+    _f12 cp -af "${FINNIX_CDBASE}/$i" "${TORAM_CDBASE}/$i" || TORAM_FAILED="yes"
   done
-  _f12 mkdir -p ${FINNIX_CDBASE}_ramdisk${FINNIX_DIR} || TORAM_FAILED="yes"
-  _f12 cp -af ${FINNIX_CDBASE}/md5sums ${FINNIX_CDBASE}_ramdisk/md5sums || TORAM_FAILED="yes"
+  _f12 mkdir -p ${TORAM_CDBASE}${FINNIX_DIR} || TORAM_FAILED="yes"
+  _f12 cp -af ${FINNIX_CDBASE}/md5sums ${TORAM_CDBASE}/md5sums || TORAM_FAILED="yes"
   echo -n "${CRE}${ESC}[1A"
 
   if [ -n "$TORAM_FAILED" ]; then
     echo "${CRE}${REDITEM} Copying ${OS_NAME} image to ramdisk ${RED}FAILED${NORMAL}"
     echo "${YELLOWITEM} Falling back to CD mount"
     unset TORAM
-    rm -rf ${FINNIX_CDBASE}_ramdisk
+    rm -rf "${TORAM_CDBASE}"
   else
     # Unmount the device and eject
     _f12 umount ${FINNIX_CDBASE}
@@ -618,26 +634,26 @@ if [ -n "$TORAM" -a -n "${FINNIX_CDBASE}" ]; then
         scd*) _f12 eject "${FINNIX_DEV}";;
       esac
     fi
-    # At this point /ramdisk/cdrom is empty and /ramdisk/cdrom_ramdisk is populated.  Fix that.
-    rm -rf ${FINNIX_CDBASE}
-    mv ${FINNIX_CDBASE}_ramdisk ${FINNIX_CDBASE}
+    FINNIX_CDBASE="${TORAM_CDBASE}"
+    unset TORAM_CDBASE
+    unset FINNIX_CDBASE_REMOUNT
     echo -n "${CRE}${BLUEITEM} Copying ${OS_NAME} image to ramdisk, please be patient... done${CRE}"
   fi
 fi
 
 if [ -n "$TESTCD" ]; then
   echo "${BLUEITEM} Checking CD data integrity, please be patient... "
-  ( cd ${FINNIX_CDBASE}/ ; rm -f /ramdisk/tmp/md5sum.log ; ( md5sum -c ${FINNIX_CDBASE}/md5sums 2>&1 && touch /ramdisk/tmp/goodmd5 ) | tee /ramdisk/tmp/md5sum.log ) |
+  ( cd ${FINNIX_CDBASE}/ ; rm -f /tmp/md5sum.log ; ( md5sum -c ${FINNIX_CDBASE}/md5sums 2>&1 && touch /tmp/goodmd5 ) | tee /tmp/md5sum.log ) |
   while read testline; do
     echo -n "${CRE}${BLUEITEM}   ${WHITE}$testline${NORMAL}"
   done
   echo -n "${CRE}${ESC}[1A"
-  if [ -f /ramdisk/tmp/goodmd5 ]; then
-    rm -f /ramdisk/tmp/goodmd5 /ramdisk/tmp/md5sum.log
+  if [ -f /tmp/goodmd5 ]; then
+    rm -f /tmp/goodmd5 /tmp/md5sum.log
   else
     echo "${CRE}${REDITEM} Checking CD data integrity ${RED}FAILED${NORMAL}"
     echo "${REDITEM}  Checksum failed for these files:"
-    egrep -v '(^md5sum:|OK$)' /ramdisk/tmp/md5sum.log
+    egrep -v '(^md5sum:|OK$)' /tmp/md5sum.log
     TESTCD_FAILED="yes"
   fi
   if [ -n "$TESTCD_FAILED" ]; then
@@ -682,12 +698,6 @@ fi
 
 # FI INITRDROOT
 fi
-
-# When udev is used, only a few files are needed to begin with
-# /ramdisk/dev may or may not exist at this point
-_f12 mkdir -p /ramdisk/dev
-mknod -m 0666 /ramdisk/dev/null c 1 3
-mknod -m 0600 /ramdisk/dev/console c 5 1
 
 echo -n "${BLUEITEM} Creating unionfs overlay... "
 
@@ -741,13 +751,14 @@ fi
 
 # Mount the compressed root image
 FINNIX_ROOTIMG="${FINNIX_CDARCHDIR}/root.img"
-mount -n -o ro,loop "${FINNIX_CDBASE}$FINNIX_ROOTIMG" /ramdisk/FINNIX
+mkdir -p /media/compressed_root
+mount -n -o ro,loop "${FINNIX_CDBASE}$FINNIX_ROOTIMG" /media/compressed_root
 
 # Begin building the unionfs mount line
 if [ "$UNIONMOD" = "aufs" ]; then
-  UNION="/ramdisk/FINNIX=ro+wh"
+  UNION="/media/compressed_root=ro+wh"
 else
-  UNION="/ramdisk/FINNIX=ro"
+  UNION="/media/compressed_root=ro"
 fi
 
 # Overlay support in /finnix/arch/indep/overlays on cdrom
@@ -763,12 +774,12 @@ if [ -d "${OSRCDIR}" ]; then
        UNION="${OSRCDIR}/$i=ro:${UNION}"
      fi
    else
-     mkdir -p "/ramdisk/tmp/OVERLAYS/$i"
-     mount -o ro,loop "${OSRCDIR}/$i" "/ramdisk/tmp/OVERLAYS/$i"
+     mkdir -p "/media/ramdisk/union_overlays/$i"
+     mount -o ro,loop "${OSRCDIR}/$i" "/media/ramdisk/union_overlays/$i"
      if [ "$UNIONMOD" = "aufs" ]; then
-       UNION="/ramdisk/tmp/OVERLAYS/$i=ro+wh:${UNION}"
+       UNION="/media/ramdisk/union_overlays/$i=ro+wh:${UNION}"
      else
-       UNION="/ramdisk/tmp/OVERLAYS/$i=ro:${UNION}"
+       UNION="/media/ramdisk/union_overlays/$i=ro:${UNION}"
      fi
     fi
   done
@@ -787,22 +798,23 @@ if [ -d "${OSRCDIR}" ]; then
         UNION="${OSRCDIR}/$i=ro:${UNION}"
       fi
     else
-      mkdir -p "/ramdisk/tmp/OVERLAYS/$i"
-      mount -o ro,loop "${OSRCDIR}/$i" "/ramdisk/tmp/OVERLAYS/$i"
+      mkdir -p "/media/ramdisk/union_overlays/$i"
+      mount -o ro,loop "${OSRCDIR}/$i" "/media/ramdisk/union_overlays/$i"
       if [ "$UNIONMOD" = "aufs" ]; then
-        UNION="/ramdisk/tmp/OVERLAYS/$i=ro+wh:${UNION}"
+        UNION="/media/ramdisk/union_overlays/$i=ro+wh:${UNION}"
       else
-        UNION="/ramdisk/tmp/OVERLAYS/$i=ro:${UNION}"
+        UNION="/media/ramdisk/union_overlays/$i=ro:${UNION}"
       fi
     fi
   done
 fi
 
 # The actual unionfs mount
+mkdir -p /media/ramdisk/union_writable
 if [ "$UNIONMOD" = "aufs" ]; then
-  UNION="br:/ramdisk/tmp/UNIONFS=rw:${UNION}"
+  UNION="br:/media/ramdisk/union_writable=rw:${UNION}"
 else
-  UNION="dirs=/ramdisk/tmp/UNIONFS=rw:${UNION}"
+  UNION="dirs=/media/ramdisk/union_writable=rw:${UNION}"
   if [ "$UNIONMOD" = "unionfs" ]; then
     UNION="${UNION},delete=whiteout"
   fi
@@ -810,7 +822,8 @@ fi
 if [ "$UNIONMOD" = "unionfs2" ]; then
   UNIONMOD="unionfs"
 fi
-if mount -n -t $UNIONMOD -o "$UNION" unionfs /ramdisk/UNIONFS; then
+mkdir -p /UNIONFS
+if mount -n -t $UNIONMOD -o "$UNION" unionfs /UNIONFS; then
   echo -n "done${CRE}"
 else
   echo ""
@@ -818,9 +831,15 @@ else
   runemergencyshell
 fi
 
-for i in `cd /ramdisk/UNIONFS; ls -1`; do
-  [ -e "/ramdisk/$i" ] || ln -s /UNIONFS/$i /ramdisk/$i
-done
+# When udev is used, only a few files are needed to begin with
+# /UNIONFS/dev may or may not exist at this point
+_f12 mkdir -p /UNIONFS/dev
+_f12 mknod -m 0666 /UNIONFS/dev/null c 1 3
+_f12 mknod -m 0600 /UNIONFS/dev/console c 5 1
+
+# We will need the busybox binaries during shutdown
+mkdir -p /media/ramdisk/busybin
+cp -a /bin/* /media/ramdisk/busybin/
 
 # Set real root device
 echo "0x100" > /proc/sys/kernel/real-root-dev
@@ -842,8 +861,8 @@ if [ ! "${selinux_check}" = "1" ]; then
 fi
 
 # Give a few things to the userland
-mkdir -p /ramdisk/UNIONFS/run/finnix
-cat >/ramdisk/UNIONFS/run/finnix/initrd.env <<EOM
+mkdir -p /UNIONFS/run/finnix
+cat >/UNIONFS/run/finnix/initrd.env <<EOM
 FINNIX_DIR="${FINNIX_DIR}"
 FINNIX_DISTARCH="${FINNIX_DISTARCH}"
 FINNIX_DISTARCH_FALLBACK="${FINNIX_DISTARCH_FALLBACK}"
@@ -863,14 +882,35 @@ FINNIX_FINDISO="${FINNIX_FINDISO}"
 EOM
 
 # If udhcpc was used, copy the created resolv.conf to the final filesystem.
-[ -f /etc/resolv.conf.udhcpc ] && cat /etc/resolv.conf.udhcpc >/ramdisk/UNIONFS/etc/resolv.conf
+[ -f /etc/resolv.conf.udhcpc ] && cat /etc/resolv.conf.udhcpc >/UNIONFS/etc/resolv.conf
+
+mkdir -p /UNIONFS/media/ramdisk
+mount --move /media/ramdisk /UNIONFS/media/ramdisk
+
+if [ -n "$FINNIX_CDBASE_REMOUNT" ]; then
+  mkdir -p "/UNIONFS/${FINNIX_CDBASE_REMOUNT}"
+  mount --move "${FINNIX_CDBASE}" "/UNIONFS/${FINNIX_CDBASE_REMOUNT}"
+  FINNIX_CDBASE="${FINNIX_CDBASE_REMOUNT}"
+  unset FINNIX_CDBASE_REMOUNT
+fi
+
+# If findiso was used, remount the backing drive within /UNIONFS
+if [ -n "$REMOUNT_FINDISO_BACKING" ]; then
+  mkdir -p "/UNIONFS/media/${REMOUNT_FINDISO_BACKING}"
+  mount --move "/media/${REMOUNT_FINDISO_BACKING}" "/UNIONFS/media/${REMOUNT_FINDISO_BACKING}"
+fi
+
+ln -s "$FINNIX_CDBASE" "/UNIONFS/media/cd_base"
+
+mkdir -p /UNIONFS/media/compressed_root
+mount --move /media/compressed_root /UNIONFS/media/compressed_root
 
 # Let's go!
 cd /
 if [ -n "${BOOTCHART}" ]; then
-  exec switch_root /ramdisk /sbin/bootchartd bootchart_init=$INIT </dev/console >/dev/console 2>&1
+  exec switch_root /UNIONFS /sbin/bootchartd bootchart_init=$INIT </dev/console >/dev/console 2>&1
 elif [ "${FINNIX_STRACE}" = "yes" ]; then
-  exec switch_root /ramdisk /sbin/finnix-strace-init $INIT </dev/console >/dev/console 2>&1
+  exec switch_root /UNIONFS /sbin/finnix-strace-init $INIT </dev/console >/dev/console 2>&1
 else
-  exec switch_root /ramdisk $INIT </dev/console >/dev/console 2>&1
+  exec switch_root /UNIONFS $INIT </dev/console >/dev/console 2>&1
 fi
