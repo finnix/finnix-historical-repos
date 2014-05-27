@@ -1,3 +1,9 @@
+finnix-netboot (20140527.0) unstable; urgency=low
+
+  * Remove unneeded dhclient hook (LP: #1323505)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 27 May 2014 00:33:48 -0700
+
 finnix-netboot (20140501.0) unstable; urgency=low
 
   * aufs as root filesystem (LP: #1315243)
