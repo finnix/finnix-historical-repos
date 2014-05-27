@@ -28,14 +28,18 @@ case "$1" in
   *) echo "Usage: $0 {start|stop|restart|force-reload}" >&2; exit 1 ;;
 esac
 
+for i in OS_NAME; do
+  read "$i"
+done <<EOM
+$(
+  . /etc/os-release
+  echo "$NAME"
+)
+EOM
 . /lib/finnix/finnix-rc-helper.sh
 
 # Bring up loopback interface now
-ip -4 addr flush dev lo
-ip -6 addr flush dev lo
-ip -4 addr add 127.0.0.1/8 dev lo
-ip -6 addr add ::1/128 dev lo
-ip link set dev lo up
+ifup lo >/dev/null 2>/dev/null || true
 
 # Configure interfaces (static or DHCP)
 if [ "$FINNIX_NFSBOOT" = "yes" ] || [ "$FINNIX_FORENSIC" = "yes" ]; then
@@ -45,53 +49,84 @@ fi
 IP_INT="$(getbootparam ip_int)"
 arr=$(echo "$IP_INT" | tr "," "\n")
 if [ "$arr" = "all" ] || [ -z "$arr" ]; then
-  arr="$(_f2 awk -F: '/eth.:|tr.:/{print $1}' /proc/net/dev)"
+  arr=""
+  for i in /sys/class/net/*; do
+    [ -e "$i" ] || continue
+    [ -e "$i/type" ] || continue
+    [ "$(cat "$i/type")" = 1 ] || continue
+    arr="$arr $(basename "$i")"
+  done
 fi
-for i in $arr; do
+
+mkdir -p /etc/network/interfaces.d
+
+for int in $arr; do
+  echo "# Added by $OS_NAME" >"/etc/network/interfaces.d/$int"
+  echo "auto $int" >>"/etc/network/interfaces.d/$int"
+
   IP_V4DHCP="$(getbootparam ip_${i}_v4dhcp)"
   IP_V4ADDR="$(getbootparam ip_${i}_v4addr)"
   IP_V4NETMASK="$(getbootparam ip_${i}_v4netmask)"
   IP_V4GATEWAY="$(getbootparam ip_v4gateway)"
+  IP_V6DHCP="$(getbootparam ip_${i}_v6dhcp)"
   IP_V6ADDR="$(getbootparam ip_${i}_v6addr)"
+  IP_V6NETMASK="$(getbootparam ip_${i}_v6netmask)"
   IP_V6GATEWAY="$(getbootparam ip_v6gateway)"
   IP_DNS="$(getbootparam ip_dns)"
   IP_DOMAIN="$(getbootparam ip_domain)"
   IP_SEARCH="$(getbootparam ip_search)"
-  if [ "$IP_V4DHCP" = "yes" ] || [ -z "${IP_V4ADDR}${IP_V6ADDR}" ]; then
+
+  if [ "$IP_V4DHCP" = "yes" ] || [ -z "$IP_V4ADDR" ]; then
     if ! checkbootparam "nodhcp"; then
-      echo -n "${BLUEITEM} Starting background DHCP request: "
-      echo -n "${WHITE}$DEVICE${NORMAL} "
-      dhclient -v "${i}" >>/var/log/dhclient."${i}".log 2>&1 &
-      echo -n "done${CRE}"
+      echo "iface $int inet dhcp" >>"/etc/network/interfaces.d/$int"
     fi
-  else
-    if [ -n "$IP_V4ADDR" ]; then
-      [ -z "$IP_V4NETMASK" ] && IP_V4NETMASK="255.255.255.0"
-      ip -4 addr add "$IP_V4ADDR"/"$IP_V4NETMASK" "${i}"
+  elif [ -n "$IP_V4ADDR" ]; then
+    echo "iface $int inet static" >>"/etc/network/interfaces.d/$int"
+    [ -z "$IP_V4NETMASK" ] && IP_V4NETMASK="255.255.255.0"
+    echo "  address $IP_V4ADDRESS" >>"/etc/network/interfaces.d/$int"
+    echo "  netmask $IP_V4NETMASK" >>"/etc/network/interfaces.d/$int"
+    if [ -n "$IP_V4GATEWAY" ]; then
+      echo "  gateway $IP_V4GATEWAY" >>"/etc/network/interfaces.d/$int"
+    fi
+    if [ -n "$IP_DNS" ]; then
+      echo "  dns-nameservers $IP_DNS" >>"/etc/network/interfaces.d/$int"
+    fi
+    if [ -n "$IP_DOMAIN" ]; then
+      echo "  dns-domain $IP_DOMAIN" >>"/etc/network/interfaces.d/$int"
+    fi
+    if [ -n "$IP_SEARCH" ]; then
+      echo "  dns-search $IP_SEARCH" >>"/etc/network/interfaces.d/$int"
     fi
   fi
-  if [ -n "$IP_V6ADDR" ]; then
-    ip -6 addr add "$IP_V6ADDR" dev "${i}"
+
+  if [ "$IP_V6DHCP" = "yes" ] || [ -z "$IP_V6ADDR" ]; then
+    if ! checkbootparam "nodhcp"; then
+      echo "iface $int inet6 dhcp" >>"/etc/network/interfaces.d/$int"
+    fi
+  elif [ -n "$IP_V6ADDR" ]; then
+    echo "iface $int inet6 static" >>"/etc/network/interfaces.d/$int"
+    [ -z "$IP_V6NETMASK" ] && IP_V6NETMASK="64"
+    echo "  address $IP_V6ADDRESS" >>"/etc/network/interfaces.d/$int"
+    echo "  netmask $IP_V6NETMASK" >>"/etc/network/interfaces.d/$int"
+    if [ -n "$IP_V6GATEWAY" ]; then
+      echo "  gateway $IP_V6GATEWAY" >>"/etc/network/interfaces.d/$int"
+    fi
+    if [ -n "$IP_DNS" ]; then
+      echo "  dns-nameservers $IP_DNS" >>"/etc/network/interfaces.d/$int"
+    fi
+    if [ -n "$IP_DOMAIN" ]; then
+      echo "  dns-domain $IP_DOMAIN" >>"/etc/network/interfaces.d/$int"
+    fi
+    if [ -n "$IP_SEARCH" ]; then
+      echo "  dns-search $IP_SEARCH" >>"/etc/network/interfaces.d/$int"
+    fi
   fi
 done
-if [ -n "$IP_V4GATEWAY" ]; then
-  ip -4 route add default via "$IP_V4GATEWAY"
-fi
-if [ -n "$IP_V6GATEWAY" ]; then
-  ip -6 route add default via "$IP_V6GATEWAY"
-fi
-if [ -n "$IP_DNS" ]; then
-  : >/etc/resolv.conf
-  arr=$(echo "$IP_DNS" | tr "," "\n")
-  for i in $arr; do
-    echo "nameserver $i" >>/etc/resolv.conf
-  done
-fi
-if [ -n "$IP_SEARCH" ]; then
-  arr=$(echo "$IP_SEARCH" | tr "," "\n")
-  for i in $arr; do
-    echo "search $i" >>/etc/resolv.conf
-  done
-elif [ -n "$IP_DOMAIN" ]; then
-  echo "domain $IP_DOMAIN"  >>/etc/resolv.conf
-fi
+
+mkdir -p /var/log/interfaces
+for int in $(ifquery --list); do
+  [ "$int" = "lo" ] && continue
+  echo -n "${BLUEITEM} Starting interface configuration: ${WHITE}$DEVICE${NORMAL} "
+  ifup --verbose "$int" >>/var/log/interfaces/"${int}".log 2>&1 &
+  echo -n "(backgrounded)${CRE}"
+done
