@@ -80,4 +80,19 @@ _f2() {
   fi
 }
 
+
+# Conditional complement to invoke-rc.d
+can_invoke_rcd() {
+  ret=0
+  invoke-rc.d --quiet --query "$@" || ret=$?
+  case $ret in
+    104|105)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 ### EOF utility functions

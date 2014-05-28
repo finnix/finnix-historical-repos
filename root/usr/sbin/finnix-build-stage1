@@ -26,6 +26,7 @@
 # For more information, see http://www.finnix.org/Remastering
 
 set -e
+cd /
 
 ###
 # STAGE 1: Clean up, prepare, and make compressed filesystem
@@ -267,6 +268,8 @@ if [ "$FINNIX_CROSS_COMPILE" = "no" ]; then
   fi
   echo "done."
 fi
+
+perl -pi -e 's/^\#?\s*PermitRootLogin\s+(yes|no|without-password)/PermitRootLogin yes/' ${FINNIX_SOURCE}/etc/ssh/sshd_config
 
 echo -n "Cleaning locales... "
 (

@@ -26,6 +26,7 @@
 # For more information, see http://www.finnix.org/Remastering
 
 set -e
+cd /
 
 ###
 # STAGE 2: Create initrd, splash screens, md5sums, and the iso itself

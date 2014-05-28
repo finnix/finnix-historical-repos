@@ -8,14 +8,14 @@
 case "$1" in
   start)
     checkbootparam "nomouse" && exit 0
-    if [ -x /etc/init.d/gpm ]; then
+    if can_invoke_rcd gpm start; then
       echo -n "${BLUEITEM} Starting mouse services... "
       _f12 invoke-rc.d gpm start
       echo -n "done${CRE}"
     fi
     ;;
   stop)
-    if [ -x /etc/init.d/gpm ]; then
+    if can_invoke_rcd gpm stop; then
       _f12 invoke-rc.d gpm stop
     fi
     ;;

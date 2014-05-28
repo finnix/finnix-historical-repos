@@ -1,3 +1,21 @@
+finnix-scripts (20140527.2) unstable; urgency=low
+
+  * finnix-autoconfig-network:
+    * Make sure interfaces.d filenames are globbable
+    * Fix variable typos
+    * Do not modify files not created by us
+  * finnix-autoconfig-udev:
+    * Force /etc/mtab to symlink
+    * Stop invoking removed udev-mtab
+  * Remove vestigial (to this package) /etc/udev
+  * Remove direct references to /etc/init.d
+  * ssh.finnix: Do not display warning if finnix password is changed
+    (LP: #1323812)
+  * finnix-build-stage*: cd to / to avoid bad cwd (LP: #1323519)
+  * finnix-build-stage1: set PermitRootLogin yes (LP: #1323814)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 27 May 2014 22:11:37 -0700
+
 finnix-scripts (20140527.1) unstable; urgency=low
 
   * Use interfaces.d for network interfaces (LP: #1323505)

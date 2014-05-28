@@ -14,16 +14,29 @@ set -e
 . /lib/lsb/init-functions
 
 check_finnix() {
+    DISPLAY_WARNING=1
     case "$(getent shadow root | awk -F: '{print $2}')" in
         \*|\!)
-            log_warning_msg ""
-            log_warning_msg "IMPORTANT: The 'root' and 'finnix' accounts have been disabled, and"
-            log_warning_msg "passwords for these accounts must be set for remote administration."
-            log_warning_msg ""
-            log_warning_msg "Please be sure to use 'passwd' to set a password after sshd is started."
-            log_warning_msg ""
+            ;;
+        *)
+            DISPLAY_WARNING=0
             ;;
     esac
+    case "$(getent shadow finnix | awk -F: '{print $2}')" in
+        \*|\!)
+            ;;
+        *)
+            DISPLAY_WARNING=0
+            ;;
+    esac
+    if [ $DISPLAY_WARNING = 0 ]; then
+        log_warning_msg ""
+        log_warning_msg "IMPORTANT: The 'root' and 'finnix' accounts have been disabled, and"
+        log_warning_msg "passwords for these accounts must be set for remote administration."
+        log_warning_msg ""
+        log_warning_msg "Please be sure to use 'passwd' to set a password after sshd is started."
+        log_warning_msg ""
+    fi
 
     KEYGEN=/usr/bin/ssh-keygen
     RSA_KEY=/etc/ssh/ssh_host_rsa_key

@@ -14,4 +14,6 @@
 #                    Both parts are output by pam_motd.
 ### END INIT INFO
 
-exec /etc/init.d/motd "$@"
+if can_invoke_rcd motd "$@"; then
+  exec invoke-rc.d motd "$@"
+fi

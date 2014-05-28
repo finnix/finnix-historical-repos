@@ -74,7 +74,7 @@ if ! checkbootparam "nolvm"; then
   lvmfound=""
   lvmpartitions=""
   echo -n "${BLUEITEM} Scanning for LVM volumes: "
-  if [ -x /etc/init.d/lvm2 ]; then
+  if can_invoke_rcd lvm2 start; then
     _f12 invoke-rc.d lvm2 start
     lvmpartitions="$(_f2 lvdisplay -c | awk -F: '{print $1}' | sed 's/\/dev\///g' | sed 's/\//-/g')"
     if ! [ "$lvmpartitions" = "$BLOCKLOOP_LVM" ]; then

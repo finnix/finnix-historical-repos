@@ -10,7 +10,7 @@
 ### END INIT INFO
 
 # finnix-autoconfig-udev
-# Copyright (C) 2012 Ryan Finnie
+# Copyright (C) 2014 Ryan Finnie
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,19 +37,18 @@ _f12 invoke-rc.d udev start
 echo -n "done${CRE}"
 
 # /dev/pts (needed right after udev)
-stringinfile "/dev/pts" /proc/mounts || _f12 mount -t devpts devpts /dev/pts
+grep -q "/dev/pts" /proc/mounts || _f12 mount -t devpts devpts /dev/pts
 
 # Unless udev did a /dev/shm mount, symlink it to /run/shm
-if ! stringinfile "/dev/shm" /proc/mounts; then
+if ! grep -q "/dev/shm" /proc/mounts; then
   mkdir -p /run/shm
   chmod 1777 /run/shm
   _f12 rm -rf /dev/shm
   ln -s /run/shm /dev/shm
 fi
 
-# If mtab is a regular file, futz around with it
-# If it's a symlink, leave it alone
+# If mtab is a regular file, remove it and link to /proc/mounts
 if [ ! -h /etc/mtab ]; then
-  cat /proc/mounts | egrep -v '^rootfs / ' >/etc/mtab
-  _f12 invoke-rc.d udev-mtab start
+  rm -f /etc/mtab
+  ln -s /proc/mounts /etc/mtab
 fi

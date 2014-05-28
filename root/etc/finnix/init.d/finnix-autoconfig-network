@@ -10,7 +10,7 @@
 ### END INIT INFO
 
 # finnix-autoconfig-network
-# Copyright (C) 2012 Ryan Finnie
+# Copyright (C) 2014 Ryan Finnie
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -61,16 +61,20 @@ fi
 mkdir -p /etc/network/interfaces.d
 
 for int in $arr; do
-  echo "# Added by $OS_NAME" >"/etc/network/interfaces.d/$int"
-  echo "auto $int" >>"/etc/network/interfaces.d/$int"
+  intfn="$(echo "$int" | sed 's/[^a-zA-Z0-9_-]/_/g')"
+  if [ -e "/etc/network/interfaces.d/$intfn" ]; then
+    grep -q "Added by $OS_NAME" "/etc/network/interfaces.d/$intfn" || continue
+  fi
+  echo "# Added by $OS_NAME" >"/etc/network/interfaces.d/$intfn"
+  echo "auto $int" >>"/etc/network/interfaces.d/$intfn"
 
-  IP_V4DHCP="$(getbootparam ip_${i}_v4dhcp)"
-  IP_V4ADDR="$(getbootparam ip_${i}_v4addr)"
-  IP_V4NETMASK="$(getbootparam ip_${i}_v4netmask)"
+  IP_V4DHCP="$(getbootparam ip_${int}_v4dhcp)"
+  IP_V4ADDR="$(getbootparam ip_${int}_v4addr)"
+  IP_V4NETMASK="$(getbootparam ip_${int}_v4netmask)"
   IP_V4GATEWAY="$(getbootparam ip_v4gateway)"
-  IP_V6DHCP="$(getbootparam ip_${i}_v6dhcp)"
-  IP_V6ADDR="$(getbootparam ip_${i}_v6addr)"
-  IP_V6NETMASK="$(getbootparam ip_${i}_v6netmask)"
+  IP_V6DHCP="$(getbootparam ip_${int}_v6dhcp)"
+  IP_V6ADDR="$(getbootparam ip_${int}_v6addr)"
+  IP_V6NETMASK="$(getbootparam ip_${int}_v6netmask)"
   IP_V6GATEWAY="$(getbootparam ip_v6gateway)"
   IP_DNS="$(getbootparam ip_dns)"
   IP_DOMAIN="$(getbootparam ip_domain)"
@@ -78,55 +82,54 @@ for int in $arr; do
 
   if [ "$IP_V4DHCP" = "yes" ] || [ -z "$IP_V4ADDR" ]; then
     if ! checkbootparam "nodhcp"; then
-      echo "iface $int inet dhcp" >>"/etc/network/interfaces.d/$int"
+      echo "iface $int inet dhcp" >>"/etc/network/interfaces.d/$intfn"
     fi
   elif [ -n "$IP_V4ADDR" ]; then
-    echo "iface $int inet static" >>"/etc/network/interfaces.d/$int"
+    echo "iface $int inet static" >>"/etc/network/interfaces.d/$intfn"
     [ -z "$IP_V4NETMASK" ] && IP_V4NETMASK="255.255.255.0"
-    echo "  address $IP_V4ADDRESS" >>"/etc/network/interfaces.d/$int"
-    echo "  netmask $IP_V4NETMASK" >>"/etc/network/interfaces.d/$int"
+    echo "  address $IP_V4ADDRESS" >>"/etc/network/interfaces.d/$intfn"
+    echo "  netmask $IP_V4NETMASK" >>"/etc/network/interfaces.d/$intfn"
     if [ -n "$IP_V4GATEWAY" ]; then
-      echo "  gateway $IP_V4GATEWAY" >>"/etc/network/interfaces.d/$int"
+      echo "  gateway $IP_V4GATEWAY" >>"/etc/network/interfaces.d/$intfn"
     fi
     if [ -n "$IP_DNS" ]; then
-      echo "  dns-nameservers $IP_DNS" >>"/etc/network/interfaces.d/$int"
+      echo "  dns-nameservers $IP_DNS" >>"/etc/network/interfaces.d/$intfn"
     fi
     if [ -n "$IP_DOMAIN" ]; then
-      echo "  dns-domain $IP_DOMAIN" >>"/etc/network/interfaces.d/$int"
+      echo "  dns-domain $IP_DOMAIN" >>"/etc/network/interfaces.d/$intfn"
     fi
     if [ -n "$IP_SEARCH" ]; then
-      echo "  dns-search $IP_SEARCH" >>"/etc/network/interfaces.d/$int"
+      echo "  dns-search $IP_SEARCH" >>"/etc/network/interfaces.d/$intfn"
     fi
   fi
 
   if [ "$IP_V6DHCP" = "yes" ] || [ -z "$IP_V6ADDR" ]; then
     if ! checkbootparam "nodhcp"; then
-      echo "iface $int inet6 dhcp" >>"/etc/network/interfaces.d/$int"
+      echo "iface $int inet6 dhcp" >>"/etc/network/interfaces.d/$intfn"
     fi
   elif [ -n "$IP_V6ADDR" ]; then
-    echo "iface $int inet6 static" >>"/etc/network/interfaces.d/$int"
+    echo "iface $int inet6 static" >>"/etc/network/interfaces.d/$intfn"
     [ -z "$IP_V6NETMASK" ] && IP_V6NETMASK="64"
-    echo "  address $IP_V6ADDRESS" >>"/etc/network/interfaces.d/$int"
-    echo "  netmask $IP_V6NETMASK" >>"/etc/network/interfaces.d/$int"
+    echo "  address $IP_V6ADDRESS" >>"/etc/network/interfaces.d/$intfn"
+    echo "  netmask $IP_V6NETMASK" >>"/etc/network/interfaces.d/$intfn"
     if [ -n "$IP_V6GATEWAY" ]; then
-      echo "  gateway $IP_V6GATEWAY" >>"/etc/network/interfaces.d/$int"
+      echo "  gateway $IP_V6GATEWAY" >>"/etc/network/interfaces.d/$intfn"
     fi
     if [ -n "$IP_DNS" ]; then
-      echo "  dns-nameservers $IP_DNS" >>"/etc/network/interfaces.d/$int"
+      echo "  dns-nameservers $IP_DNS" >>"/etc/network/interfaces.d/$intfn"
     fi
     if [ -n "$IP_DOMAIN" ]; then
-      echo "  dns-domain $IP_DOMAIN" >>"/etc/network/interfaces.d/$int"
+      echo "  dns-domain $IP_DOMAIN" >>"/etc/network/interfaces.d/$intfn"
     fi
     if [ -n "$IP_SEARCH" ]; then
-      echo "  dns-search $IP_SEARCH" >>"/etc/network/interfaces.d/$int"
+      echo "  dns-search $IP_SEARCH" >>"/etc/network/interfaces.d/$intfn"
     fi
   fi
 done
 
 mkdir -p /var/log/interfaces
-for int in $(ifquery --list); do
-  [ "$int" = "lo" ] && continue
-  echo -n "${BLUEITEM} Starting interface configuration: ${WHITE}$DEVICE${NORMAL} "
+for int in $(ifquery --list --no-loopback); do
+  echo -n "${BLUEITEM} Starting interface configuration: ${WHITE}${int}${NORMAL} "
   ifup --verbose "$int" >>/var/log/interfaces/"${int}".log 2>&1 &
   echo -n "(backgrounded)${CRE}"
 done
