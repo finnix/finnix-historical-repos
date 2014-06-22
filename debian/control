@@ -16,8 +16,8 @@ Depends: ${misc:Depends}, finnix-minimal, finnix-netboot,
  buffer, bzip2, ca-certificates, cabextract, cdbackup, cdpr, chkrootkit,
  chntpw, cpio, cron, cryptsetup, curl,
  debootstrap, dnsutils, dosfstools, dselect, dump, dvd+rw-tools, ed,
- eject, elinks-lite, emad, etherwake, ethtool, fdutils, fetchmail, file,
- finger, fsarchiver, fuseext2, fxload, gawk, gddrescue,
+ eject, elinks-lite, emad, etherwake, ethtool, fetchmail, file,
+ finger, fsarchiver, fxload, gawk, gddrescue,
  gdisk-noicu | gdisk, genromfs, gpm, grepcidr, hdparm, hexedit, 
  hfsutils, htop, ifenslave-2.6, iftop, iotop, ipcalc, 
  iptables, iptraf, iputils-ping, irssi, isomd5sum, 
@@ -34,7 +34,7 @@ Depends: ${misc:Depends}, finnix-minimal, finnix-netboot,
  units, unp, unzip, usbutils, uuid-runtime, vanityhash, vlan, wget, 
  whois, wipe, wireless-tools, wodim, wpasupplicant, xfsdump, xfsprogs, 
  zerofree, zile, zip, arping, bridge-utils, testdisk, nicstat, quota, 
- quotatool, kpartx
+ quotatool, kpartx, kbd
 Description: Standard Finnix dependencies
  This meta-package depends all needed packages for a standard Finnix
  distribution.
