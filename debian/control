@@ -10,7 +10,7 @@ Homepage: http://www.finnix.org/
 
 Package: finnix-netboot
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, whiptail, nfs-user-server | nfs-kernel-server, tftpd-hpa, portmap, kmod, syslinux | yaboot, isc-dhcp-client, perl, finnix-release, xz-utils, iproute2, uuid-runtime
+Depends: ${shlibs:Depends}, ${misc:Depends}, whiptail, nfs-user-server | nfs-kernel-server, tftpd-hpa, portmap, kmod, syslinux [i386 amd64], yaboot [powerpc], isc-dhcp-client, perl, finnix-release, xz-utils, iproute2, uuid-runtime
 Description: Scripts to set up network booting in Finnix
  This package contains the finnix-netboot-* scripts, which are designed 
  to build an host a netboot environment for booting Finnix over a 
