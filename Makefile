@@ -1,10 +1,12 @@
 DEB_BUILD_ARCH := $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 
-.PHONY: all powerpc i386 amd64 x86 clean sbm ipxe memtest dos
+.PHONY: all powerpc i386 amd64 x86 armhf clean sbm ipxe memtest dos
 
 all: $(DEB_BUILD_ARCH)
 
 powerpc:
+
+armhf:
 
 i386: x86
 

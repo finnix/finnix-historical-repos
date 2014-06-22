@@ -9,7 +9,7 @@ Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/neale-master-pkg
 Homepage: http://www.finnix.org/
 
 Package: neale-master
-Architecture: i386 amd64 powerpc
+Architecture: i386 amd64 powerpc armhf
 XC-Package-Type: udeb
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Finnix CD layout
