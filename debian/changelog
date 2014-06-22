@@ -1,8 +1,9 @@
-finnix-netboot (20140622.0) unstable; urgency=low
+finnix-netboot (20140622.1) unstable; urgency=low
 
   * Add armhf support (LP: #1332977)
+  * Architecture: any to allow arch-specific deps
 
- -- Ryan Finnie <ryan@finnie.org>  Sun, 22 Jun 2014 15:11:25 -0700
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 22 Jun 2014 15:20:23 -0700
 
 finnix-netboot (20140527.0) unstable; urgency=low
 
