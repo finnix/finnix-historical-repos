@@ -13,4 +13,4 @@ ppc ppc
 powerpc ppc
 ppc64 ppc64 ppc
 powerpc64 ppc64 ppc
-armhf armhf
+armv7l armhf
