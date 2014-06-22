@@ -1,3 +1,9 @@
+finnix-standard-arch (20140622.0) unstable; urgency=low
+
+  * Add armhf support (LP: #1332977)
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 22 Jun 2014 15:16:38 -0700
+
 finnix-standard-arch (20131009.0) unstable; urgency=low
 
   * Use finnix-minimal-arch (LP: #1237276)
