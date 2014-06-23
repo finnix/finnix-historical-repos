@@ -38,6 +38,7 @@ if [ -z "$FINNIX_DISTARCH" ]; then
   case "$ARCH" in
     ppc|ppc64) FINNIX_DISTARCH="ppc" ;;
     x86_64|i?86) FINNIX_DISTARCH="x86" ;;
+    armv7l) FINNIX_DISTARCH="armhf" ;;
     *)
       echo "Unknown architecture $ARCH"
       exit 1
@@ -54,6 +55,8 @@ if [ -z "$FINNIX_ISO" ]; then
     FINNIX_ISO=${FINNIX_BASE}/finnix-ppc.iso
   elif [ "${FINNIX_DISTARCH}" = "amd64" ]; then
     FINNIX_ISO=${FINNIX_BASE}/finnix-amd64.iso
+  elif [ "${FINNIX_DISTARCH}" = "armhf" ]; then
+    FINNIX_ISO=${FINNIX_BASE}/finnix-armhf.iso
   else
     FINNIX_ISO=${FINNIX_BASE}/finnix.iso
   fi
@@ -63,8 +66,12 @@ if [ -z "$FINNIX_BOOT" ]; then
     FINNIX_BOOT=${FINNIX_MASTER}/boot/ppc
   elif [ "${FINNIX_DISTARCH}" = "amd64" ]; then
     FINNIX_BOOT=${FINNIX_MASTER}/boot/amd64
-  else
+  elif [ "${FINNIX_DISTARCH}" = "x86" ]; then
     FINNIX_BOOT=${FINNIX_MASTER}/boot/x86
+  elif [ "${FINNIX_DISTARCH}" = "armhf" ]; then
+    FINNIX_BOOT=${FINNIX_MASTER}/boot/armhf
+  else
+    FINNIX_BOOT=${FINNIX_MASTER}/boot/unknown
   fi
 fi
 [ -z "$FINNIX_INITRD" ] && FINNIX_INITRD=${FINNIX_BASE}/initrd
@@ -243,6 +250,10 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   IMODS="${IMODS} xen-blkfront xenfs"
   # zram
   IMODS="${IMODS} zram"
+  # armhf MMC interfaces
+  if [ "${FINNIX_DISTARCH}" = "armhf" ]; then
+    IMODS="${IMODS} mmci sdhci"
+  fi
 
   for i in ${FINNIX_SOURCE}/lib/modules/*; do
     [ -d "$i" ] || continue
@@ -341,7 +352,7 @@ if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
     simple_template <"${FINNIX_STUFF}/yaboot_net.conf.content" >"${FINNIX_BOOT}/yaboot_net.conf"
     export T_INITRD_FN="$INITRD_FN"
   fi
-else
+elif [ "${FINNIX_DISTARCH}" = "x86" -o "${FINNIX_DISTARCH}" = "amd64" ]; then
   for i in 1 2 3 4; do
     if [ -f "${FINNIX_STUFF}/f$i.content" ]; then
       simple_template <"${FINNIX_STUFF}/f$i.content" >"${FINNIX_BOOT}/f$i"
@@ -375,7 +386,7 @@ if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
       exit 1
     fi
   done
-else
+elif [ "${FINNIX_DISTARCH}" = "x86" -o "${FINNIX_DISTARCH}" = "amd64" ]; then
   if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" ]; then
     rm -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/boot.cat"
     cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" "${FINNIX_MASTER}/isolinux.bin"
@@ -413,11 +424,14 @@ if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
   genisoimage -hide-rr-moved -hfs -part -map ${FINNIX_MASTER}/boot/ppc/hfs.map -no-desktop \
     -hfs-volid "$(echo ${OS_NAME} | sed 's/ /_/g')_${OS_VERSION}" -hfs-bless ${FINNIX_BOOT} \
     -pad -l -r -J -v -V "${ISOVOL32}" -o ${FINNIX_ISO} ${FINNIX_MASTER}
-else
+elif [ "${FINNIX_DISTARCH}" = "x86" -o "${FINNIX_DISTARCH}" = "amd64" ]; then
   genisoimage -pad -l -r -J -v -V "${ISOVOL32}" -no-emul-boot -boot-load-size 4 \
      -boot-info-table -b isolinux.bin -c boot/${FINNIX_DISTARCH}/boot.cat \
      -hide-rr-moved -o ${FINNIX_ISO} ${FINNIX_MASTER}
   which isohybrid 2>/dev/null >/dev/null && isohybrid ${FINNIX_ISO}
+else
+  genisoimage -pad -l -r -J -v -V "${ISOVOL32}" \
+     -hide-rr-moved -o ${FINNIX_ISO} ${FINNIX_MASTER}
 fi
 
 lb="$(($(stat -c %s ${FINNIX_ISO}) % 1048576))"

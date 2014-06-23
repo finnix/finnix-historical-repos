@@ -38,6 +38,7 @@ if [ -z "$FINNIX_DISTARCH" ]; then
   case "$ARCH" in
     ppc|ppc64) FINNIX_DISTARCH="ppc" ;;
     x86_64|i?86) FINNIX_DISTARCH="x86" ;;
+    armv7l) FINNIX_DISTARCH="armhf" ;;
     *)
       echo "Unknown architecture $ARCH"
       exit 1
@@ -432,8 +433,12 @@ else
   # xz compression
   if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
     SQUASHFS_OPTS="-comp xz -Xbcj powerpc"
-  else
+  elif [ "${FINNIX_DISTARCH}" = "x86" ]; then
     SQUASHFS_OPTS="-comp xz -Xbcj x86"
+  elif [ "${FINNIX_DISTARCH}" = "armhf" ]; then
+    SQUASHFS_OPTS="-comp xz -Xbcj arm"
+  else
+    SQUASHFS_OPTS="-comp xz"
   fi
 fi
 if [ -f "${FINNIX_STUFF}/finnix.order" ]; then
