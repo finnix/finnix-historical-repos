@@ -387,6 +387,9 @@ if [ -z "${NOBOOTHWSETUP}" ]; then
   if [ "${FINNIX_XENU}" = "yes" ]; then
     LOADMODS="$LOADMODS xen-blkfront xen-netfront"
   fi
+  if [ "${ARCH}" = "armv7l" ]; then
+    LOADMODS="$LOADMODS mmci sdhci"
+  fi
   for modname in $LOADMODS; do
     echo -n "${CRE}${BLUEITEM} Loading probed module: ${WHITE}$modname${NORMAL}"
     _f12 modprobe $modname

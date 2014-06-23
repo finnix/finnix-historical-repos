@@ -1,8 +1,8 @@
-neale-initrd (20140622.0) unstable; urgency=low
+neale-initrd (20140622.1) unstable; urgency=low
 
   * Add armhf support (LP: #1332977)
 
- -- Ryan Finnie <ryan@finnie.org>  Sun, 22 Jun 2014 12:25:21 -0700
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 22 Jun 2014 19:19:41 -0700
 
 neale-initrd (20140501.0) unstable; urgency=low
 
