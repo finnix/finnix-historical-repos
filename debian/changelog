@@ -1,3 +1,9 @@
+neale-kernel (20140623.0) unstable; urgency=low
+
+  * Add armhf support (LP: #1332977)
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 23 Jun 2014 10:30:51 -0700
+
 neale-kernel (20140329.0) unstable; urgency=low
 
   * Debian 3.13.7-1
