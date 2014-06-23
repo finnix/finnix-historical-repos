@@ -67,7 +67,7 @@ if($cpuinfo =~ /User Mode Linux/) {
   my @cpublocks = ();
   my $sharedinfo = "";
   foreach my $block (split(/\n\n/, $cpuinfo)) {
-    if($block =~ /^processor\s+:\s+\d/) {
+    if($block =~ /^processor\s+:\s+\d/m) {
       push(@cpublocks, $block);
     } else {
       $sharedinfo .= "$block\n";
@@ -98,6 +98,46 @@ if($cpuinfo =~ /User Mode Linux/) {
     }
     if($v{"l2 cache"}) {
       ($x = $v{"l2 cache"}) =~ s/\s+.*$//; $out .= ", $x cache";
+    }
+  }
+  if($proccount > 1) {
+    $out .= " ($proccount)";
+  }
+} elsif($machine eq "armv7l") {
+  my @cpublocks = ();
+  my $sharedinfo = "";
+  foreach my $block (split(/\n\n/, $cpuinfo)) {
+    if($block =~ /^processor\s+:\s+\d/m) {
+      push(@cpublocks, $block);
+    } else {
+      $sharedinfo .= "$block\n";
+    }
+  }
+  chop $sharedinfo;
+
+  my %v = ();
+  foreach my $line (split(/\n/, $sharedinfo)) {
+    my($name, $val) = split(/\s+:\s+/, $line, 2);
+    $name = lc($name);
+    $v{$name} = $val;
+  }
+  if($v{"hardware"}) {
+    $out .= $v{"hardware"};
+  }
+
+  my $proccount = 0;
+  foreach my $block (@cpublocks) {
+    if($sharedinfo) { $block .= "\n$sharedinfo"; }
+    my %v = ();
+    foreach my $line (split(/\n/, $block)) {
+      my($name, $val) = split(/\s+:\s+/, $line, 2);
+      $name = lc($name);
+      $v{$name} = $val;
+    }
+    $proccount++;
+    if($v{"model name"}) {
+      if($out) { $out .= ", "; }
+      $out .= $v{"model name"};
     }
   }
   if($proccount > 1) {
