@@ -1,4 +1,4 @@
-neale-initrd (20140622.1) unstable; urgency=low
+neale-initrd (20140622.2) unstable; urgency=low
 
   * Add armhf support (LP: #1332977)
 
