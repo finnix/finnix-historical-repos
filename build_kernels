@@ -84,6 +84,7 @@ install_arch() {
   mkdir -p "${DESTDIR}/lib/modules"
   make ${MAKE_SUBLEVEL_DEF} EXTRAVERSION="${KERNEL_EXTRAVERSION}" ARCH="${KERNEL_MAKE_ARCH}" INSTALL_MOD_PATH="${DESTDIR}" modules_install
   find "${DESTDIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}" -name '*.ko' -print0 | xargs -0 strip -x -R .note -R .comment
+  depmod -b "${DESTDIR}" "${VERSION}${KERNEL_EXTRAVERSION}"
   rm -f "${DESTDIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/build"
   rm -f "${DESTDIR}/lib/modules/${VERSION}${KERNEL_EXTRAVERSION}/source"
 
