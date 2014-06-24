@@ -1,3 +1,9 @@
+finnix-scripts (20140624.1) unstable; urgency=low
+
+  * finnix-pretty-cpu: Do not duplicate SMP CPU names
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 24 Jun 2014 14:05:32 -0700
+
 finnix-scripts (20140624.0) unstable; urgency=low
 
   * Include virtio modules on armhf

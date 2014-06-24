@@ -135,7 +135,7 @@ if($cpuinfo =~ /User Mode Linux/) {
       $v{$name} = $val;
     }
     $proccount++;
-    if($v{"model name"}) {
+    if($v{"model name"} && ($proccount == 1)) {
       if($out) { $out .= ", "; }
       $out .= $v{"model name"};
     }
