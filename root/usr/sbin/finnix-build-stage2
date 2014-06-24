@@ -237,7 +237,7 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   # Slightly less common SCSI
   IMODS="${IMODS} mptspi 3w-xxxx 3w-9xxx 3w-sas"
   # x86-only SCSI
-  if [ "${FINNIX_DISTARCH}" != "ppc" ]; then
+  if [ "${FINNIX_DISTARCH}" = "x86" -o "${FINNIX_DISTARCH}" = "amd64" ]; then
     IMODS="${IMODS} gdth"
   fi
   # Common USB/Firewire/SCSI
@@ -252,7 +252,7 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   IMODS="${IMODS} zram"
   # armhf MMC interfaces
   if [ "${FINNIX_DISTARCH}" = "armhf" ]; then
-    IMODS="${IMODS} mmci sdhci"
+    IMODS="${IMODS} mmci sdhci virtio_mmio virtio_blk"
   fi
 
   for i in ${FINNIX_SOURCE}/lib/modules/*; do
