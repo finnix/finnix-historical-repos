@@ -1,3 +1,9 @@
+neale-initrd (20140624.0) unstable; urgency=low
+
+  * Load virtio_blk if the virtio bus exists
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 24 Jun 2014 09:04:11 -0700
+
 neale-initrd (20140622.2) unstable; urgency=low
 
   * Add armhf support (LP: #1332977)

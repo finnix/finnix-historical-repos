@@ -398,6 +398,7 @@ if [ -z "${NOBOOTHWSETUP}" ]; then
   MOREMODS=""
   [ -e /sys/bus/ide ] && MOREMODS="${MOREMODS} ide-cd ide-disk"
   [ -e /sys/bus/usb ] && MOREMODS="${MOREMODS} usb-storage usbhid"
+  [ -e /sys/bus/virtio ] && MOREMODS="${MOREMODS} virtio_blk"
   [ -e /sys/bus/ieee1394 ] && MOREMODS="${MOREMODS} firewire-sbp2"
   [ -e /sys/bus/usb -o -e /sys/bus/ieee1394 -o -e /sys/bus/scsi ] && MOREMODS="${MOREMODS} sr_mod sd_mod"
 
