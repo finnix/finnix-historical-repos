@@ -1,3 +1,9 @@
+neale-initrd (20140626.0) unstable; urgency=low
+
+  * armhf: Blind load virtio_mmio.  Need should be obsolete >= kernel 3.14
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 26 Jun 2014 16:56:58 -0700
+
 neale-initrd (20140624.0) unstable; urgency=low
 
   * Load virtio_blk if the virtio bus exists
