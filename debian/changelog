@@ -1,3 +1,9 @@
+finnix-scripts (20140625.0) unstable; urgency=low
+
+  * Fix typo in sshd ed25519 generation (LP: #1314965)
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 25 Jun 2014 22:48:31 -0700
+
 finnix-scripts (20140624.1) unstable; urgency=low
 
   * finnix-pretty-cpu: Do not duplicate SMP CPU names
