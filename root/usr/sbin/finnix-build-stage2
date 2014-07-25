@@ -387,14 +387,14 @@ if [ "${FINNIX_DISTARCH}" = "ppc" ]; then
     fi
   done
 elif [ "${FINNIX_DISTARCH}" = "x86" -o "${FINNIX_DISTARCH}" = "amd64" ]; then
-  if [ -f "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" ]; then
+  if [ -f "${FINNIX_SOURCE}/usr/lib/ISOLINUX/isolinux.bin" ]; then
     rm -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/boot.cat"
-    cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/isolinux.bin" "${FINNIX_MASTER}/isolinux.bin"
+    cp -a "${FINNIX_SOURCE}/usr/lib/ISOLINUX/isolinux.bin" "${FINNIX_MASTER}/isolinux.bin"
     cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/memdisk" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/memdisk"
     for com32 in hdt.c32 menu.c32 vesamenu.c32 chain.c32; do
-      cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/$com32" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$com32"
+      cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/modules/bios/$com32" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$com32"
     done
-    cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/pxelinux.0" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pxelinux/pxelinux.0"
+    cp -a "${FINNIX_SOURCE}/usr/lib/PXELINUX/pxelinux.0" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pxelinux/pxelinux.0"
     gzip -9 -c <"${FINNIX_SOURCE}/usr/share/misc/pci.ids" >"${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pci.ids"
   fi
   if [ ! -f "${FINNIX_MASTER}/isolinux.bin" ]; then
