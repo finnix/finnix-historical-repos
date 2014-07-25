@@ -10,7 +10,7 @@ Homepage: http://www.finnix.org/
 
 Package: finnix-minimal-arch
 Architecture: any
-Depends: ${misc:Depends}, syslinux [i386 amd64], yaboot [powerpc]
+Depends: ${misc:Depends}, extlinux [i386 amd64], isolinux [i386 amd64], pxelinux [i386 amd64], syslinux [i386 amd64], syslinux-common [i386 amd64], syslinux-utils [i386 amd64], yaboot [powerpc]
 Description: Minimal Finnix dependencies (architecture-specific)
  This meta-package depends all needed packages for a minimal Finnix
  distribution.
