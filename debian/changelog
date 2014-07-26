@@ -1,3 +1,9 @@
+finnix-netboot (20140725.0) unstable; urgency=low
+
+  * Fix syslinux 6.00 compatibility issues (LP: #1348501)
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 25 Jul 2014 23:50:17 -0700
+
 finnix-netboot (20140622.1) unstable; urgency=low
 
   * Add armhf support (LP: #1332977)

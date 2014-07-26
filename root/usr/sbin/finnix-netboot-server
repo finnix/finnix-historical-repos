@@ -235,6 +235,7 @@ BOOTDIR=/boot
 
     log_action_msg "Setting up pxelinux..."
     cp -a /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/pxelinux.0 /srv/tftp${TFTPDISTDIR}/
+    cp -a /media/cd_base/ldlinux.c32 /srv/tftp${TFTPDISTDIR}/
     mkdir -p /srv/tftp${TFTPDISTDIR}/pxelinux.cfg
     sed "s'_NETOPTS_'${NETOPTS}'g" /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/template.cfg >/srv/tftp${TFTPDISTDIR}/pxelinux.cfg/default
   elif [ -d "/media/cd_base${BOOTDIR}/amd64/pxelinux" ]; then
@@ -243,6 +244,7 @@ BOOTDIR=/boot
 
     log_action_msg "Setting up pxelinux..."
     cp -a /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/pxelinux.0 /srv/tftp${TFTPDISTDIR}/
+    cp -a /media/cd_base/ldlinux.c32 /srv/tftp${TFTPDISTDIR}/
     mkdir -p /srv/tftp${TFTPDISTDIR}/pxelinux.cfg
     sed "s'_NETOPTS_'${NETOPTS}'g" /srv/tftp${TFTPDISTDIR}${INITRDDIR}/pxelinux/template.cfg >/srv/tftp${TFTPDISTDIR}/pxelinux.cfg/default
   fi
