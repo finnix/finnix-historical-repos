@@ -390,8 +390,9 @@ elif [ "${FINNIX_DISTARCH}" = "x86" -o "${FINNIX_DISTARCH}" = "amd64" ]; then
   if [ -f "${FINNIX_SOURCE}/usr/lib/ISOLINUX/isolinux.bin" ]; then
     rm -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/boot.cat"
     cp -a "${FINNIX_SOURCE}/usr/lib/ISOLINUX/isolinux.bin" "${FINNIX_MASTER}/isolinux.bin"
+    cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/modules/bios/ldlinux.c32" "${FINNIX_MASTER}/ldlinux.c32"
     cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/memdisk" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/memdisk"
-    for com32 in hdt.c32 menu.c32 vesamenu.c32 chain.c32; do
+    for com32 in hdt.c32 menu.c32 vesamenu.c32 chain.c32 libutil.c32 libcom32.c32 libgpl.c32 libmenu.c32; do
       cp -a "${FINNIX_SOURCE}/usr/lib/syslinux/modules/bios/$com32" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$com32"
     done
     cp -a "${FINNIX_SOURCE}/usr/lib/PXELINUX/pxelinux.0" "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/pxelinux/pxelinux.0"
@@ -401,7 +402,7 @@ elif [ "${FINNIX_DISTARCH}" = "x86" -o "${FINNIX_DISTARCH}" = "amd64" ]; then
     echo "Required boot file missing: isolinux.bin"
     exit 1
   fi
-  for missing in memdisk hdt.c32 menu.c32 vesamenu.c32 chain.c32 pxelinux/pxelinux.0 pci.ids; do
+  for missing in hdt.c32 menu.c32 vesamenu.c32 chain.c32 libutil.c32 libcom32.c32 libgpl.c32 libmenu.c32 memdisk pci.ids; do
     if [ ! -f "${FINNIX_MASTER}/boot/${FINNIX_DISTARCH}/$missing" ]; then
       echo "Required boot file missing: $missing"
       exit 1
