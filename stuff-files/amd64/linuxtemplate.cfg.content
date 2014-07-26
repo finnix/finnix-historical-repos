@@ -1,3 +1,4 @@
+PATH boot/amd64
 DEFAULT menu
 DISPLAY boot/amd64/boot.msg
 PROMPT 0
@@ -44,7 +45,7 @@ TEXT HELP
 Run Memtest86+, a system memory test utility.
 ENDTEXT
 KERNEL boot/amd64/memtest
-APPEND initrd= 
+APPEND 
 
 LABEL dos
 MENU LABEL Boot FreeDOS (Balder)
@@ -76,7 +77,7 @@ TEXT HELP
 Run iPXE, a PXE bootloader.
 ENDTEXT
 KERNEL boot/amd64/ipxe
-APPEND initrd= 
+APPEND 
 
 MENU SEPARATOR
 

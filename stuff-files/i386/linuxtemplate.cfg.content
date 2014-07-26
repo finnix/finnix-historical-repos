@@ -1,3 +1,4 @@
+PATH boot/x86
 DEFAULT menu
 DISPLAY boot/x86/boot.msg
 PROMPT 0
@@ -53,7 +54,7 @@ TEXT HELP
 Run Memtest86+, a system memory test utility.
 ENDTEXT
 KERNEL boot/x86/memtest
-APPEND initrd= 
+APPEND 
 
 LABEL dos
 MENU LABEL Boot FreeDOS (Balder)
@@ -85,7 +86,7 @@ TEXT HELP
 Run iPXE, a PXE bootloader.
 ENDTEXT
 KERNEL boot/x86/ipxe
-APPEND initrd= 
+APPEND 
 
 MENU SEPARATOR
 
