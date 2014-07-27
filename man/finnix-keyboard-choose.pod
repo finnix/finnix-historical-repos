@@ -1,0 +1,27 @@
+=head1 NAME
+
+finnix-keyboard-choose - Choose a console keymap
+
+=head1 SYNOPSIS
+
+B<finnix-keyboard-choose>
+
+=head1 DESCRIPTION
+
+B<finnix-keyboard-choose> is a menu-based utility to select from a list
+of available console keymaps.
+
+=head1 OPTIONS
+
+None.  B<finnix-keyboard-choose> is an interactive program.
+
+=head1 BUGS
+
+None known.
+
+=head1 AUTHOR
+
+B<finnix-keyboard-choose> was written by Ryan Finnie <ryan@finnie.org>.
+
+=cut
+

@@ -53,6 +53,16 @@ if [ -n "$KEYTABLE" ] && which loadkeys >/dev/null 2>/dev/null; then
   _f12 loadkeys -q "$KEYTABLE"
 fi
 
+if checkbootparam "0" && \
+  which loadkeys >/dev/null 2>/dev/null && \
+  [ -f /usr/share/console/lists/console-data.keymap-list ]; then
+  (
+    export TERM=linux
+    REALDEV="/dev/$(cat /sys/dev/char/4:0/active)"
+    exec chpst -P /bin/bash -i -c /usr/sbin/finnix-keyboard-choose >"$REALDEV" 2>"$REALDEV" <"$REALDEV"
+  )
+fi
+
 CONSOLEFONT="$(getbootparam font)"
 if which setfont >/dev/null 2>/dev/null; then
   if [ -n "$CONSOLEFONT" ]; then

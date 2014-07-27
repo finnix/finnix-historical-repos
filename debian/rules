@@ -30,6 +30,7 @@ override_dh_auto_install:
 	pod2man -c '' -r '' -s 1 man/finnix-generate-entropy.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-generate-entropy.1
 	pod2man -c '' -r '' -s 1 man/finnix-pretty-cpu.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-pretty-cpu.1
 	pod2man -c '' -r '' -s 1 man/finnix-strace-init.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-strace-init.1
+	pod2man -c '' -r '' -s 1 man/finnix-keyboard-choose.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/finnix-keyboard-choose.1
 	pod2man -c '' -r '' -s 1 man/zram_stat.pod >$(CURDIR)/debian/finnix-scripts/usr/share/man/man1/zram_stat.1
 
 override_dh_md5sums:
