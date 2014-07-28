@@ -94,6 +94,10 @@ install: deb-checkdir deb-checkuid build-stamp
 	install -m0755 debian/getty-tty5.run '$(DIR)'/etc/sv/getty-5/run
 	install -m0755 debian/getty-tty5.finish \
 	  '$(DIR)'/etc/sv/getty-5/finish
+	# bash completion
+	install -d -m0755 '$(DIR)'/usr/share/bash-completion/completions
+	install -m0644 debian/contrib/sv-completion.bash \
+	  '$(DIR)'/usr/share/bash-completion/completions/sv
 	# lintian overrides
 	install -m0755 -d '$(DIR)'/usr/share/lintian/overrides
 	install -m0644 debian/runit.lintian \
@@ -116,6 +120,10 @@ install: deb-checkdir deb-checkuid build-stamp
 	  install -m0644 runit/etc/debian/$$i \
 	    '$(DIR)'/usr/share/doc/runit/debian/ || exit 1; \
 	done
+	#  systemd service
+	install -d -m0755 '$(DIR)'/lib/systemd/system
+	install -m0644 debian/systemd/runit.service \
+	  '$(DIR)'/lib/systemd/system/
 	# changelog
 	rm -f changelog && ln -s runit/package/CHANGES changelog
 

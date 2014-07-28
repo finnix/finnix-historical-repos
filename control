@@ -8,7 +8,7 @@ Homepage: http://smarden.org/runit/
 
 Package: runit
 Architecture: any
-Depends: procps, ${shlibs:Depends}
+Depends: ${shlibs:Depends}
 Recommends: fgetty
 Suggests: socklog-run
 Description: system-wide service supervision

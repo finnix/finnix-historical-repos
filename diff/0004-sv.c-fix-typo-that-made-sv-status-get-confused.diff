@@ -1,0 +1,26 @@
+From 5394a1cbf8bc229c90da70deb8cb149da6398eca Mon Sep 17 00:00:00 2001
+From: Gerrit Pape <pape@smarden.org>
+Date: Mon, 28 Jul 2014 07:37:50 +0000
+Subject: [PATCH] sv.c: fix typo that made sv status get confused
+
+https://bugs.debian.org/715512
+---
+ runit-2.1.1/src/sv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/runit-2.1.1/src/sv.c b/runit-2.1.1/src/sv.c
+index 43224b5..5f3aa71 100644
+--- a/runit-2.1.1/src/sv.c
++++ b/runit-2.1.1/src/sv.c
+@@ -153,7 +153,7 @@ int status(char *unused) {
+   int rc;
+ 
+   rc =svstatus_get();
+-  switch(r) { case -1: if (lsb) done(4); case 0: return(0); }
++  switch(rc) { case -1: if (lsb) done(4); case 0: return(0); }
+   rc =svstatus_print(*service);
+   if (chdir("log") == -1) {
+     if (errno != error_noent) {
+-- 
+2.0.1
+

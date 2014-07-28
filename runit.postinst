@@ -44,9 +44,14 @@ if ! grep '^SV:' /etc/inittab >/dev/null; then
   mv -f /etc/inittab'{new}' /etc/inittab
 fi
 
-if ps -p 1 >/dev/null; then
-  kill -s HUP 1
-fi
+test ! -d /proc/1 || kill -s HUP 1
+
+# systemd service
+test -h /etc/systemd/system/multi-user.target.wants/runit.service ||
+  test ! -d /etc/systemd/system/multi-user.target.wants ||
+    ln -s /lib/systemd/system/runit.service \
+      /etc/systemd/system/multi-user.target.wants/
+test ! -d /run/systemd/system || systemctl start runit.service
 
 # remove lingering debconf-managed configuration
 # from versions 2.1.0-1 through 2.1.1-6.1.

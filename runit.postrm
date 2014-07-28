@@ -9,10 +9,14 @@ if grep '#-- runit begin' /etc/inittab >/dev/null; then
   sed -e '/#-- runit begin/,/#-- runit end/d' \
     </etc/inittab >/etc/inittab'{new}'
   mv -f /etc/inittab'{new}' /etc/inittab
-  if ps -p 1 >/dev/null; then
-    kill -s HUP 1
-  fi
+  test ! -d /proc/1 || kill -s HUP 1
 fi
+
+# systemd service
+test ! -d /run/systemd/system ||
+  ! systemctl is-active runit.service >/dev/null ||
+    systemctl stop runit.service
+rm -f /etc/systemd/system/multi-user.target.wants/runit.service
 
 test "$1" = 'purge' || exit 0
 

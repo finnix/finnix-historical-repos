@@ -1,3 +1,9 @@
+runit (2.1.1-7finnix1) unstable; urgency=low
+
+  * Rebase upon 2.1.1-7
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 28 Jul 2014 16:31:40 -0700
+
 runit (2.1.1-6.2finnix2) unstable; urgency=low
 
   * Fix compilation on modern GCC (LP: #1239248)
@@ -9,6 +15,35 @@ runit (2.1.1-6.2finnix1) unstable; urgency=low
   * Add stage 4 functionality (LP: #1238343)
 
  -- Ryan Finnie <ryan@finnie.org>  Thu, 10 Oct 2013 16:15:36 -0700
+
+runit (2.1.1-7) unstable; urgency=low
+
+  * debian/runit.postinst, debian/runit.postrm: use test -d /proc/1
+    instead of ps -p 1.
+  * debian/control: no longer Depends: procps.
+  * debian/rules: work around diet using -mpowerpc-gpopt when itself
+    given -Os, as -mpowerpc-gpopt generates instructions not available
+    on 32-bit PowerPC CPUs (thx Ryan Finnie, closes: #726008).
+  * debian/examples/start-stop-daemon.runit, debian/runit.examples:
+    new; include start-stop-daemon.runit script by Andras Korn in
+    /usr/share/doc/runit/examples/ (closes: #678985).
+  * debian/diff/0003-support-etc-runit-nosync-file-to-make-sync...diff:
+    new; support /etc/runit/nosync file to make sync on shutdown/reboot
+    optional (thx Andras Korn, closes: #695281).
+  * debian/contrib/sv-completion.bash: new; bash completion for sv (thx
+    Jeremy Lal).
+  * debian/rules: install sv bash completion (closes: #711335).
+  * debian/diff/0004-sv.c-fix-typo-that-made-sv-status-get-...diff:
+    new; sv.c: fix typo that made sv status get confused (closes:
+    #715512).
+  * debian/systemd/runit.service: new; runit systemd unit file (thx
+    Daniel Kahn Gillmor).
+  * debian/rules: install runit systemd unit file.
+  * debian/runit.postinst, debian/runit.postrm: enable and start,
+    disable and stop respectively, runit unit if systemd is process 1
+    (closes: #722116).
+
+ -- Gerrit Pape <pape@smarden.org>  Mon, 28 Jul 2014 11:05:09 +0000
 
 runit (2.1.1-6.2) unstable; urgency=medium
 
