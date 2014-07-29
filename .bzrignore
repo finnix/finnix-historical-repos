@@ -3,3 +3,4 @@ debian/finnix-keyring
 debian/finnix-keyring.debhelper.log
 debian/finnix-keyring.substvars
 finnix-keyring.gpg
+finnix-archive-keyring.gpg

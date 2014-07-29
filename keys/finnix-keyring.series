@@ -1,0 +1,15 @@
+# pub   4096R/0897797F 2012-04-11
+# uid                  Finnix Signing Key <keymaster@finnix.org>
+0897797F.asc
+
+# pub   4096R/4356E6C2 2012-05-14
+# uid                  Finnix Release Signing Key <keymaster@finnix.org>
+4356E6C2.asc
+
+# pub   4096R/65B619B6 2012-09-24 
+# uid                  Finnix Snapshot Signing Key <keymaster@finnix.org>
+65B619B6.asc
+
+# pub   4096R/A89BA58D 2012-05-14
+# uid                  Finnix Archive Signing Key <keymaster@finnix.org>
+A89BA58D.asc

@@ -4,5 +4,5 @@ set -e
 #DEBHELPER#
 
 if [ "$1" = configure ]; then
-  apt-key add /usr/share/keyrings/finnix-keyring.gpg
+  apt-key add /usr/share/keyrings/finnix-archive-keyring.gpg
 fi

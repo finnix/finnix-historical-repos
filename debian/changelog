@@ -1,3 +1,10 @@
+finnix-keyring (20140729.0) unstable; urgency=low
+
+  * Generate finnix-archive-keyring.gpg, use it for apt-key
+    (LP: #1349962)
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 29 Jul 2014 12:33:37 -0700
+
 finnix-keyring (20130311.0) unstable; urgency=low
 
   * Use standard Makefile in top-level directory

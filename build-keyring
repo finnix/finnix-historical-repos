@@ -3,15 +3,17 @@
 set -e
 
 KEYSDIR="$1"
-DESTRING="$2"
+SERIESFILE="$2"
+DESTRING="$3"
 
 [ -z "$KEYSDIR" ] && exit 1
+[ -z "$SERIESFILE" ] && exit 1
 [ -z "$DESTRING" ] && exit 1
-[ -e "$KEYSDIR/series" ] || exit 1
+[ -e "$SERIESFILE" ] || exit 1
 
 TEMPHOME="$(mktemp -d)"
 
-for i in `cat $KEYSDIR/series`; do
+for i in $(grep -v '^\s*\#' "$SERIESFILE"); do
   gpg --batch --no-tty --no-options --homedir "$TEMPHOME" --import "$KEYSDIR/$i"
 done
 
