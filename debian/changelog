@@ -1,3 +1,9 @@
+finnix-scripts (20140729.0) unstable; urgency=low
+
+  * finnix-build-stage2: Include MMC host drivers on armhf
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 29 Jul 2014 19:35:08 -0700
+
 finnix-scripts (20140726.0) unstable; urgency=low
 
   * Add "0" boot option to bring up keymap chooser (LP: #1326981)

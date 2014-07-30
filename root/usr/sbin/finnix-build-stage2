@@ -252,7 +252,7 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   IMODS="${IMODS} zram"
   # armhf MMC interfaces
   if [ "${FINNIX_DISTARCH}" = "armhf" ]; then
-    IMODS="${IMODS} mmci sdhci virtio_mmio virtio_blk"
+    IMODS="${IMODS} virtio_mmio virtio_blk"
   fi
 
   for i in ${FINNIX_SOURCE}/lib/modules/*; do
@@ -267,6 +267,14 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
       [ "$kmod" = "pata_pcmcia" ] && continue
       KMODS="$KMODS $kmod"
     done
+    if [ "${FINNIX_DISTARCH}" = "armhf" ]; then
+      # All MMC host drivers
+      for k in ${FINNIX_SOURCE}/lib/modules/${MODKERNEL}/kernel/drivers/mmc/host/*.ko; do
+        [ -e "$k" ] || continue
+        kmod="$(basename "$k" .ko)"
+        KMODS="$KMODS $kmod"
+      done
+    fi
 
     # Process found modules
     for MODFILE in $(findmods "$MODKERNEL" "$FINNIX_SOURCE" $IMODS $KMODS); do
