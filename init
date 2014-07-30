@@ -388,7 +388,7 @@ if [ -z "${NOBOOTHWSETUP}" ]; then
     LOADMODS="$LOADMODS xen-blkfront xen-netfront"
   fi
   if [ "${ARCH}" = "armv7l" ]; then
-    LOADMODS="$LOADMODS mmci sdhci virtio_mmio"
+    LOADMODS="$LOADMODS mmci sdhci virtio_mmio sdhci-esdhc-imx ahci_imx"
   fi
   for modname in $LOADMODS; do
     echo -n "${CRE}${BLUEITEM} Loading probed module: ${WHITE}$modname${NORMAL}"
