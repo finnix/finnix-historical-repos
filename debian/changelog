@@ -1,3 +1,10 @@
+finnix-utmp (20140730.0) unstable; urgency=low
+
+  * Add shutdown option
+  * Use debhelper 9
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 30 Jul 2014 22:22:02 -0700
+
 finnix-utmp (107) unstable; urgency=low
 
   * Finnix 107

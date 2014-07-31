@@ -30,6 +30,7 @@ static void usage(void) {
     "Usage: finnix-utmp add <line> <user> [<host>]\n"
     "       finnix-utmp del <line> [<user>] [<host>]\n"
     "       finnix-utmp boot\n"
+    "       finnix-utmp shutdown\n"
     "       finnix-utmp runlevel <runlevel> [<previous>]\n"
   );
   exit(EXIT_FAILURE);
@@ -142,6 +143,17 @@ int main(int argc, const char *argv[]) {
     pid = 0;
     user = "reboot";
     line = "~";
+    id = "~~";
+    (void) uname(&uts);
+    host = uts.release;
+  } else if(!strcmp(argv[1], "shutdown")) {
+    if(argc > 2) {
+      usage();
+    }
+    type = RUN_LVL;
+    pid = 0;
+    user = "shutdown";
+    line = "~~";
     id = "~~";
     (void) uname(&uts);
     host = uts.release;

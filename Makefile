@@ -1,8 +1,8 @@
-PREFIX = /usr/local
+PREFIX = /usr
 SBINDIR = $(PREFIX)/sbin
 DATAROOTDIR = $(PREFIX)/share
 MANDIR = $(DATAROOTDIR)/man
-CFLAGS = -O2 -Wall -Werror
+CFLAGS ?= -O2 -Wall -Werror
 
 all: finnix-utmp
 
