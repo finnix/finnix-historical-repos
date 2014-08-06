@@ -1,3 +1,9 @@
+finnix-scripts (20140806.0) unstable; urgency=low
+
+  * Fix hardcoded /tmp conflicts (LP: #1353721)
+
+ -- Ryan Finnie <ryan@finnie.org>  Wed, 06 Aug 2014 15:55:14 -0700
+
 finnix-scripts (20140729.0) unstable; urgency=low
 
   * finnix-build-stage2: Include MMC host drivers on armhf

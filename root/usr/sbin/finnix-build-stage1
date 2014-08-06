@@ -52,7 +52,6 @@ fi
 [ -z "$FINNIX_SOURCE" ] && FINNIX_SOURCE=${FINNIX_BASE}/source/FINNIX
 [ -z "$FINNIX_STUFF" ] && FINNIX_STUFF=${FINNIX_BASE}/stuff
 [ "$FINNIX_CROSS_COMPILE" = "yes" ] || FINNIX_CROSS_COMPILE="no"
-[ -z "$FINNIX_TMPDIR" ] && FINNIX_TMPDIR=/tmp
 
 ### sanity check
 for i in "${FINNIX_BASE}" "${FINNIX_MASTER}" "${FINNIX_SOURCE}"; do
@@ -358,6 +357,7 @@ for i in $(find ${FINNIX_SOURCE}/var/log -type f); do echo -n >$i; done
 echo "done."
 
 
+FINNIX_TMPDIR="$(mktemp -d)"
 echo -n "Purging removed files from dpkg lists... "
 REMLIST=0
 REMCONFFILES=0
@@ -414,6 +414,7 @@ done
 rm -f "$FINNIX_TMPDIR/ftmpprune.md5sums"
 
 echo "done.  $REMLIST list, $REMCONFFILES conffiles, $REMMD5SUMS md5sums lists affected."
+rm -rf "$FINNIX_TMPDIR"
 
 if [ -d "$FINNIX_STUFF" ]; then
   echo -n "Decompressing .gz files... "
