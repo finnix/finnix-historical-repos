@@ -1,3 +1,9 @@
+finnix-scripts (20140816.0) unstable; urgency=low
+
+  * Append an arbitrary build tag to the build date
+
+ -- Ryan Finnie <ryan@finnie.org>  Sat, 16 Aug 2014 18:44:45 -0700
+
 finnix-scripts (20140806.0) unstable; urgency=low
 
   * Fix hardcoded /tmp conflicts (LP: #1353721)

@@ -208,6 +208,9 @@ BASHEOM
 # End functions
 
 FINNIXDATE="$(date)"
+if [ -n "$FINNIX_BUILD_TAG" ]; then
+  FINNIXDATE="$FINNIXDATE ($FINNIX_BUILD_TAG)"
+fi
 
 ### make sure required binaries are present
 BAD_BINARIES=""
