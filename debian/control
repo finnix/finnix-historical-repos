@@ -10,7 +10,7 @@ Homepage: http://www.finnix.org/
 
 Package: finnix-base
 Architecture: all
-Depends: ${misc:Depends}, ssmtp | mail-transport-agent, finnix-release, finnix-keyring, netbase
+Depends: ${misc:Depends}, ssmtp | mail-transport-agent, finnix-release, finnix-keyring, netbase, sysvinit-core
 Description: Base Finnix dependencies
  This meta-package depends all core packages for a base Finnix
  distribution.
