@@ -1,3 +1,9 @@
+finnix-standard (20150515.0) unstable; urgency=low
+
+  * Remove chkrootkit
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 15 May 2015 12:44:31 -0700
+
 finnix-standard (20140725.0) unstable; urgency=low
 
   * Re-add console-data (LP: #1315242)
