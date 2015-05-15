@@ -237,7 +237,6 @@ FINNIX_FORENSIC="no"
 checkbootparam forensic && FINNIX_FORENSIC="yes"
 checkbootparam forensics && FINNIX_FORENSIC="yes"
 [ "$FINNIX_FORENSIC" = "yes" ] && ROOTWRITE="ro"
-UNIONMOD=$(getbootparam unionmod)
 INIT="$(getbootparam init)"
 [ -z $INIT ] && INIT=/sbin/init
 checkbootparam strace && FINNIX_STRACE="yes"
@@ -311,7 +310,7 @@ fi
 
 # Normally these are built into the Finnix kernel,
 # but it doesn't hurt to try anyway.
-for i in isofs nls_cp437 nls_utf8 vfat ext2 loop squashfs unionfs aufs; do
+for i in isofs nls_cp437 nls_utf8 vfat ext2 loop squashfs overlay; do
   _f12 modprobe $i
 done
 
@@ -705,27 +704,6 @@ fi
 
 echo -n "${BLUEITEM} Creating unionfs overlay... "
 
-case "$UNIONMOD" in
-  unionfs) UNIONMOD="unionfs"; break;;
-  unionfs2) UNIONMOD="unionfs2"; break;;
-  aufs) UNIONMOD="aufs"; break;;
-  *)
-    if [ -e /sys/module/aufs ]; then
-      UNIONMOD="aufs"
-    elif [ -e /sys/module/unionfs ]; then
-      UNIONMOD="unionfs2"
-    elif [ -n "$(grep aufs /proc/filesystems)" ]; then
-      UNIONMOD="aufs"
-    elif [ -n "$(grep unionfs /proc/filesystems)" ]; then
-      UNIONMOD="unionfs2"
-    else
-      # Either the union code is built in, or something went
-      # terribly wrong.
-      UNIONMOD="aufs"
-    fi
-    ;;
-esac
-
 # Figure out which CD arch we should use
 while read UNAMEMT DISTARCHT DISTARCHFT; do
   [ -z "$UNAMEMT" ] && continue
@@ -759,11 +737,7 @@ mkdir -p /media/compressed_root
 mount -n -o ro,loop "${FINNIX_CDBASE}$FINNIX_ROOTIMG" /media/compressed_root
 
 # Begin building the unionfs mount line
-if [ "$UNIONMOD" = "aufs" ]; then
-  UNION="/media/compressed_root=ro+wh"
-else
-  UNION="/media/compressed_root=ro"
-fi
+UNION_LOWER="/media/compressed_root"
 
 # Overlay support in /finnix/arch/indep/overlays on cdrom
 # Add to unionfs mount line
@@ -772,19 +746,11 @@ if [ -d "${OSRCDIR}" ]; then
   for i in `cd ${OSRCDIR}; ls -1`; do
    echo -n "${WHITE}$i${NORMAL} "
    if [ -d "${OSRCDIR}/$i" ]; then
-     if [ "$UNIONMOD" = "aufs" ]; then
-       UNION="${OSRCDIR}/$i=ro:${UNION}"
-     else
-       UNION="${OSRCDIR}/$i=ro:${UNION}"
-     fi
+     UNION_LOWER="${UNION_LOWER}:${OSRCDIR}/$i"
    else
      mkdir -p "/media/ramdisk/union_overlays/$i"
      mount -o ro,loop "${OSRCDIR}/$i" "/media/ramdisk/union_overlays/$i"
-     if [ "$UNIONMOD" = "aufs" ]; then
-       UNION="/media/ramdisk/union_overlays/$i=ro+wh:${UNION}"
-     else
-       UNION="/media/ramdisk/union_overlays/$i=ro:${UNION}"
-     fi
+     UNION_LOWER="${UNION_LOWER}:/media/ramdisk/union_overlays/$i"
     fi
   done
 fi
@@ -796,38 +762,22 @@ if [ -d "${OSRCDIR}" ]; then
   for i in `cd ${OSRCDIR}; ls -1`; do
     echo -n "${WHITE}$i${NORMAL} "
     if [ -d "${OSRCDIR}/$i" ]; then
-      if [ "$UNIONMOD" = "aufs" ]; then
-        UNION="${OSRCDIR}/$i=ro:${UNION}"
-      else
-        UNION="${OSRCDIR}/$i=ro:${UNION}"
-      fi
+      UNION_LOWER="${UNION_LOWER}:${OSRCDIR}/$i"
     else
       mkdir -p "/media/ramdisk/union_overlays/$i"
       mount -o ro,loop "${OSRCDIR}/$i" "/media/ramdisk/union_overlays/$i"
-      if [ "$UNIONMOD" = "aufs" ]; then
-        UNION="/media/ramdisk/union_overlays/$i=ro+wh:${UNION}"
-      else
-        UNION="/media/ramdisk/union_overlays/$i=ro:${UNION}"
-      fi
+      UNION_LOWER="${UNION_LOWER}:/media/ramdisk/union_overlays/$i"
     fi
   done
 fi
 
 # The actual unionfs mount
 mkdir -p /media/ramdisk/union_writable
-if [ "$UNIONMOD" = "aufs" ]; then
-  UNION="br:/media/ramdisk/union_writable=rw:${UNION}"
-else
-  UNION="dirs=/media/ramdisk/union_writable=rw:${UNION}"
-  if [ "$UNIONMOD" = "unionfs" ]; then
-    UNION="${UNION},delete=whiteout"
-  fi
-fi
-if [ "$UNIONMOD" = "unionfs2" ]; then
-  UNIONMOD="unionfs"
-fi
+mkdir -p /media/ramdisk/union_work
+UNION_UPPER="/media/ramdisk/union_writable"
+UNION_WORK="/media/ramdisk/union_work"
 mkdir -p /UNIONFS
-if mount -n -t $UNIONMOD -o "$UNION" unionfs /UNIONFS; then
+if mount -t overlay unionfs "-olowerdir=${UNION_LOWER},upperdir=${UNION_UPPER},workdir=${UNION_WORK}" /UNIONFS; then
   echo -n "done${CRE}"
 else
   echo ""
