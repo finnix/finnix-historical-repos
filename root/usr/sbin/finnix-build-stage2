@@ -248,14 +248,16 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   # Block devices
   IMODS="${IMODS} floppy loop"
   # Filesystems
-  IMODS="${IMODS} ext2 ext3 ext4 isofs vfat nls_cp437 nls_utf8 unionfs aufs squashfs"
+  IMODS="${IMODS} ext2 ext3 ext4 isofs vfat nls_cp437 nls_utf8 overlay squashfs"
   # Xen modules
   IMODS="${IMODS} xen-blkfront xenfs"
   # zram
   IMODS="${IMODS} zram"
+  # virtio
+  IMODS="${IMODS} virtio_blk"
   # armhf MMC interfaces
   if [ "${FINNIX_DISTARCH}" = "armhf" ]; then
-    IMODS="${IMODS} virtio_mmio virtio_blk"
+    IMODS="${IMODS} virtio_mmio"
   fi
 
   for i in ${FINNIX_SOURCE}/lib/modules/*; do

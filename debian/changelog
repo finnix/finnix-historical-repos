@@ -1,3 +1,10 @@
+finnix-scripts (20150515.0) unstable; urgency=low
+
+  * Replace aufs/unionfs with overlayfs (LP: #1455668)
+  * Ship virtio_blk with all arches
+
+ -- Ryan Finnie <ryan@finnie.org>  Fri, 15 May 2015 15:25:58 -0700
+
 finnix-scripts (20140816.0) unstable; urgency=low
 
   * Append an arbitrary build tag to the build date
