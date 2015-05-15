@@ -24,11 +24,15 @@ case "${VERSION}" in
   VERSION="${VERSION}.0"
   MAKE_SUBLEVEL_DEF="SUBLEVEL=0"
   ;;
+4.*)
+  VERSION="${VERSION}.0"
+  MAKE_SUBLEVEL_DEF="SUBLEVEL=0"
+  ;;
 2.6.*)
   MAKE_SUBLEVEL_DEF=""
   ;;
 *)
-  echo "2.6.N or 3.N kernels only" >&2
+  echo "Unsupported kernel" >&2
   exit 1
   ;;
 esac
