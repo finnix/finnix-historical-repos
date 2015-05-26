@@ -1,3 +1,9 @@
+finnix-scripts (20150525.0) unstable; urgency=low
+
+  * Add virtio_pci to initrd
+
+ -- Ryan Finnie <ryan@finnie.org>  Mon, 25 May 2015 18:00:07 -0700
+
 finnix-scripts (20150515.1) unstable; urgency=low
 
   * Create /dev/pts before mount (LP: #1455712)

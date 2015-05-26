@@ -254,7 +254,7 @@ if [ -d "${FINNIX_SOURCE}" ] && [ -d "${FINNIX_INITRD}" ]; then
   # zram
   IMODS="${IMODS} zram"
   # virtio
-  IMODS="${IMODS} virtio_blk"
+  IMODS="${IMODS} virtio_pci virtio_blk"
   # armhf MMC interfaces
   if [ "${FINNIX_DISTARCH}" = "armhf" ]; then
     IMODS="${IMODS} virtio_mmio"
