@@ -60,7 +60,7 @@ check_finnix() {
     fi
     if ! test -f $ED25519_KEY ; then
         log_begin_msg "Generating SSH2 ED25519 host key"
-        $KEYGEN -q -t ed25519-f $ED25519_KEY -C '' -N ''
+        $KEYGEN -q -t ed25519 -f $ED25519_KEY -C '' -N ''
         log_end_msg $?
     fi
 }

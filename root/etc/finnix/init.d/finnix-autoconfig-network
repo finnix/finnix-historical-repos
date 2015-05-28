@@ -87,7 +87,7 @@ for int in $arr; do
   elif [ -n "$IP_V4ADDR" ]; then
     echo "iface $int inet static" >>"/etc/network/interfaces.d/$intfn"
     [ -z "$IP_V4NETMASK" ] && IP_V4NETMASK="255.255.255.0"
-    echo "  address $IP_V4ADDRESS" >>"/etc/network/interfaces.d/$intfn"
+    echo "  address $IP_V4ADDR" >>"/etc/network/interfaces.d/$intfn"
     echo "  netmask $IP_V4NETMASK" >>"/etc/network/interfaces.d/$intfn"
     if [ -n "$IP_V4GATEWAY" ]; then
       echo "  gateway $IP_V4GATEWAY" >>"/etc/network/interfaces.d/$intfn"
@@ -110,7 +110,7 @@ for int in $arr; do
   elif [ -n "$IP_V6ADDR" ]; then
     echo "iface $int inet6 static" >>"/etc/network/interfaces.d/$intfn"
     [ -z "$IP_V6NETMASK" ] && IP_V6NETMASK="64"
-    echo "  address $IP_V6ADDRESS" >>"/etc/network/interfaces.d/$intfn"
+    echo "  address $IP_V6ADDR" >>"/etc/network/interfaces.d/$intfn"
     echo "  netmask $IP_V6NETMASK" >>"/etc/network/interfaces.d/$intfn"
     if [ -n "$IP_V6GATEWAY" ]; then
       echo "  gateway $IP_V6GATEWAY" >>"/etc/network/interfaces.d/$intfn"
