@@ -1,3 +1,9 @@
+finnix-release (111) unstable; urgency=low
+
+  * Finnix 111
+
+ -- Ryan Finnie <ryan@finnie.org>  Sun, 31 May 2015 17:30:42 -0700
+
 finnix-release (111~1) unstable; urgency=low
 
   * Finnix dev (Portage)
