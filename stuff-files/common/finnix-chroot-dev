@@ -30,6 +30,7 @@ cpre () {
   fi
   #if [ -z "$(awk '$2 == "/dev/pts" { print "yes" }' </proc/mounts)" ]; then
   if [ $(ls -1 /dev/pts | wc -l | awk '{print $1}') = 0 ]; then
+    mkdir -p /dev/pts
     mount -t devpts devpts /dev/pts
     MOUNTEDDEVPTS="yes"
   fi
