@@ -10,6 +10,6 @@ Homepage: http://www.finnix.org/
 
 Package: finnix-keyring
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Scripts needed to run Finnix
+Depends: ${shlibs:Depends}, ${misc:Depends}, gnupg
+Description: Finnix OpenPGP keyring
  This package contains the Finnix OpenPGP keyring.
