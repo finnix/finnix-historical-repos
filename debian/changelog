@@ -1,3 +1,9 @@
+finnix-scripts (20170418.0) unstable; urgency=medium
+
+  * finnix-chroot-dev: Fix /dev/pts checking
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 18 Apr 2017 05:13:54 +0000
+
 finnix-scripts (20150527.0) unstable; urgency=low
 
   * Fix ed25519 key generation
