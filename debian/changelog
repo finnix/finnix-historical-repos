@@ -1,9 +1,10 @@
-finnix-keyring (20170418.1) unstable; urgency=medium
+finnix-keyring (20170418.3) unstable; urgency=medium
 
   * Add dependency on gnupg
+  * Change build dependency to gnupg1 temporarily
   * Fix package description
 
- -- Ryan Finnie <ryan@finnie.org>  Tue, 18 Apr 2017 05:32:05 +0000
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 18 Apr 2017 05:37:31 +0000
 
 finnix-keyring (20140729.0) unstable; urgency=low
 

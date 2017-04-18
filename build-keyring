@@ -14,7 +14,7 @@ DESTRING="$3"
 TEMPHOME="$(mktemp -d)"
 
 for i in $(grep -v '^\s*\#' "$SERIESFILE"); do
-  gpg --batch --no-tty --no-options --homedir "$TEMPHOME" --import "$KEYSDIR/$i"
+  gpg1 --batch --no-tty --no-options --homedir "$TEMPHOME" --import "$KEYSDIR/$i"
 done
 
 cat "$TEMPHOME/pubring.gpg" >"$DESTRING"
