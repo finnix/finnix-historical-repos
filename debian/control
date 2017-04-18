@@ -2,7 +2,7 @@ Source: finnix-keyring
 Section: misc
 Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
-Build-Depends: debhelper (>= 7.0.50~), gnupg
+Build-Depends: debhelper (>= 7.0.50~), gnupg1
 Standards-Version: 3.9.3
 Vcs-Browser: https://code.launchpad.net/~finnix/finnix/finnix-keyring-pkg
 Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/finnix-keyring-pkg
