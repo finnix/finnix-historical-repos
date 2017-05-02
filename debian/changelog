@@ -1,3 +1,9 @@
+finnix-base (20170502.0) unstable; urgency=medium
+
+  * Add alternative init to allow systemd-sysv install
+
+ -- Ryan Finnie <ryan@finnie.org>  Tue, 02 May 2017 23:19:47 +0000
+
 finnix-base (20140903.0) unstable; urgency=low
 
   * Depend on sysvinit-core (LP: #1365209)
