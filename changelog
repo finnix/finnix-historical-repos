@@ -1,3 +1,10 @@
+emad (10.0.11.0.0.0.2-1~0) unstable; urgency=medium
+
+  * New upstream release
+  * debhelper 12, Standards-Version: 4.5.0, other cleanups
+
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 07 May 2020 16:42:51 -0700
+
 emad (1.0-0~1finnix2) unstable; urgency=low
 
   * Migrate to xz packaging, add ignore options (LP: #1082283)

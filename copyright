@@ -1,39 +1,31 @@
-This work was packaged for Debian by:
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: emad
+Upstream-Contact: Ryan Finnie <ryan@finnie.org>
+Source: https://www.github.com/rfinnie/emad
 
-    Ryan Finnie <ryan@finnie.org> on Sun, 21 Aug 2011 14:21:18 -0700
+Files: *
+Copyright: 2003-2020 Nick Moffitt, et al
+License: GPL-2+
 
-It was downloaded from:
+Files: debian/*
+Copyright: 2011-2020 Ryan Finnie
+License: GPL-2+
 
-    http://zork.net/pub/
-
-Upstream Author(s):
-
-    Nick Moffitt <nick@zork.net>
-    Atob <atob@zork.net>
-
-Copyright:
-
-    Copyright (C) 2003 Nick Moffitt, et al
-
-License:
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-The Debian packaging is:
-
-    Copyright (C) 2011 Ryan Finnie <ryan@finnie.org>
-
-and is licensed under the GPL version 2,
-see "/usr/share/common-licenses/GPL-2".
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 2 can be found in the file
+ `/usr/share/common-licenses/GPL-2'.

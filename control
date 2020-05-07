@@ -1,9 +1,9 @@
 Source: emad
 Section: games
-Priority: extra
+Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
-Build-Depends: debhelper (>= 7.0.50~), autotools-dev, libncurses5-dev
-Standards-Version: 3.9.3
+Build-Depends: debhelper, debhelper-compat (= 12), libncurses-dev
+Standards-Version: 4.5.0
 Homepage: http://zork.net/pub/
 
 Package: emad
