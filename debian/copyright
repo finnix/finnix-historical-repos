@@ -3,6 +3,10 @@ Upstream-Name: grub-loopback-iso
 Upstream-Contact: Ryan Finnie <ryan@finnie.org>
 Source: https://www.github.com/finnix/grub-loopback-iso-pkg
 
+Files: *
+Copyright: 2012-2020 Ryan Finnie
+License: GPL-2+
+
 Files: debian/*
 Copyright: 2012-2020 Ryan Finnie
 License: GPL-2+
