@@ -1,5 +1,0 @@
-# To build GRUB 2 menu entries for loopback ISOs, specify the location 
-# here.  This can either be a single ISO, or a directory containing 
-# multiple loopback ISOs.
-#
-LOOPBACK_ISO="/boot/loopback-iso"

@@ -2,8 +2,8 @@
 set -e
 
 if [ "$1" = configure ]; then
-    if [ -e /boot/grub/grub.cfg ] && which update-grub2 >/dev/null; then
-	update-grub2
+    if [ -e /boot/grub/grub.cfg ] && which update-grub >/dev/null; then
+	update-grub
     fi
 fi
 

@@ -1,6 +1,5 @@
-grub-loopback-iso (1) UNRELEASED; urgency=low
+grub-loopback-iso (1) unstable; urgency=low
 
   * Initial release. (Closes: #693774)
-    (See also: LP: #1080572)
 
- -- Ryan Finnie <ryan@finnie.org>  Mon, 16 Apr 2013 00:10:20 +0000
+ -- Ryan Finnie <ryan@finnie.org>  Thu, 14 May 2020 11:57:05 -0700

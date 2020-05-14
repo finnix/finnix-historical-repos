@@ -1,3 +1,5 @@
+debian/.debhelper
+debian/debhelper-build-stamp
 debian/files
 debian/grub-loopback-iso
 debian/grub-loopback-iso.debhelper.log

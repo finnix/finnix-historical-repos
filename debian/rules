@@ -5,8 +5,8 @@
 #export DH_VERBOSE=1
 
 %:
-	dh $@ 
+	dh $@
 
 override_dh_auto_install:
 	install -d -m 0755 $(CURDIR)/debian/grub-loopback-iso/etc/grub.d
-	install -m 0755 debian/grub.d $(CURDIR)/debian/grub-loopback-iso/etc/grub.d/35_loopback-iso
+	install -m 0755 debian/grub.d $(CURDIR)/debian/grub-loopback-iso/etc/grub.d/30_loopback-iso

@@ -7,14 +7,14 @@ an ISO.
 
 == Installation ==
 
-Place compatible ISOs in a suitable location.  By default, this is 
-/boot/loopback-isos, but may be changed by editing 
-/etc/default/grub-loopback-iso (for example, if the /boot partition is 
-too small).  However, keep in mind that the ISO's operating system may 
-have restrictions on what type of partition the ISO may be placed on; it 
-is the ISO's operating system (initrd most likely) which is responsible 
-for finding the ISO by scanning partitions, so the partition and 
-filesystem must be known to the ISO operating system.
+Place compatible ISOs in a suitable location.  By default, this is
+/boot/loopback-iso, but may be changed by setting GRUB_LOOPBACK_ISO (for
+example, if the /boot partition is too small).  However, keep in mind
+that the ISO's operating system may have restrictions on what type of
+partition the ISO may be placed on; it is the ISO's operating system
+(initrd most likely) which is responsible for finding the ISO by
+scanning partitions, so the partition and filesystem must be known to
+the ISO operating system.
 
-Then simply run "update-grub2", and verify the correct stanzas have been 
+Then simply run "update-grub", and verify the correct stanzas have been
 created in /boot/grub/grub.cfg .

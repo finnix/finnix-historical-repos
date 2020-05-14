@@ -2,14 +2,15 @@ Source: grub-loopback-iso
 Section: admin
 Priority: optional
 Maintainer: Ryan Finnie <ryan@finnie.org>
-Build-Depends: debhelper (>= 7.0.50~)
-Standards-Version: 3.9.4
-Vcs-Browser: https://code.launchpad.net/~finnix/finnix/grub-loopback-iso-pkg
-Vcs-Bzr: http://bazaar.launchpad.net/~finnix/finnix/grub-loopback-iso-pkg
+Build-Depends: debhelper, debhelper-compat (= 13)
+Standards-Version: 4.5.0
+Rules-Requires-Root: no
+Vcs-Browser: https://github.com/finnix/grub-loopback-iso-pkg
+Vcs-Git: https://github.com/finnix/grub-loopback-iso-pkg.git
 
 Package: grub-loopback-iso
-Architecture: i386 amd64
-Depends: ${shlibs:Depends}, ${misc:Depends}, grub-pc (>= 1.99-1)
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, grub-common (>= 1.99-1)
 Description: Boot a compatible loopback ISO from GRUB 2
  grub-loopback-iso is a GRUB 2 configuration hook to boot compatible
  ISOs stored on the host filesystem. The stanzas built utilize GRUB
