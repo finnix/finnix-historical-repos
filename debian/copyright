@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: grub-loopback-iso
 Upstream-Contact: Ryan Finnie <ryan@finnie.org>
-Source: https://www.github.com/finnix/grub-loopback-iso-pkg
+Source: https://salsa.debian.org/rfinnie/grub-loopback-iso
 
 Files: *
 Copyright: 2012-2020 Ryan Finnie
